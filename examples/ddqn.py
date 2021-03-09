@@ -31,7 +31,7 @@ import tensorflow as tf
 # from tensorflow.keras import backend as K
 from tensorflow.compat.v1.keras import backend as K
 import gym_donkeycar
-EPISODES = 10000
+EPISODES = 20
 img_rows, img_cols = 80, 80
 # Convert image into Black and white
 
