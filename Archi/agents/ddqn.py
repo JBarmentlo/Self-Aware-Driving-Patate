@@ -70,8 +70,8 @@ class DQNAgent:
 		self.discount_factor = 0.99
 		self.learning_rate = 1e-4
 		if (self.train):
-			self.epsilon = 0.0
-			self.initial_epsilon = 0.0
+			self.epsilon = 0.9
+			self.initial_epsilon = 0.9
 		else:
 			self.epsilon = 1e-6
 			self.initial_epsilon = 1e-6

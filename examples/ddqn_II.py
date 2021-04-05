@@ -38,6 +38,7 @@ import gym_donkeycar
 
 from config import cte_config, speed_reward
 
+
 EPISODES = 20000
 img_rows, img_cols = 80, 80
 # Convert image into Black and white
@@ -78,7 +79,8 @@ class DQNAgent:
 
     def build_model(self):
         model = Sequential()
-        model.add(Conv2D(24, (5, 5), strides=(2, 2), padding="same",input_shape=(img_rows,img_cols,img_channels)))  #80*80*4
+        model.add(Conv2D(24, (5, 5), strides=(2, 2), padding="same",
+					input_shape=(img_rows,img_cols,img_channels)))  #80*80*4
         model.add(Activation('relu'))
         model.add(Conv2D(32, (5, 5), strides=(2, 2), padding="same"))
         model.add(Activation('relu'))
@@ -235,6 +237,8 @@ def run_ddqn(args):
             done = False
             obs = env.reset()
             episode_len = 0
+			# cte_offset: 1.25 ou 2.25
+			# done func -> si cte > cte_max
             x_t = agent.process_image(obs)
             s_t = np.stack((x_t,x_t,x_t,x_t),axis=2)
             # In Keras, need to reshape
