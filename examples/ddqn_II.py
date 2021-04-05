@@ -36,7 +36,7 @@ import gym_donkeycar
 
 
 
-from config import cte_config, speed_reward
+from config import cte_config
 
 
 EPISODES = 20000
@@ -252,6 +252,7 @@ def run_ddqn(args):
                 cte_corrected = cte + cte_config.cte_offset
                 # print("speed : ", env.viewer.handler.speed)
                 done = cte_config.done_func(cte_corrected)
+                print(cte_corrected, done)
                 #if (env.viewer.handler.cte > 7 + 355):
                 #    done = True
                 if (done):
