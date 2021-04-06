@@ -13,46 +13,7 @@ from tensorflow.compat.v1.keras import backend as K
 from collections import deque
 import numpy as np
 import random
-
-#TODO: use output_shape from arg (HyperParams Opti)
-turn_bins = 7
-
-## Utils Functions ##
-def linear_bin(a):
-	#TODO: remove function
-	"""
-	Convert a value to a categorical array.
-	Parameters
-	----------
-	a : int or float
-		A value between -1 and 1
-	Returns
-	-------
-	list of int
-		A list of length 15 with one item set to 1, which represents the linear value, and all other items set to 0.
-	"""
-	a = a + 1
-	b = round(a / (2 / (turn_bins - 1)))
-	arr = np.zeros(turn_bins)
-	arr[int(b)] = 1
-	# print("bin", a, arr)
-	return arr
-
-
-def linear_unbin(arr):
-	#TODO: remove function
-	"""
-	Convert a categorical array to value.
-	See Also
-	--------
-	linear_bin
-	"""
-	if not len(arr) == turn_bins:
-		raise ValueError('Illegal array length, must be 15')
-	b = np.argmax(arr)
-	a = b * (2 / (turn_bins - 1)) - 1
-	# print("unbin", a, b)
-	return a
+from utils import linear_unbin
 
 
 class DQNAgent:
@@ -114,42 +75,22 @@ class DQNAgent:
 		self.target_model.set_weights(self.model.get_weights())
 	# Get action from model using epsilon-greedy policy
 
-	def get_action(self, s_t):
+	def choose_action(self, s_t):
 		if np.random.rand() <= self.epsilon:
 			return self.action_space.sample()[0]
 		else:
 			#print("Return Max Q Prediction")
 			q_value = self.model.predict(s_t)
 			# Convert q array to steering value
+			print(q_value)
 			return linear_unbin(q_value[0])
 
-	def replay_memory(self, state, action, reward, next_state, done):
-		self.memory.append((state, action, reward, next_state, done))
+	# def replay_memory(self, state, action, reward, next_state, done):
+	# 	self.memory.append((state, action, reward, next_state, done))
 
 	def update_epsilon(self):
 		if self.epsilon > self.epsilon_min:
 			self.epsilon -= (self.initial_epsilon - self.epsilon_min) / self.explore
-
-	def train_replay(self):
-		if len(self.memory) < self.train_start:
-			return
-		batch_size = min(self.batch_size, len(self.memory))
-		minibatch = random.sample(self.memory, batch_size)
-		state_t, action_t, reward_t, state_t1, terminal = zip(*minibatch)
-		state_t = np.concatenate(state_t)
-		state_t1 = np.concatenate(state_t1)
-		targets = self.model.predict(state_t)
-		self.max_Q = np.max(targets[0])
-		target_val = self.model.predict(state_t1)
-		target_val_ = self.target_model.predict(state_t1)
-		for i in range(batch_size):
-			if terminal[i]:
-				targets[i][action_t[i]] = reward_t[i]
-			else:
-				a = np.argmax(target_val[i])
-				targets[i][action_t[i]] = reward_t[i] + \
-					self.discount_factor * (target_val_[i][a])
-		self.model.train_on_batch(state_t, targets)
 
 	def load_model(self, name):
 		self.model.load_weights('model_cache/' + name)

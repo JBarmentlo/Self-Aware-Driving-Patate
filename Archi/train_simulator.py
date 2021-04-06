@@ -22,6 +22,7 @@ from agents.ddqn import DQNAgent
 import gym_donkeycar
 import tensorflow as tf
 from tensorflow.compat.v1.keras import backend as K
+from utils import linear_bin
 EPISODES = 20
 img_rows, img_cols = 80, 80
 # Convert image into Black and white
@@ -30,58 +31,21 @@ turn_bins = 7
 img_channels = 4  # We stack 4 frames
 
 
-## Utils Functions ##
-def linear_bin(a):
-	"""
-	Convert a value to a categorical array.
-	Parameters
-	----------
-	a : int or float
-		A value between -1 and 1
-	Returns
-	-------
-	list of int
-		A list of length 15 with one item set to 1, which represents the linear value, and all other items set to 0.
-	"""
-	a = a + 1
-	b = round(a / (2 / (turn_bins - 1)))
-	arr = np.zeros(turn_bins)
-	arr[int(b)] = 1
-	# print("bin", a, arr)
-	return arr
+def init_simulator(neural_player):
+	# Sim config
+	# only needed if TF==1.13.1
+	neural_player.sim_config = tf.compat.v1.ConfigProto(log_device_placement=True)
+	neural_player.sim_config.gpu_options.allow_growth = True
+	print(neural_player.sim_config)
 
+	# Keras session init
+	neural_player.sess = tf.compat.v1.Session(config=neural_player.sim_config)
+	K.set_session(neural_player.sess)
 
-def linear_unbin(arr):
-	"""
-	Convert a categorical array to value.
-	See Also
-	--------
-	linear_bin
-	"""
-	if not len(arr) == turn_bins:
-		raise ValueError('Illegal array length, must be 15')
-	b = np.argmax(arr)
-	a = b * (2 / (turn_bins - 1)) - 1
-	# print("unbin", a, b)
-	return a
-
-
-
-class NeuralPlayer():
-	def __init__(self, args):
-		'''
-		run a DDQN training session, or test it's result, with the donkey simulator
-		'''
-		self.args = args
-		# only needed if TF==1.13.1
-		self.sim_config = tf.compat.v1.ConfigProto(log_device_placement=True)
-		self.sim_config.gpu_options.allow_growth = True
-		print(self.sim_config)
-		self.sess = tf.compat.v1.Session(config=self.sim_config)
-		K.set_session(self.sess)
-		self.conf = {"exe_path": args.sim,
-                    "host": "127.0.0.1",
-                    "port": args.port,
+	# Create env
+	neural_player.conf = {"exe_path": neural_player.args.sim,
+					"host": "127.0.0.1",
+					"port": neural_player.args.port,
                     "body_style": "donkey",
                     "body_rgb": (128, 128, 128),
                     "car_name": "me",
@@ -91,18 +55,33 @@ class NeuralPlayer():
                     "bio": "Learning to drive w DDQN RL",
                     "guid": str(uuid.uuid4()),
                     "max_cte": 10,
-          }
-		# Construct gym environment. Starts the simulator if path is given.
-		self.env = gym.make(args.env_name, conf=self.conf)
-		# not working on windows...
-
-		def signal_handler(signal, frame):
+              }
+	
+	# Signal handler
+	# not working on windows...
+	def signal_handler(signal, frame):
 			print("catching ctrl+c")
-			self.env.unwrapped.close()
+			neural_player.env.unwrapped.close()
 			sys.exit(0)
-		signal.signal(signal.SIGINT, signal_handler)
-		signal.signal(signal.SIGTERM, signal_handler)
-		signal.signal(signal.SIGABRT, signal_handler)
+	signal.signal(signal.SIGINT, signal_handler)
+	signal.signal(signal.SIGTERM, signal_handler)
+	signal.signal(signal.SIGABRT, signal_handler)
+
+	return (neural_player)
+
+
+class NeuralPlayer():
+	def __init__(self, args):
+		'''
+		run a DDQN training session, or test it's result, with the donkey simulator
+		'''
+		self.args = args
+		self = init_simulator(self)
+		# Construct gym environment. Starts the simulator if path is given.
+		self.env = gym.make(
+			self.args.env_name, conf=self.conf)
+
+		self.memory = deque(maxlen=10000)
 		# Get size of state and action from environment
 		self.state_size = (img_rows, img_cols, img_channels)
 		self.action_space = self.env.action_space  # Steering and Throttle
@@ -122,45 +101,63 @@ class NeuralPlayer():
 		finally:
 			self.env.unwrapped.close()
 
-	def do_episode(self):
-		pass
+	def prepare_state(self, obs, old_s_t=None):
+		x_t = self.preprocessing.process_image(obs)
+		if type(old_s_t) != type(np.ndarray):
+			s_t = np.stack((x_t, x_t, x_t, x_t), axis=2)
+			# In Keras, need to reshape
+			s_t = s_t.reshape(1, s_t.shape[0], s_t.shape[1], s_t.shape[2])  # 1*80*80*4
+		else:
+			x_t = x_t.reshape(1, x_t.shape[0], x_t.shape[1], 1)  # 1x80x80x1
+			s_t = np.append(x_t, old_s_t[:, :, :, :3], axis=3)  # 1x80x80x4
+		return s_t
+
+	def reward_optimization(self, reward, done):
+		if (done):
+			reward = -1000
+		return reward
 
 	def run_ddqn(self):
 		throttle = self.args.throttle  # Set throttle as constant value
 		episodes = []
 		for e in range(EPISODES):
+			# Init
 			print("Episode: ", e)
 			done = False
 			obs = self.env.reset()
 			episode_len = 0
-			x_t = self.preprocessing.process_image(obs)
-			s_t = np.stack((x_t, x_t, x_t, x_t), axis=2)
-			# In Keras, need to reshape
-			s_t = s_t.reshape(1, s_t.shape[0], s_t.shape[1], s_t.shape[2])  # 1*80*80*4
+
+			# Apply preprocessing and stack 4 frames
+			st = self.prepare_state(obs, old_s_t=None)
+
 			while not done:
-				print(f"From env: cte {self.env.viewer.handler.cte}")
-				# Get action for the current state and go one step in environment
-				steering = self.agent.get_action(s_t)
+
+				# print(f"From env: cte {self.env.viewer.handler.cte}")
+				# Choose action
+				steering = self.agent.choose_action(st)
+				# Get true value from categories
 				action = [steering, throttle]
+				# Do action
 				next_obs, reward, done, info = self.env.step(action)
-				# print(reward, done)
-				if (done):
-					reward = -1000
-				x_t1 = self.preprocessing.process_image(next_obs)
-				x_t1 = x_t1.reshape(1, x_t1.shape[0], x_t1.shape[1], 1)  # 1x80x80x1
-				s_t1 = np.append(x_t1, s_t[:, :, :, :3], axis=3)  # 1x80x80x4
-				# Save the sample <s, a, r, s'> to the replay memory
-				self.agent.replay_memory(s_t, np.argmax(
-					linear_bin(steering)), reward, s_t1, done)
+				# Reward opti
+				reward = self.reward_optimization(reward, done)
+				# Apply preprocessing and stack 4 frames
+				st = self.prepare_state(obs, old_s_t=st)
+				# Save the sample <s, a, r, s', d> to the memory
+				self.memory.append((st,
+                                    [np.argmax(linear_bin(action[0])), action[1]],
+									reward,
+                                    st,
+									done))
+				
 				self.agent.update_epsilon()
+				
 				if self.agent.train:
-					self.agent.train_replay()
-				s_t = s_t1
+					self.train_replay()
+				# if self.agent.t % 30 == 0:
+				print(f"""Episode: {e}, Timestep: {self.agent.t}, Action: {action}, Reward: {reward}, Ep_len: {episode_len}, MaxQ: {self.agent.max_Q}""")
 				self.agent.t = self.agent.t + 1
 				episode_len = episode_len + 1
-				if self.agent.t % 30 == 0:
-					print("EPISODE",  e, "TIMESTEP", self.agent.t, "/ ACTION", action, "/ REWARD",
-							reward, "/ EPISODE LENGTH", episode_len, "/ Q_MAX ", self.agent.max_Q)
 				if done:
 					# Every episode update the target model to be same with model
 					self.agent.update_target_model()
@@ -171,6 +168,26 @@ class NeuralPlayer():
 					print("episode:", e, "  memory length:", len(self.agent.memory),
 											"  epsilon:", self.agent.epsilon, " episode length:", episode_len)
 
+	def train_replay(self):
+		if len(self.memory) < self.agent.train_start:
+			return
+		batch_size = min(self.agent.batch_size, len(self.memory))
+		minibatch = random.sample(self.memory, batch_size)
+		state_t, action_t, reward_t, state_t1, terminal = zip(*minibatch)
+		state_t = np.concatenate(state_t)
+		state_t1 = np.concatenate(state_t1)
+		targets = self.agent.model.predict(state_t)
+		self.agent.max_Q = np.max(targets[0])
+		target_val = self.agent.model.predict(state_t1)
+		target_val_ = self.agent.target_model.predict(state_t1)
+		for i in range(batch_size):
+			if terminal[i]:
+				targets[i][action_t[i]] = reward_t[i]
+			else:
+				a = np.argmax(target_val[i])
+				targets[i][action_t[i]] = reward_t[i] + \
+					self.agent.discount_factor * (target_val_[i][a])
+		self.agent.model.train_on_batch(state_t, targets)
 
 if __name__ == "__main__":
 	# Initialize the donkey environment

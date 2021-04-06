@@ -19,8 +19,8 @@ config = DotDict()
 # --------------------
 
 # Simulator
-config.sim_img_rows = 1000  # TODO: check real value
-config.sim_img_cols = 1000  # TODO: check real value
+config.sim_img_rows = 150  # TODO: check real value
+config.sim_img_cols = 150  # TODO: check real value
 # sim_img_channels is the number of colors in image
 config.sim_img_channels = 3
 config.sim_img_shape = (config.sim_img_rows,
@@ -37,6 +37,12 @@ config.prep_img_shape = (config.prep_img_rows,
                          config.prep_img_channels)
 
 # Model Prediction
+config.turn_bins = 7
+
+cte_config = DotDict()
+cte_config.cte_offset = 2.25
+cte_config.max_cte = 3.2
+cte_config.done_func = lambda x: abs(x) > cte_config.max_cte
 
 # ----------------
 # HYPER PARAMETERS

@@ -1,7 +1,7 @@
 Mono path[0] = '/home/ezalos/42/Self-Aware-Driving-Patate/../../DonkeyCar/DonkeySimLinux/donkey_sim_Data/Managed'
 Mono config path = '/home/ezalos/42/Self-Aware-Driving-Patate/../../DonkeyCar/DonkeySimLinux/donkey_sim_Data/MonoBleedingEdge/etc'
-Display 0 'U28E590 28"': 3840x2160 (primary device).
-Display 1 '1': 1920x1080 (secondary device).
+Display 0 '0': 1920x1080 (primary device).
+Display 1 'S24D340 24"': 1920x1080 (secondary device).
 Desktop is 1920 x 1080 @ 60 Hz
 Initialize engine version: 2019.3.0f1 (ffacea4b84e7)
 [Subsystems] Discovering subsystems at path /home/ezalos/42/Self-Aware-Driving-Patate/../../DonkeyCar/DonkeySimLinux/donkey_sim_Data/UnitySubsystems
@@ -16,15 +16,14 @@ int_sprite GL_ARB_polygon_offset_clamp GL_ARB_post_depth_coverage GL_ARB_program
 L_ARB_texture_buffer_object GL_ARB_texture_buffer_object_rgb32 GL_ARB_texture_buffer_range GL_ARB_texture_compression_bptc GL_ARB_texture_compression_rgtc GL_ARB_texture_cube_map_array GL_ARB_texture_filter_anisotropic GL_ARB_texture_float GL_ARB_texture_gather GL_ARB_texture_mirror_clamp_to_edge GL_ARB_texture_multisample GL_ARB_texture_non_power_of_two GL_ARB_texture_query_levels GL_ARB_texture_query_lod GL_ARB_texture_rectangle GL_ARB_texture_rg GL_ARB_texture_rgb10_a2ui GL_ARB_texture_stencil8 GL_ARB_texture_storage GL_ARB_texture_storage_multisample GL_ARB_texture_swizzle GL_ARB_texture_view GL_ARB_timer_query GL_ARB_transform_feedback2 GL_ARB_transform_feedback3 GL_ARB_transform_feedback_instanced GL_ARB_transform_feedback_overflow_query GL_ARB_uniform_buffer_object GL_ARB_vertex_array_bgra GL_ARB_vertex_array_object GL_ARB_vertex_attrib_64bit GL_ARB_vertex_attrib_binding GL_ARB_vertex_buffer_object GL_ARB_vertex_shader GL_ARB_vertex_type_10f_11f_11f_rev GL_ARB_vertex_type_2_10_10_10_rev GL_ARB_viewpor
 t_array GL_ATI_blend_equation_separate GL_ATI_texture_float GL_EXT_EGL_image_storage GL_EXT_EGL_sync GL_EXT_abgr GL_EXT_blend_equation_separate GL_EXT_demote_to_helper_invocation GL_EXT_draw_buffers2 GL_EXT_draw_instanced GL_EXT_framebuffer_blit GL_EXT_framebuffer_multisample GL_EXT_framebuffer_multisample_blit_scaled GL_EXT_framebuffer_object GL_EXT_framebuffer_sRGB GL_EXT_packed_depth_stencil GL_EXT_packed_float GL_EXT_pixel_buffer_object GL_EXT_polygon_offset_clamp GL_EXT_provoking_vertex GL_EXT_shader_framebuffer_fetch GL_EXT_shader_framebuffer_fetch_non_coherent GL_EXT_shader_integer_mix GL_EXT_shader_samples_identical GL_EXT_texture_array GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc GL_EXT_texture_filter_anisotropic GL_EXT_texture_integer GL_EXT_texture_sRGB GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_decode GL_EXT_texture_shadow_lod GL_EXT_texture_shared_exponent GL_EXT_texture_snorm GL_EXT_texture_swizzle GL_EXT_timer_query GL_EXT_transform_feedback G
 L_EXT_vertex_array_bgra GL_EXT_vertex_attrib_64bit GL_IBM_multimode_draw_arrays GL_INTEL_blackhole_render GL_INTEL_conservative_rasterization GL_INTEL_performance_query GL_INTEL_shader_atomic_float_minmax GL_INTEL_shader_integer_functions2 GL_KHR_blend_equation_advanced GL_KHR_blend_equation_advanced_coherent GL_KHR_context_flush_control GL_KHR_debug GL_KHR_no_error GL_KHR_parallel_shader_compile GL_KHR_robust_buffer_access_behavior GL_KHR_robustness GL_KHR_texture_compression_astc_ldr GL_KHR_texture_compression_astc_sliced_3d GL_MESA_framebuffer_flip_y GL_MESA_pack_invert GL_MESA_shader_integer_functions GL_MESA_texture_signed_rgba GL_NV_compute_shader_derivatives GL_NV_conditional_render GL_NV_copy_image GL_NV_depth_clamp GL_NV_fragment_shader_interlock GL_NV_packed_depth_stencil GL_NV_texture_barrier GL_OES_EGL_image GL_S3_s3tc
-OPENGL LOG: Creating OpenGL 4.6 graphics device ; Context level  <OpenGL 4.5> ; Context handle 40766128
+OPENGL LOG: Creating OpenGL 4.6 graphics device ; Context level  <OpenGL 4.5> ; Context handle 17341264
 Begin MonoManager ReloadAssembly
-- Completed reload, in  0.213 seconds
+- Completed reload, in  0.075 seconds
 Default vsync count 0
 requesting resize 1920 x 1017
 resizing window to 1920 x 1017
 Desktop is 1920 x 1080 @ 60 Hz
-UnloadTime: 3.769764 ms
-Desktop is 3840 x 2160 @ 30 Hz
+UnloadTime: 6.448941 ms
 SDSandbox Server starting. 
 (Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
 
@@ -35,10 +34,10 @@ Waiting for a connection...
 (Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
 
 Setting up 4 worker threads for Enlighten.
-  Thread -> id: 7f305e07b640 -> priority: 1 
-  Thread -> id: 7f305d87a640 -> priority: 1 
-  Thread -> id: 7f305d079640 -> priority: 1 
-  Thread -> id: 7f305c878640 -> priority: 1 
+  Thread -> id: 7fac92fb0640 -> priority: 1 
+  Thread -> id: 7fac927af640 -> priority: 1 
+  Thread -> id: 7fac91fae640 -> priority: 1 
+  Thread -> id: 7fac917ad640 -> priority: 1 
 Waiting for a connection... 
 (Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
 
@@ -58,7 +57,7 @@ loaded scene
 (Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
 
 Unloading 6 Unused Serialized files (Serialized files now loaded: 0)
-UnloadTime: 43.009742 ms
+UnloadTime: 38.165374 ms
 JustOne removing instance.MainThDisp 
 (Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
 
@@ -76,7 +75,7 @@ Got car config message
 
 
 Unloading 26 unused Assets to reduce memory usage. Loaded Objects now: 3490.
-Total: 13.957542 ms (FindLiveObjects: 0.600883 ms CreateObjectMapping: 0.089009 ms MarkObjects: 1.726967 ms  DeleteObjects: 11.539569 ms)
+Total: 21.430604 ms (FindLiveObjects: 0.475918 ms CreateObjectMapping: 0.083837 ms MarkObjects: 2.938509 ms  DeleteObjects: 17.931601 ms)
 
 Setting car config. 
 (Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
@@ -150,6 +149,114 @@ Got: control
 Got: control 
 (Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
 
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
 Got: reset_car 
 (Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
 
@@ -222,7 +329,226 @@ Got: control
 Got: control 
 (Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
 
-Got: reset_car 
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Got: control 
 (Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
 
 Got: control 
