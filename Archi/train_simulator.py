@@ -151,9 +151,6 @@ class NeuralPlayer():
 									done))
 				
 				self.agent.update_epsilon()
-				
-				if self.agent.train:
-					self.train_replay()
 				# if self.agent.t % 30 == 0:
 				print(f"""Episode: {e}, Timestep: {self.agent.t}, Action: {action}, Reward: {reward}, Ep_len: {episode_len}, MaxQ: {self.agent.max_Q}""")
 				self.agent.t = self.agent.t + 1
@@ -167,6 +164,9 @@ class NeuralPlayer():
 						self.agent.save_model(self.args.model)
 					print("episode:", e, "  memory length:", len(self.agent.memory),
 											"  epsilon:", self.agent.epsilon, " episode length:", episode_len)
+
+			if self.agent.train:
+				self.train_replay()
 
 	def train_replay(self):
 		if len(self.memory) < self.agent.train_start:
