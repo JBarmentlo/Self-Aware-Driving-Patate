@@ -19,7 +19,7 @@ from utils import linear_unbin
 class DQNAgent:
 	def __init__(self, state_size, action_space, input_shape, output_size, train=True):
 		self.t = 0
-		self.max_Q = 0
+		self.max_Q = 0.0
 		self.train = train
 		# Get size of state and action
 		self.state_size = state_size
@@ -80,10 +80,10 @@ class DQNAgent:
 			return self.action_space.sample()[0]
 		else:
 			#print("Return Max Q Prediction")
-			q_value = self.model.predict(s_t)
+			q_values = self.model.predict(s_t)
 			# Convert q array to steering value
-			print(q_value)
-			return linear_unbin(q_value[0])
+			print(f"Model 'True' prediction: {q_values}")
+			return linear_unbin(q_values[0])
 
 	# def replay_memory(self, state, action, reward, next_state, done):
 	# 	self.memory.append((state, action, reward, next_state, done))

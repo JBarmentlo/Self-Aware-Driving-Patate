@@ -9,7 +9,7 @@ def linear_unbin(arr, turn_bins=config.turn_bins):
 	--------
 	linear_bin
 	"""
-	print(arr)
+	# print(arr)
 	if not len(arr) == turn_bins:
 		raise ValueError(f'Illegal array length, must be {turn_bins}')
 	b = np.argmax(arr)
@@ -30,7 +30,7 @@ def linear_bin(a, turn_bins=config.turn_bins):
 	list of int
 		A list of length 15 with one item set to 1, which represents the linear value, and all other items set to 0.
 	"""
-	print(a)
+	# print(a)
 	a = a + 1
 	b = round(a / (2 / (turn_bins - 1)))
 	arr = np.zeros(turn_bins)
