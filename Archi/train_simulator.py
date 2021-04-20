@@ -169,6 +169,9 @@ class NeuralPlayer():
 				self.train_replay()
 
 	def train_replay(self):
+		# TODO: Bug in this function that need to be solved
+		return None
+
 		if len(self.memory) < self.agent.train_start:
 			return
 		batch_size = min(self.agent.batch_size, len(self.memory))
@@ -182,6 +185,8 @@ class NeuralPlayer():
 		target_val_ = self.agent.target_model.predict(state_t1)
 		for i in range(batch_size):
 			if terminal[i]:
+				# BUG HERE: bad dereferencement -> shape is targets[][][].
+				# Needs better understanding before solving isssue
 				targets[i][action_t[i]] = reward_t[i]
 			else:
 				a = np.argmax(target_val[i])
