@@ -76,7 +76,7 @@ class DQNAgent:
 	# Get action from model using epsilon-greedy policy
 
 	def choose_action(self, s_t):
-		if np.random.rand() <= self.epsilon:
+		if np.random.rand() <= self.epsilon: 
 			return self.action_space.sample()[0]
 		else:
 			#print("Return Max Q Prediction")
@@ -98,3 +98,4 @@ class DQNAgent:
 
 	def save_model(self, name):
 		self.model.save_weights('model_cache/' + name)
+ 
