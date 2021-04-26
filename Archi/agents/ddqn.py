@@ -18,7 +18,6 @@ from utils import linear_unbin
 
 class DQNAgent:
 	def __init__(self, state_size, action_space, input_shape, output_size, train=True):
-		self.t = 0
 		self.max_Q = 0.0
 		self.train = train
 		# Get size of state and action
@@ -93,9 +92,9 @@ class DQNAgent:
 			self.epsilon -= (self.initial_epsilon - self.epsilon_min) / self.explore
 
 	def load_model(self, name):
-		self.model.load_weights('model_cache/' + name)
+		self.model.load_weights(name)
 	# Save the model which is under training
 
 	def save_model(self, name):
-		self.model.save_weights('model_cache/' + name)
+		self.model.save_weights(name)
  
