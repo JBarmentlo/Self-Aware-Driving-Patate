@@ -244,6 +244,7 @@ class NeuralPlayer():
 
     def reward_optimization(self, reward, done):
         if (done):
+			# TODO: Carefull with reward if terminal state is after winning the race -> should be positive
             reward = -1000.0
         return reward
 
