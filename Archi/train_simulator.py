@@ -25,22 +25,41 @@ from config import config
 import threading
 from datetime import datetime
 import json
+import boto3
+import os
+### UNCONMMENT THE FOLLOWING LINE TO CONNECT TO S3 BUCKET:
+# from s3 import s3, bucket_name, bucket
+
 # doesn't show TF warnings..
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-def create_pickle_file(name, content):
-    with open(name, "wb") as f:
+def upload_pickle_file(file_name, content):
+    ### UNCOMMENT THESE LINES IF YOU WANT TO UPLOAD DIRECTLY TO S3:
+    # pickle_byte_obj = pickle.dumps(content)
+    # s3.Object(bucket_name, file_name).put(Body=pickle_byte_obj)
+    
+    ### COMMENT THESE LINES IF YOU DON't WANT TO UPLOAD THE PKL FILE LOCALLY:
+    with open(file_name, "wb") as f:
         pickle.dump(content, f)
 
 
-def read_pickle_file(name):
+def read_s3_pkl_file(name):
+    ### UNCOMMENT THESE LINES IF YOU WANT TO READ THE FILE DIRECTLY FROM S3:
+    # result = pickle.loads(bucket.Object(name).get()['Body'].read())
+    
+    ### COMMENT THESE LINES IF YOU DON't WANT TO READ THE FILE LOCALLY:
     with open(name, "rb") as f:
-        result = pickle.load(f)
+        result = json.load(f)
     return(result)
 
 
-def create_json_file(name, content):
-    with open(name, "w") as f:
+def upload_json_file(file_name, content):
+    ### UNCOMMENT THESE LINES IF YOU WANT TO UPLOAD THE FILE DIRECTLY TO S3:
+    # json_byte_obj = json.dumps(content)
+    # s3.Object(bucket_name, file_name).put(Body=json_byte_obj)
+    
+    ### COMMENT THESE LINES IF YOU DON't WANT TO UPLOAD THE JSON FILE LOCALLY:
+    with open(file_name, "w") as f:
         json.dump(content, f)
         
 
@@ -93,8 +112,8 @@ def append_db(episode_memory, state, action, reward, new_state, done, info):
     
 
 def save_memory_db(memory_list, infos, episode):
-    memory_file = f"{infos['prefix']}_{episode}{config.memory_sufix}"
-    create_pickle_file(memory_file, memory_list)
+    file_name = f"{infos['prefix']}_{episode}{config.memory_sufix}"
+    upload_pickle_file(file_name, memory_list)
 
 
 def init_dic_info(args): ### TODO add infos about last commit ec...
@@ -105,7 +124,7 @@ def init_dic_info(args): ### TODO add infos about last commit ec...
     info_prefix = f"{config.memory_folder}/{name}_{date}"
     infos = {"name" : name, "date" : str(date), "env_name" : args.env_name, "prefix" : info_prefix}
     info_file_name = f"{info_prefix}{config.info_sufix}"
-    create_json_file(info_file_name, infos)
+    upload_json_file(info_file_name, infos)
     return (infos)
 
 class HumanPlayer():
