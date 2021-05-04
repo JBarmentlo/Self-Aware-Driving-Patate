@@ -12,9 +12,50 @@ def gaussian_kernel(alpha, x0, x1):
 	distance = (x0 - x1).length()
 	return alpha * exp(-(distance * distance))
 
-def expected_improvement(x, max_sample):
-	mean = 0 # TODO
-	std_deviation = 0 # TODO
+def data_y_to_vec(data):
+	v = numpy.ndarray(size=(data.len(), 1))
+	for i in range(data.len()):
+		v[i] = data[i]
+	return v
+
+def compute_mean(data, x):
+	a = numpy.ndarray(size=(1, data.len()))
+	for i in range(data.len()):
+		a[0][i] = gaussian_kernel(data[i], x)
+
+	b = numpy.ndarray(size=(data.len(), data.len()))
+	val = gaussian_kernel(data[i], data[i])
+	for i in range(data.len()):
+		for j in range(data.len()):
+			b[i][j] = val
+	b = numpy.linalg.inv(b)
+
+	c = data_y_to_vec(data)
+	return a * (numpy.matmul(b * c))
+
+def compute_std_deviation(data, x):
+	a = gaussian_kernel(x, x)
+
+	b = numpy.ndarray(size=(1, data.len()))
+	for i in range(data.len()):
+		b[0][i] = gaussian_kernel(data[i], x)
+
+	c = numpy.ndarray(size=(data.len(), data.len()))
+	val = gaussian_kernel(data[i], data[i])
+	for i in range(data.len()):
+		for j in range(data.len()):
+			c[i][j] = val
+	c = numpy.linalg.inv(b)
+
+	d = numpy.ndarray(size=(data.len(), 1))
+	for i in range(data.len()):
+		d[i][0] = gaussian_kernel(data[i], x)
+
+	return sqrt(a - (b * (c * d)))
+
+def expected_improvement(x, samples, max_sample):
+	mean = compute_mean(data, x)
+	std_deviation = compute_std_deviation(data, x)
 
 	delta = mean - max_sample
 
@@ -31,6 +72,7 @@ def bayesian_optimization(probe, random_iterations, max_iterations):
 	max_index = 0
 
 	while n < random_iterations:
+		# TODO Take range as parameter?
 		x = numpy.random.uniform(-100., 100., size=(probe.dim))
 
 		y = probe.probe(x)
@@ -41,7 +83,7 @@ def bayesian_optimization(probe, random_iterations, max_iterations):
 		n += 1
 
 	while n < max_iterations:
-		x = scipy.optimize.minimize(expected_improvement, args=(samples[max_index][1]), method='L-BFGS-B')
+		x = scipy.optimize.maximize(expected_improvement, args=(samples, samples[max_index][1]), method='L-BFGS-B')
 
 		y = probe.probe(x)
 		samples.append((x, y))
@@ -50,4 +92,5 @@ def bayesian_optimization(probe, random_iterations, max_iterations):
 
 		n += 1
 
-	return 0 # TODO
+	# TODO Do another maximization on the final function?
+	return samples[max_index][0]
