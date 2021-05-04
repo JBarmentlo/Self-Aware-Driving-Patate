@@ -1,9 +1,3 @@
-'''
-file: ddqn.py
-author: Felix Yu
-date: 2018-09-12
-original: https://github.com/flyyufelix/donkey_rl/blob/master/donkey_rl/src/ddqn.py
-'''
 import os
 import sys
 import random
