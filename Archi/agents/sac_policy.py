@@ -4,15 +4,20 @@ import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.layers as layers
 import tensorflow.keras.initializers as initializers
-
+# from keras.layers import Dropout
 
 class GaussianPolicy():
 	"""
 		Inspiration from: https://towardsdatascience.com/a-minimal-working-example-for-continuous-policy-gradients-in-tensorflow-2-0-d3413ec38c6b
-		 Tutorial written the 18th of Aug 2020
+			Tutorial written the 18th of Aug 2020
 	"""
 
-	def __init__(self, input_shape=(1,), bias_mu=0.0, bias_sigma=0.55, learning_rate=0.001):
+	def __init__(self, input_shape=(1,),
+					bias_mu_throttle=0.0,
+					bias_mu_steering=0.0,
+					bias_sigma_throttle=0.55,
+					bias_sigma_steering=0.55,
+					learning_rate=0.001):
 		"""
 			Summary:
 				In the continuous variant, we usually draw actions from a Gaussian distribution;
@@ -31,61 +36,88 @@ class GaussianPolicy():
 		"""
 		# Create actor network
 		# bias 0.0 yields mu=0.0 with linear activation function
-		self.bias_mu = 0.0
-		self.bias_mu = bias_mu
+		self.bias_mu_throttle = bias_mu_throttle
+		self.bias_mu_steering = bias_mu_steering
 		# bias 0.55 yields sigma=1.0 with softplus activation function
-		self.bias_sigma = 0.55
-		self.bias_sigma = bias_sigma
+		self.bias_sigma_throttle = bias_sigma_throttle
+		self.bias_sigma_steering = bias_sigma_steering
 
 		self.lr = learning_rate
 
 		self.actor_network = self.build_model(
                    				input_shape,  # input dimension is (1,) for testor
-               					self.bias_mu,
-               					self.bias_sigma)
+               					bias_mu_throttle=self.bias_mu_throttle,
+               					bias_mu_steering=self.bias_mu_steering,
+               					bias_sigma_throttle=self.bias_sigma_throttle,
+               					bias_sigma_steering=self.bias_sigma_steering)
+
 		self.opt = keras.optimizers.Adam(learning_rate=self.lr)
 
 		# For debugging purposes
 		self.loss_ = 0
-		self.mu_ = 0
-		self.sigma_ = 0
+		self.mu_throttle = 0
+		self.sigma_throttle = 0
+		self.mu_steering = 0
+		self.sigma_steering = 0
 
-	def build_model(self, input_shape, bias_mu, bias_sigma):
+	def build_model(self,
+					input_shape,
+					number_of_layers=5,
+					neurons_by_layers=10,
+					bias_mu_throttle=0.0,
+					bias_mu_steering=0.0,
+					bias_sigma_throttle=0.55,
+					bias_sigma_steering=0.55,
+					droupout=0.15):
 		"""
 			Construct the actor network with mu and sigma as output
 		"""
 		inputs = layers.Input(shape=input_shape)
 
-		hidden1 = layers.Dense(5,
-                         activation="relu",
-                         kernel_initializer=initializers.he_normal())(inputs)
+		prev_layer = inputs
+		for _ in range(number_of_layers):
 
-		hidden2 = layers.Dense(5,
-                         activation="relu",
-                         kernel_initializer=initializers.he_normal())(hidden1)
+			current_layer = layers.Dense(neurons_by_layers,
+							activation="relu",
+							kernel_initializer=initializers.he_normal())(prev_layer)
+			# TODO add dropout
+			# Dropout(0.2)
+			prev_layer = current_layer
 
-		mu = layers.Dense(1,
+		mu_throttle = layers.Dense(1,
                     activation="linear",
                     kernel_initializer=initializers.Zeros(),
-                    bias_initializer=initializers.Constant(bias_mu))(hidden2)
+                    bias_initializer=initializers.Constant(bias_mu_throttle))(current_layer)
 
-		sigma = layers.Dense(1,
+		sigma_throttle = layers.Dense(1,
                        activation="softplus",
                        kernel_initializer=initializers.Zeros(),
-                       bias_initializer=initializers.Constant(bias_sigma))(hidden2)
+                       bias_initializer=initializers.Constant(bias_sigma_throttle))(current_layer)
 
-		actor_network = keras.Model(inputs=inputs, outputs=[mu, sigma])
+		mu_steering = layers.Dense(1,
+                    activation="linear",
+                    kernel_initializer=initializers.Zeros(),
+                    bias_initializer=initializers.Constant(bias_mu_steering))(current_layer)
+
+		sigma_steering = layers.Dense(1,
+                       activation="softplus",
+                       kernel_initializer=initializers.Zeros(),
+                       bias_initializer=initializers.Constant(bias_sigma_steering))(current_layer)
+
+
+		actor_network = keras.Model(inputs=inputs, outputs=[mu_throttle, sigma_throttle, mu_steering, sigma_steering])
 
 		return actor_network
 
 	def choose_action(self, state):
 		# Obtain mu and sigma from network
-		self.mu_, self.sigma_ = self.actor_network(state)
+		self.mu_throttle, self.sigma_throttle, self.mu_steering, self.sigma_steering = self.actor_network(state)
 
 		# Draw action from normal distribution
-		action = tf.random.normal([1], mean=self.mu_, stddev=self.sigma_)
+		action_throttle = tf.random.normal([1], mean=self.mu_throttle, stddev=self.sigma_throttle)
+		action_steering = tf.random.normal([1], mean=self.mu_steering, stddev=self.sigma_steering)
 
-		return action
+		return (action_throttle, action_steering)
 
 
 	def custom_loss_gaussian(self, state, action, reward):
@@ -101,18 +133,25 @@ class GaussianPolicy():
 			[type]: loss_actor
 			Next step will be to apply it
 		"""
+		action_throttle, action_steering = action
+
 		# * Predict mu and sigma with actor network
-		mu, sigma = self.actor_network(state)
+		mu_throttle, sigma_throttle, mu_steering, sigma_steering = self.actor_network(state)
 
 		# * Compute Gaussian pdf value
-		pdf_value = tf.exp(-0.5 * ((action - mu) / (sigma))**2) * \
-				1 / (sigma * tf.sqrt(2 * np.pi))
+		pdf_value_throttle = tf.exp(-0.5 * ((action_throttle - mu_throttle) / (sigma_throttle))**2) * \
+				1 / (sigma_throttle * tf.sqrt(2 * np.pi))
+
+		pdf_value_steering = tf.exp(-0.5 * ((action_steering - mu_steering) / (sigma_steering))**2) * \
+				1 / (sigma_steering * tf.sqrt(2 * np.pi))
 
 		# * Convert pdf value to log probability
-		log_probability = tf.math.log(pdf_value + 1e-5)
+		log_probability_throttle = tf.math.log(pdf_value_throttle + 1e-5)
+		log_probability_steering = tf.math.log(pdf_value_steering + 1e-5)
 
 		# * Compute weighted loss
-		self.loss_ = - reward * log_probability
+		# TODO: check if multiplication is **really** the good way to combine a double log_probability
+		self.loss_ = - reward * (log_probability_throttle + log_probability_steering)
 
 		return self.loss_
 

@@ -20,7 +20,6 @@ google-auth-oauthlib==0.4.1
 google-pasta==0.2.0
 grpcio==1.28.1
 gym==0.18.0
--e git+https://github.com/tawnkramer/gym-donkeycar/@bf7a05098f183c7bc16bed69be09058074c80a30#egg=gym_donkeycar
 h5py==2.10.0
 idna==2.6
 imageio==2.9.0

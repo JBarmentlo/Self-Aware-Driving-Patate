@@ -1,4 +1,5 @@
 import numpy as np
+from utils_get_abs_path import get_path_to_cache
 
 class DotDict(dict):
     """
@@ -64,7 +65,7 @@ config.name_human_player = "HumanPlayer"
 config.memory_folder = "memory"
 config.memory_sufix = ".pkl"
 config.info_sufix = "_infos.json"
-config.main_folder = "/Users/deyaberger/projects/last_but_not_least"
+config.main_folder = get_path_to_cache("")
 
 
 
