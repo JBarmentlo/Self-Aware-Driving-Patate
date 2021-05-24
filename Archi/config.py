@@ -52,7 +52,7 @@ cte_config.done_func = lambda x: abs(x) > cte_config.max_cte
 # ----------------
 # HYPER PARAMETERS
 # ----------------
-config.init_throttle = 0.3
+config.init_throttle = 0.5
 config.init_steering = 0.3
 config.min_throttle, config.max_throttle = -1, 1
 config.min_steering, config.max_steering = -1, 1 
