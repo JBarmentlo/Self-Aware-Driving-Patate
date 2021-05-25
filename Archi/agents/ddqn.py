@@ -91,12 +91,12 @@ class DQNAgent:
 		if self.epsilon > self.epsilon_min:
 			self.epsilon -= (self.initial_epsilon - self.epsilon_min) / self.explore
 
-	def load_model(self, name):
-		self.model.load_weights(name)
+	def load_model(self, path, name):
+		self.model.load_weights(path + name)
 	# Save the model which is under training
 
-	def save_model(self, name):
-		self.model.save_weights(name)
+	def save_model(self, path, name):
+		self.model.save_weights(path + name)
 
 	def train_on_memory(self, memory):
 		# print(f"Memory len: {len(memory)}")

@@ -1,12 +1,12 @@
-from tensorflow.keras.layers import Dense
+from tensorflow.keras import layers, activations, Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import Sequential
 # from tensorflow.keras.initializers import normal, identity
 from tensorflow.keras.initializers import identity
 from tensorflow.keras.models import model_from_json
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten
-from tensorflow.keras.layers import Conv2D, MaxPooling2D
+# from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten
+# from tensorflow.keras.layers import Conv2D, MaxPooling2D
 import tensorflow as tf
 # from tensorflow.keras import backend as K
 from tensorflow.compat.v1.keras import backend as K
@@ -21,27 +21,50 @@ def build_model_ValueNetwork(input_shape, output_size, learning_rate):
 	This model will be an approximator of the Value Function to estimate the Expected Return of an episode from a state
 	"""
 	model = Sequential()
-	model.add(Conv2D(24, (5, 5), strides=(2, 2), padding="same",
-			   input_shape=input_shape))  # 80*80*4
-	model.add(Activation('relu'))
-	model.add(Conv2D(32, (5, 5), strides=(2, 2), padding="same"))
-	model.add(Activation('relu'))
-	model.add(Conv2D(64, (5, 5), strides=(2, 2), padding="same"))
-	model.add(Activation('relu'))
-	model.add(Conv2D(64, (3, 3), strides=(2, 2), padding="same"))
-	model.add(Activation('relu'))
-	model.add(Conv2D(64, (3, 3), strides=(1, 1), padding="same"))
-	model.add(Activation('relu'))
-	model.add(Flatten())
-	model.add(Dense(512))
-	model.add(Activation('relu'))
+	state_input = layers.Input(shape=input_shape[0])
+	current_layer = layers.Conv2D(24, (5, 5), strides=(2, 2), padding="same", activation=activations.relu)(state_input)
+
+	# current_layer = layers.Activation('relu')(state_input)
+	current_layer = layers.Conv2D(32, (5, 5), strides=(2, 2), padding="same", activation=activations.relu)(current_layer)
+	current_layer = layers.Conv2D(64, (5, 5), strides=(2, 2), padding="same")(current_layer)
+	current_layer = layers.Conv2D(64, (3, 3), strides=(2, 2), padding="same")(current_layer)
+	current_layer = layers.Conv2D(64, (3, 3), strides=(1, 1), padding="same")(current_layer)
+	# current_layer = Activation('relu')(current_layer)
+	current_layer = layers.Flatten()(current_layer)
+	current_layer = layers.Dense(512)(current_layer)
+	state_end = layers.Activation('relu')(current_layer)
+
+	action_input = layers.Input(shape=input_shape[1])
+	current_layer = layers.Dense(4, input_shape=input_shape[0])(action_input)
+	merged = layers.Concatenate(axis=1)([state_end, action_input])
+
+	current_layer = layers.Dense(50)(merged)
+	current_layer = layers.Activation('relu')(current_layer)
+
+	current_layer = layers.Dense(50)(current_layer)
+	current_layer = layers.Activation('relu')(current_layer)
+
+	current_layer = layers.Dense(50)(current_layer)
+
 	# TODO: check activation layer for output
-	model.add(Dense(output_size, activation="linear"))
+	output_layer = layers.Dense(output_size, activation="linear")(current_layer)
+
+	model = Model(inputs=[state_input, action_input], outputs=output_layer)
+
 	adam = Adam(lr=learning_rate)
 	# TODO: check which loss to choose
 	model.compile(loss='mse', optimizer=adam)
+
 	return model
 
+	# input1 = keras.layers.Input(shape=(1, ))
+	# input2 = keras.layers.Input(shape=(1,))
+	# merged = keras.layers.Concatenate(axis=1)([input1, input2])
+	# dense1 = keras.layers.Dense(2, input_dim=2, activation=keras.activations.sigmoid, use_bias=True)(merged)
+	# output = keras.layers.Dense(1, activation=keras.activations.relu, use_bias=True)(dense1)
+	# model10 = keras.models.Model(inputs=[input1, input2], output=output)
+
+	# model10.fit([array_1, array_2],output, batch_size=16, epochs=100)
 
 class SoftActorCritic():
 	"""
@@ -55,41 +78,55 @@ class SoftActorCritic():
 					learning_rate=1e-4,
 					train=True):
 		print("Initialization of SAC")
+		# Useless now, but needs to be compatible with DDQN
 		self.state_size = state_size
 		self.action_space = action_space
+		self.epsilon = 0.99
 
-		self.input_shape = input_shape
-		self.output_size = output_size
-		self.learning_rate = learning_rate
+		# Models characteristics
 		self.train = train
+		self.output_size = output_size
+		self.batch_size = 8
 
-		self.policy = GaussianPolicy()
+		# Policy
+		self.input_shape_policy = input_shape
+		self.learning_rate = learning_rate
+		self.policy = GaussianPolicy(input_shape=input_shape, learning_rate=learning_rate)
 
 		# Q functions estimators:
-		self.phi_1 = build_model_ValueNetwork(input_shape, output_size, learning_rate)
-		self.phi_2 = build_model_ValueNetwork(input_shape, output_size, learning_rate)
-
-		self.discount_factor = 0.9
+		self.input_shape_phi_state = input_shape
+		self.input_shape_phi_action = (2,)
 		self.lr_qfunc = 1e-4
+		print(f"Input shape of ValueNet is: {input_shape}")
+		
+		phi_input = (self.input_shape_phi_state, self.input_shape_phi_action)
 
-	def policy_predict(self, s_t):
+		self.phi_1 = build_model_ValueNetwork(phi_input, output_size, learning_rate)
+		self.phi_2 = build_model_ValueNetwork(phi_input, output_size, learning_rate)
+		self.phi_1.summary()
+		self.discount_factor = 0.9
+
+	def update_epsilon(self):
 		pass
 
 	def choose_action(self, s_t):
-		pred = self.policy_predict(s_t)
-		a_t = pred[random.randint(0, len(pred - 1))]
-		return a_t
+		a_t_throttle, a_t_steering = self.policy.choose_action(s_t)
+		print(f"a_t_throttle: {a_t_throttle.shape} => {a_t_throttle}")
+		print(f"a_t_steering: {a_t_steering.shape} => {a_t_steering}")
+		a_t_throttle = float(a_t_throttle)
+		a_t_steering = float(a_t_steering)
+		return a_t_steering
 
 	def qfunc_predict(self, s_t1, a_t1, which=0):
 			# Implementation is not clear if we need to sample a_t1 twice
 			if which == 1:
-				q_values = self.phi_1.predict(s_t1, a_t1)
+				q_values = self.phi_1([s_t1, a_t1])
 			elif which == 2:
-				q_values = self.phi_2.predict(s_t1, a_t1)
+				q_values = self.phi_2([s_t1, a_t1])
 			else:
-				q_values_1 = self.phi_1.predict(s_t1, a_t1)
-				q_values_2 = self.phi_2.predict(s_t1, a_t1)
-				q_values = np.min(q_values_1, q_values_2)
+				q_values_1 = self.phi_1([s_t1, a_t1])
+				q_values_2 = self.phi_2([s_t1, a_t1])
+				q_values = tf.math.minimum(q_values_1, q_values_2)
 			return q_values
 
 	def qfuncs_update(self, state_t, targets):
@@ -103,6 +140,21 @@ class SoftActorCritic():
 
 		return phi_i, phi_2
 
+	def update_target_model(self):
+		# TODO: bad train_simulator interface
+		# TODO:		The agent update itself at each train on memory
+		pass
+	
+	def load_model(self, path, name):
+		self.policy.actor_network.load_weights(path + "policy_" + name)
+		self.policy.phi_1.load_weights(path + "phi_1_" + name)
+		self.policy.phi_2.load_weights(path + "phi_2_" + name)
+	# Save the model which is under training
+
+	def save_model(self, path, name):
+		self.policy.actor_network.save_weights(path + "policy_" + name)
+		self.phi_1.save_weights(path + "phi_1_" + name)
+		self.phi_2.save_weights(path + "phi_2_" + name)
 
 	def soft_net_update(self, net_old, net_new, TAU=0.8):
 		# TODO: put TAU in config.py
@@ -122,20 +174,26 @@ class SoftActorCritic():
 		return net_new
 
 	def compute_targets(self, r, s_t1, done):
-		a_t1_throttle, a_t1_steering = self.policy.choose_action(s_t1)
-		a_t1 = a_t1_steering
+		a_t1 = self.choose_action(s_t1)
 		# If done, eon (Expectation of ) is not necessary
 		# 	If none might even break code
 		eon = self.qfunc_predict(s_t1, a_t1, which=0) - \
-						(self.lr_qfunc * np.ln(self.policy_predict(a_t1, s_t1)))
+						(self.lr_qfunc * np.log(self.choose_action(a_t1)))
 		targets = r + self.discount_factor  (1 - done) * eon
 		return targets
 
-	def train(self, replay_bufer, batch_size):
-		for i in range(len(replay_bufer) // batch_size):
+	def train_on_memory(self, replay_bufer):
+		if len(replay_bufer) < self.batch_size:
+			return
+		for i in range(len(replay_bufer) // self.batch_size):
 			# * Create batch
-			batch = create_batch(replay_bufer, batch_size)
-			state_t, action_t, reward_t, state_t1, done = batch
+			batch = []
+			for _ in range(self.batch_size):
+				elem = replay_bufer.pop()
+				# print(elem)
+				batch.append(elem)
+			
+			state_t, action_t, reward_t, state_t1, done, info = zip(*batch)
 
 			# * Compute targets
 			targets = self.compute_targets(reward_t, state_t1, done)
@@ -151,6 +209,7 @@ class SoftActorCritic():
 			# * Soft update the target networks
 			self.soft_net_update(self.phi_1.model, phi_1.model)
 			self.soft_net_update(self.phi_2.model, phi_2.model)
+		replay_bufer.clear()
 
 
 if __name__ == "__main__":

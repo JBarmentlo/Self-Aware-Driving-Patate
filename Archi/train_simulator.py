@@ -214,6 +214,9 @@ class NeuralPlayer():
 			self = init_simulator(self)
 		# Construct gym environment. Starts the simulator if path is given.
 		self.memory = deque(maxlen=10000)
+
+		self.model_path = f"{config.main_folder}/model_cache/"
+		self.model_name = self.args.model
 		self.episode_memory = []
 		self.db = None
 		self.db_len = 0
@@ -232,7 +235,7 @@ class NeuralPlayer():
 		elif args.agent == "SAC":
 			self.agent = SoftActorCritic(self.state_size,
 								self.action_space,
-								input_shape=(config.img_rows, config.img_cols, config.img_channels),
+								input_shape=(config.prep_img_rows, config.prep_img_cols, config.prep_img_channels),
 								output_size=config.turn_bins,
 								learning_rate=1e-4,
 								train=not args.test)
@@ -241,7 +244,8 @@ class NeuralPlayer():
 		# For numpy print formating:
 		np.set_printoptions(precision=4)
 
-		if os.path.exists(args.model):
+		# TODO: remove SAC exception when agent is functional
+		if os.path.exists(args.model) and args.agents != "SAC":
 			print("load the saved model")
 			# TODO: Carefull, when we will have 2 different agents available (DDQN & SAC),
 			# TODO: 	it will be an easy mistake to load the wrong one.
@@ -318,8 +322,10 @@ class NeuralPlayer():
 					steering = self.agent.choose_action(preprocessed_state)
 					# Adding throttle
 					action = [steering, throttle]
+					print(f"Steering: {steering:10.3} | Throttle: {throttle:10.3}")
 					# Do action
 					new_state, reward, done, info = self.env.step(action)
+					print(f"done = {done}")
 					# episode_len > 10 because sometimes
 					# 	simulator gives cte value from previous episode at the begining
 					if episode_len > 10 and is_cte_out(info['cte']):
@@ -347,10 +353,10 @@ class NeuralPlayer():
 					self.agent.update_target_model()
 					# Save model for each episode
 					if self.agent.train:
-						self.agent.save_model(f"{config.main_folder}/model_cache/{self.args.model}") ### TODO: faire un truc propre avec os
+						self.agent.save_model(self.model_path, self.model_name)
 					if self.args.save:
 						save_memory_db(self.episode_memory, self.general_infos, e)
-					print(f"episode: {e} memory length: {len(self.agent.memory)} epsilon: {self.agent.epsilon} episode length: {episode_len}")
+					print(f"episode: {e} memory length: {len(self.memory)} epsilon: {self.agent.epsilon} episode length: {episode_len}")
 				
 				# Updating state variables
 				state = new_state

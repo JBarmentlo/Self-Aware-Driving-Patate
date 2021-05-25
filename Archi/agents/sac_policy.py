@@ -52,6 +52,8 @@ class GaussianPolicy():
                					bias_sigma_steering=self.bias_sigma_steering)
 
 		self.opt = keras.optimizers.Adam(learning_rate=self.lr)
+		self.actor_network.compile(loss='mse', optimizer=self.opt)
+		self.actor_network.summary()
 
 		# For debugging purposes
 		self.loss_ = 0
@@ -72,6 +74,7 @@ class GaussianPolicy():
 		"""
 			Construct the actor network with mu and sigma as output
 		"""
+		print(f"Input shape of policy: {input_shape}")
 		inputs = layers.Input(shape=input_shape)
 
 		prev_layer = inputs
@@ -83,9 +86,9 @@ class GaussianPolicy():
 			if i < number_of_layers - 1:
 				prev_layer = current_layer
 				layers.Dropout(dropout)(prev_layer)
-			# TODO add dropout
-			# Dropout(0.2)
 			prev_layer = current_layer
+
+		current_layer = layers.Flatten()(prev_layer)
 
 		mu_throttle = layers.Dense(1,
                     activation="linear",
