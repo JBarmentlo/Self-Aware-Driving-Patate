@@ -20,18 +20,78 @@ blend_equation_advanced_coherent GL_NVX_blend_equation_advanced_multi_draw_buffe
 der_passthrough GL_NV_gpu_program4 GL_NV_internalformat_sample_query GL_NV_gpu_program4_1 GL_NV_gpu_program5 GL_NV_gpu_program5_mem_extended GL_NV_gpu_program_fp64 GL_NV_gpu_shader5 GL_NV_half_float GL_NV_light_max_exponent GL_NV_memory_attachment GL_NV_mesh_shader GL_NV_multisample_coverage GL_NV_multisample_filter_hint GL_NV_occlusion_query GL_NV_packed_depth_stencil GL_NV_parameter_buffer_object GL_NV_parameter_buffer_object2 GL_NV_path_rendering GL_NV_path_rendering_shared_edge GL_NV_pixel_data_range GL_NV_point_sprite GL_NV_primitive_restart GL_NV_query_resource GL_NV_query_resource_tag GL_NV_register_combiners GL_NV_register_combiners2 GL_NV_representative_fragment_test GL_NV_sample_locations GL_NV_sample_mask_override_coverage GL_NV_scissor_exclusive GL_NV_shader_atomic_counters GL_NV_shader_atomic_float GL_NV_shader_atomic_float64 GL_NV_shader_atomic_fp16_vector GL_NV_shader_atomic_int64 GL_NV_shader_buffer_load GL_NV_shader_storage_buffer_object GL_NV_shader_subgroup_partitioned GL_NV_shader_texture
 _footprint GL_NV_shading_rate_image GL_NV_stereo_view_rendering GL_NV_texgen_reflection GL_NV_texture_barrier GL_NV_texture_compression_vtc GL_NV_texture_env_combine4 GL_NV_texture_multisample GL_NV_texture_rectangle GL_NV_texture_rectangle_compressed GL_NV_texture_shader GL_NV_texture_shader2 GL_NV_texture_shader3 GL_NV_transform_feedback GL_NV_transform_feedback2 GL_NV_uniform_buffer_unified_memory GL_NV_vdpau_interop GL_NV_vdpau_interop2 GL_NV_vertex_array_range GL_NV_vertex_array_range2 GL_NV_vertex_attrib_integer_64bit GL_NV_vertex_buffer_unified_memory GL_NV_vertex_program GL_NV_vertex_program1_1 GL_NV_vertex_program2 GL_NV_vertex_program2_option GL_NV_vertex_program3 GL_NV_viewport_array2 GL_NV_viewport_swizzle GL_NVX_conditional_render GL_NV_gpu_multicast GL_NVX_progress_fence GL_NVX_gpu_memory_info GL_NVX_nvenc_interop GL_NV_shader_thread_group GL_NV_shader_thread_shuffle GL_KHR_blend_equation_advanced GL_KHR_blend_equation_advanced_coherent GL_OVR_multiview GL_OVR_multiview2 GL_SGIS_generate_mipmap
  GL_SGIS_texture_lod GL_SGIX_depth_texture GL_SGIX_shadow GL_SUN_slice_accum
-OPENGL LOG: Creating OpenGL 4.5 graphics device ; Context level  <OpenGL 4.5> ; Context handle 21178104
+OPENGL LOG: Creating OpenGL 4.5 graphics device ; Context level  <OpenGL 4.5> ; Context handle 16875960
 Begin MonoManager ReloadAssembly
-- Completed reload, in  0.099 seconds
+- Completed reload, in  0.041 seconds
 Default vsync count 0
 requesting resize 1920 x 1127
 resizing window to 1920 x 1127
 Desktop is 3840 x 2160 @ 30 Hz
-UnloadTime: 1.932786 ms
+UnloadTime: 0.590738 ms
+SDSandbox Server starting. 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Server Listening on: 0.0.0.0:9091 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Waiting for a connection... 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+SDSandbox Server starting. 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Server Listening on: 0.0.0.0:9092 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Waiting for a connection... 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
 Setting up 6 worker threads for Enlighten.
-  Thread -> id: 7fb92cafa700 -> priority: 1 
-  Thread -> id: 7fb8e7fff700 -> priority: 1 
-  Thread -> id: 7fb8e77fe700 -> priority: 1 
-  Thread -> id: 7fb8e6ffd700 -> priority: 1 
-  Thread -> id: 7fb8e67fc700 -> priority: 1 
-  Thread -> id: 7fb8e5ffb700 -> priority: 1 
+  Thread -> id: 7fa9a25fb700 -> priority: 1 
+  Thread -> id: 7fa9a1dfa700 -> priority: 1 
+  Thread -> id: 7fa9a15f9700 -> priority: 1 
+  Thread -> id: 7fa9a0df8700 -> priority: 1 
+  Thread -> id: 7fa96ffff700 -> priority: 1 
+  Thread -> id: 7fa96f7fe700 -> priority: 1 
+Waiting for a connection... 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+client connected. 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+generated_road 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+loaded scene 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Unloading 6 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 7.527169 ms
+JustOne removing instance.MainThDisp 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+JustOne removing instance.SandboxServer 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+JustOne removing instance.SandboxPrivateAPIServer 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+car loaded. 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+
+Unloading 31 unused Assets to reduce memory usage. Loaded Objects now: 2959.
+Total: 7.257253 ms (FindLiveObjects: 0.212999 ms CreateObjectMapping: 0.035897 ms MarkObjects: 0.756339 ms  DeleteObjects: 6.251667 ms)
+
+Got car config message 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Setting car config. 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Server stopped. 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+
+Server stopped. 
+(Filename: ./Runtime/Export/Debug/Debug.bindings.h Line: 35)
+

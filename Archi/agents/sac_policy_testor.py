@@ -64,15 +64,17 @@ class SacTestor():
 			
 			reward = reward_throttle + reward_steering
 
-			self.Pol.update(self.state, actions, reward)
+			self.Pol.update(self.state, actions, reward, debug=(np.mod(i, 100) == 0))
 			
 
 			# Update console output and plot
 			if np.mod(i, 100) == 0:
 				print('\n====== episode', i, '======')
-				print(f"mu:      {float(self.Pol.mu_throttle):.5} | {float(self.Pol.mu_steering):.5}")
-				print(f"sigma:   {float(self.Pol.sigma_throttle):.5} | {float(self.Pol.sigma_steering):.5}")
-				print(f"actions: {float(actions[0]):.5} | {float(actions[1]):.5}")
+				print(f"Mu:      {float(self.mu_target_throttle):8.5} | {float(self.mu_target_steering):8.5}")
+				print(f"mu:      {float(self.Pol.mu_throttle):8.5} | {float(self.Pol.mu_steering):8.5}")
+				print(f"Sigma:   {float(self.target_range_throttle):8.5} | {float(self.target_range_steering):8.5}")
+				print(f"sigma:   {float(self.Pol.sigma_throttle):8.5} | {float(self.Pol.sigma_steering):8.5}")
+				print(f"actions: {float(actions[0]):8.5} | {float(actions[1]):8.5}")
 				print(f'reward:  {float(reward)}')
 				print(f'loss:    {float(self.Pol.loss_)}')
 				print()

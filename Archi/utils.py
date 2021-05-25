@@ -1,5 +1,5 @@
 import numpy as np
-from config import config
+from config import config, cte_config
 
 def linear_unbin(arr, turn_bins=config.turn_bins):
 	#TODO: remove function
@@ -37,3 +37,10 @@ def linear_bin(a, turn_bins=config.turn_bins):
 	arr[int(b)] = 1
 	# print("bin", a, arr)
 	return arr
+
+def is_cte_out(cte):
+	cte += cte_config.cte_offset
+	if abs(cte) > cte_config.max_cte:
+		return True
+	else:
+		return False

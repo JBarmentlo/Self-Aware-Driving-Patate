@@ -13,7 +13,7 @@ from tensorflow.compat.v1.keras import backend as K
 from collections import deque
 import numpy as np
 import random
-from utils import linear_unbin
+from utils import linear_unbin, linear_bin
 
 
 class DQNAgent:
@@ -51,7 +51,7 @@ class DQNAgent:
 	def build_model(self):
 		model = Sequential()
 		model.add(Conv2D(24, (5, 5), strides=(2, 2), padding="same",
-                   input_shape=self.input_shape))  # 80*80*4
+				   input_shape=self.input_shape))  # 80*80*4
 		model.add(Activation('relu'))
 		model.add(Conv2D(32, (5, 5), strides=(2, 2), padding="same"))
 		model.add(Activation('relu'))
@@ -97,4 +97,40 @@ class DQNAgent:
 
 	def save_model(self, name):
 		self.model.save_weights(name)
- 
+
+	def train_on_memory(self, memory):
+		# print(f"Memory len: {len(memory)}")
+		if len(memory) < self.train_start:
+			return
+		print(f"Train replay on {len(memory)} elements")
+		# print(f"agent Batch size: {self.batch_size}")
+		batch_size = min(self.batch_size, len(memory))
+		# print(f"Batch size: {batch_size}")
+		minibatch = random.sample(memory, batch_size)
+		# For data structure look for comment in run_ddqn() 
+		state_t, action_t, reward_t, state_t1, done, info = zip(*minibatch) ### TODO: add info
+		state_t = np.concatenate(state_t) ### TODO: et dans le preprocessing?
+		state_t1 = np.concatenate(state_t1)
+		# Targets, are the predictions from agent.
+		# Currently (april 20) they are 7 categories corresponding to values of steering
+		# The agent predicts Q-Values for each of these categories
+		targets = self.model.predict(state_t)
+		# Use of agent.max_Q is for printing
+		self.max_Q = np.max(targets)
+		# We predict new state to be able to update Q-Values
+		target_val_predict = self.model.predict(state_t1)
+		target_val_update = self.target_model.predict(state_t1)
+		for i in range(batch_size):
+			# Here: we convert action_t which is a float directly used by simulator, to a category, which is what the model currently predicts
+			# The last 0 is the angle, as for the moment we are not interested in the throttle
+			# we use linear_bin, to convert float to categories
+			bin_action = np.argmax(linear_bin(action_t[i][0]))
+			if done[i]:
+				targets[i][bin_action] = reward_t[i]
+			else:
+				# We get the most recent prediction from agent of the new_state obtained from action_t 
+				a = np.argmax(target_val_predict[i])
+				targets[i][bin_action] = reward_t[i] + \
+					self.discount_factor * (target_val_update[i][a])
+		# Now that all the targets have been updated, we can retrain the agent
+		self.model.train_on_batch(state_t, targets)

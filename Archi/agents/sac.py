@@ -14,7 +14,7 @@ from collections import deque
 import numpy as np
 import random
 from copy import deepcopy
-
+from agents.sac_policy import GaussianPolicy
 
 def build_model_ValueNetwork(input_shape, output_size, learning_rate):
 	"""
@@ -47,19 +47,35 @@ class SoftActorCritic():
 	"""
 	Inspiration from: https://spinningup.openai.com/en/latest/algorithms/sac.html
 	"""
-	def __init__(self, input_shape, output_size, learning_rate):
+	def __init__(self,
+					state_size=1000,
+					action_space=(2,),
+					input_shape=(64, 64, 3),
+					output_size=2,
+					learning_rate=1e-4,
+					train=True):
+		print("Initialization of SAC")
+		self.state_size = state_size
+		self.action_space = action_space
+
+		self.input_shape = input_shape
+		self.output_size = output_size
+		self.learning_rate = learning_rate
+		self.train = train
+
+		self.policy = GaussianPolicy()
+
 		# Q functions estimators:
 		self.phi_1 = build_model_ValueNetwork(input_shape, output_size, learning_rate)
 		self.phi_2 = build_model_ValueNetwork(input_shape, output_size, learning_rate)
 
 		self.discount_factor = 0.9
 		self.lr_qfunc = 1e-4
-		pass
 
 	def policy_predict(self, s_t):
 		pass
 
-	def policy_choose(self, s_t):
+	def choose_action(self, s_t):
 		pred = self.policy_predict(s_t)
 		a_t = pred[random.randint(0, len(pred - 1))]
 		return a_t
@@ -106,7 +122,8 @@ class SoftActorCritic():
 		return net_new
 
 	def compute_targets(self, r, s_t1, done):
-		a_t1 = self.policy_predict(s_t1)
+		a_t1_throttle, a_t1_steering = self.policy.choose_action(s_t1)
+		a_t1 = a_t1_steering
 		# If done, eon (Expectation of ) is not necessary
 		# 	If none might even break code
 		eon = self.qfunc_predict(s_t1, a_t1, which=0) - \
@@ -137,4 +154,4 @@ class SoftActorCritic():
 
 
 if __name__ == "__main__":
-	GaussianPolicy(input_shape=(1,), 2)
+	SoftActorCritic()

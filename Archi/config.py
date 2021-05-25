@@ -20,7 +20,7 @@ config = DotDict()
 # --------------------
 
 # Simulator
-config.EPISODES = 20
+config.EPISODES = 10_000
 config.img_rows, config.img_cols = 80, 80
 config.turn_bins = 7
 config.img_channels = 4

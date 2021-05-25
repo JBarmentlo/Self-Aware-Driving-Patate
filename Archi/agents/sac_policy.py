@@ -68,18 +68,21 @@ class GaussianPolicy():
 					bias_mu_steering=0.0,
 					bias_sigma_throttle=0.55,
 					bias_sigma_steering=0.55,
-					droupout=0.15):
+					dropout=0.15):
 		"""
 			Construct the actor network with mu and sigma as output
 		"""
 		inputs = layers.Input(shape=input_shape)
 
 		prev_layer = inputs
-		for _ in range(number_of_layers):
+		for i in range(number_of_layers):
 
 			current_layer = layers.Dense(neurons_by_layers,
 							activation="relu",
 							kernel_initializer=initializers.he_normal())(prev_layer)
+			if i < number_of_layers - 1:
+				prev_layer = current_layer
+				layers.Dropout(dropout)(prev_layer)
 			# TODO add dropout
 			# Dropout(0.2)
 			prev_layer = current_layer
@@ -109,7 +112,7 @@ class GaussianPolicy():
 
 		return actor_network
 
-	def choose_action(self, state):
+	def choose_action(self, state, one=False):
 		# Obtain mu and sigma from network
 		self.mu_throttle, self.sigma_throttle, self.mu_steering, self.sigma_steering = self.actor_network(state)
 
@@ -117,10 +120,13 @@ class GaussianPolicy():
 		action_throttle = tf.random.normal([1], mean=self.mu_throttle, stddev=self.sigma_throttle)
 		action_steering = tf.random.normal([1], mean=self.mu_steering, stddev=self.sigma_steering)
 
+		if one:
+			return action_steering
+
 		return (action_throttle, action_steering)
 
 
-	def custom_loss_gaussian(self, state, action, reward):
+	def custom_loss_gaussian(self, state, action, reward, debug=False):
 		"""[summary]
 			Weighted Gaussian log likelihood loss function for RL
 
@@ -145,18 +151,24 @@ class GaussianPolicy():
 		pdf_value_steering = tf.exp(-0.5 * ((action_steering - mu_steering) / (sigma_steering))**2) * \
 				1 / (sigma_steering * tf.sqrt(2 * np.pi))
 
-		# * Convert pdf value to log probability
+		# * Convert probability distribution function value to log probability
 		log_probability_throttle = tf.math.log(pdf_value_throttle + 1e-5)
 		log_probability_steering = tf.math.log(pdf_value_steering + 1e-5)
 
+		if debug:
+			print(f"PDF t: {float(log_probability_throttle):9.5}")
+			print(f"PDF s: {float(log_probability_steering):9.5}")
 		# * Compute weighted loss
 		# TODO: check if multiplication is **really** the good way to combine a double log_probability
-		self.loss_ = - reward * (log_probability_throttle + log_probability_steering)
+		# Using absolute value do NOT work.
+		self.loss_ = - reward * ((log_probability_throttle) + (log_probability_steering))
+		if debug:
+			print(f"Loss: {self.loss_}")
 
 		return self.loss_
 
 
-	def update(self, state, action, reward):
+	def update(self, state, action, reward, debug=False):
 		# * MATHEMATICS:
 			# *
 			# * After taking our action a, we observe a corresponding reward signal v.
@@ -240,7 +252,8 @@ class GaussianPolicy():
 			# Compute Gaussian loss with custom loss function
 			loss_value = self.custom_loss_gaussian(state,
 												action,
-												reward)
+												reward,
+												debug)
 
 			# Compute gradients for actor network
 			grads = tape.gradient(loss_value,
