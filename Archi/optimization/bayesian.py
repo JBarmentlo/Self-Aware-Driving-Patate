@@ -34,14 +34,14 @@ def compute_mean(data, x):
     b = numpy.linalg.inv(b)
 
     c = data_y_to_vec(data)
-    return a * (numpy.matmul(b, c))
+    return numpy.matmul(a, numpy.matmul(b, c))[0][0]
 
 def compute_std_deviation(data, x):
     a = gaussian_kernel(1., x, x)
 
     b = numpy.ndarray(shape=(1, len(data)))
     for i in range(len(data)):
-        b[0][i] = gaussian_kernel(1., data[i][0], x)
+        b[0][i] = gaussian_kernel(1., x, data[i][0])
 
     c = numpy.ndarray(shape=(len(data), len(data)))
     for i in range(len(data)):
@@ -53,7 +53,8 @@ def compute_std_deviation(data, x):
     for i in range(len(data)):
         d[i][0] = gaussian_kernel(1., data[i][0], x)
 
-    return math.sqrt(a - (numpy.matmul(b, numpy.matmul(c, d))))
+    # TODO Keep abs?
+    return math.sqrt(abs(a - (numpy.matmul(b, numpy.matmul(c, d)))))
 
 def negative_expected_improvement(x, samples, max_sample):
     mean = compute_mean(samples, x)
@@ -61,15 +62,13 @@ def negative_expected_improvement(x, samples, max_sample):
 
     delta = mean - max_sample
 
-    A = delta / std_deviation
+    A = 0
+    if abs(std_deviation) > 0.0001:
+        A = delta / std_deviation
 
-    density = norm.pdf(x=A, loc=mean, scale=std_deviation)
-    cumulative_density = norm.cdf(x=A, loc=mean, scale=std_deviation)
+    density = norm.pdf(x=A, loc=0., scale=1.)
+    cumulative_density = norm.cdf(x=A, loc=0., scale=1.)
 
-    print('delta ->', delta)
-    print('stddev ->', std_deviation)
-    print('density ->', density)
-    print('cum_density ->', cumulative_density)
     return -(max(delta, 0.) + std_deviation * density - abs(delta) * cumulative_density)
 
 def bayesian_optimization(probe, random_iterations, max_iterations):
@@ -89,13 +88,14 @@ def bayesian_optimization(probe, random_iterations, max_iterations):
         n += 1
 
     while n < max_iterations:
-        begin = 0 # TODO
+        begin = numpy.ones(shape=(probe.dim))
         max_sample = samples[max_index][1]
-        x = scipy.optimize.minimize(negative_expected_improvement, begin, args=(samples, max_sample), method='L-BFGS-B')
+        print('max: ', max_sample)
+        x = scipy.optimize.minimize(negative_expected_improvement, begin, args=(samples, max_sample), method='L-BFGS-B').x
 
         y = probe.probe(x)
         samples.append((x, y))
-        if y > samples[max_index][1]:
+        if y > max_sample:
             max_index = len(samples) - 1
 
         n += 1
@@ -116,9 +116,11 @@ class TestProbe(Probe):
        super().__init__(2)
 
     def probe(self, x):
-        return x[1] * x[1] - x[0] * x[0]
+        print('x:', x)
+        print('y:', math.sin(x[1] * x[1]) * (x[0] + 10.))
+        return math.sin(x[1] * x[1]) * (x[0] + 10.)
 
 if __name__ == "__main__":
     probe = TestProbe()
     result = bayesian_optimization(probe, 25, 100)
-    print('-> ', result)
+    print('result:', result)
