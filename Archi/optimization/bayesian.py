@@ -3,6 +3,7 @@ import numpy
 import scipy
 from scipy import optimize
 from scipy.optimize import minimize
+from scipy.stats import norm
 
 class Probe:
     def __init__(self, dim):
@@ -16,9 +17,9 @@ def gaussian_kernel(alpha, x0, x1):
     return alpha * math.exp(-(distance * distance))
 
 def data_y_to_vec(data):
-    v = numpy.ndarray(shape=(data.len(), 1))
-    for i in range(data.len()):
-        v[i] = data[i]
+    v = numpy.ndarray(shape=(len(data), 1))
+    for i in range(len(data)):
+        v[i][0] = data[i][1]
     return v
 
 def compute_mean(data, x):
@@ -29,12 +30,11 @@ def compute_mean(data, x):
     b = numpy.ndarray(shape=(len(data), len(data)))
     for i in range(len(data)):
         for j in range(len(data)):
-            b[i][j] = 1.
-    print('= ', b)
+            b[i][j] = gaussian_kernel(1., data[i][0], data[j][0])
     b = numpy.linalg.inv(b)
 
     c = data_y_to_vec(data)
-    return a * (numpy.matmul(b * c))
+    return a * (numpy.matmul(b, c))
 
 def compute_std_deviation(data, x):
     a = gaussian_kernel(1., x, x)
@@ -46,14 +46,14 @@ def compute_std_deviation(data, x):
     c = numpy.ndarray(shape=(len(data), len(data)))
     for i in range(len(data)):
         for j in range(len(data)):
-            c[i][j] = 1.
-    c = numpy.linalg.inv(b)
+            c[i][j] = gaussian_kernel(1., data[i][0], data[j][0])
+    c = numpy.linalg.inv(c)
 
     d = numpy.ndarray(shape=(len(data), 1))
     for i in range(len(data)):
         d[i][0] = gaussian_kernel(1., data[i][0], x)
 
-    return sqrt(a - (b * (c * d)))
+    return math.sqrt(a - (numpy.matmul(b, numpy.matmul(c, d))))
 
 def negative_expected_improvement(x, samples, max_sample):
     mean = compute_mean(samples, x)
@@ -63,10 +63,14 @@ def negative_expected_improvement(x, samples, max_sample):
 
     A = delta / std_deviation
 
-    density = scipy.stats.norm.pdf(x=A, loc=mean, scale=std_deviation)
-    cumulative_density = scipy.stats.norm.cdf(x=A, loc=mean, scale=std_deviation)
+    density = norm.pdf(x=A, loc=mean, scale=std_deviation)
+    cumulative_density = norm.cdf(x=A, loc=mean, scale=std_deviation)
 
-    return -(maxf(delta, 0.) + std_deviation * density - abs(delta) * cumulative_density)
+    print('delta ->', delta)
+    print('stddev ->', std_deviation)
+    print('density ->', density)
+    print('cum_density ->', cumulative_density)
+    return -(max(delta, 0.) + std_deviation * density - abs(delta) * cumulative_density)
 
 def bayesian_optimization(probe, random_iterations, max_iterations):
     n = 0
