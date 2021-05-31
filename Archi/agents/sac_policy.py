@@ -115,17 +115,41 @@ class GaussianPolicy():
 
 		return actor_network
 
-	def choose_action(self, state, one=False):
+	def choose_action(self, state, one=False, constrained=True):
 		# Obtain mu and sigma from network
+		print(f"state shape: {state.shape}")
 		self.mu_throttle, self.sigma_throttle, self.mu_steering, self.sigma_steering = self.actor_network(state)
+		print(f"sigma_throttle shape: {self.sigma_throttle.shape}")
+		print(f"mu_throttle shape: {self.mu_throttle.shape}")
+		print(f"sigma_steering shape: {self.sigma_steering.shape}")
+		print(f"mu_steering shape: {self.mu_steering.shape}")
 
+		# TODO: IT'S A QUICK FIX TO SEE IF IT WORKS -> WILL BREAK IN THE LONG TERM !!!!
+		# if len(state.shape) == 4:
+		# 	m = [1, state.shape[0]]
+		# else:
+		# 	m = [1]
 		# Draw action from normal distribution
-		action_throttle = tf.random.normal([1], mean=self.mu_throttle, stddev=self.sigma_throttle)
-		action_steering = tf.random.normal([1], mean=self.mu_steering, stddev=self.sigma_steering)
+		action_throttle = tf.random.normal(self.mu_throttle.shape, mean=self.mu_throttle, stddev=self.sigma_throttle)
+		action_steering = tf.random.normal(self.mu_throttle.shape, mean=self.mu_steering, stddev=self.sigma_steering)
+
+		action_throttle = action_throttle.numpy().reshape(-1, 1)
+		action_steering = action_steering.numpy().reshape(-1, 1)
+
+		
+		if constrained:
+			sigmoid = lambda Z: 1 / (1 + np.exp(-Z))
+			action_throttle = sigmoid(action_throttle)
+			tanh = lambda Z: (np.exp(Z) - np.exp(-Z)) / (np.exp(Z) + np.exp(-Z))
+			action_steering = tanh(action_steering)
 
 		if one:
 			return action_steering
 
+		print(f"actions throt shape: {action_throttle.shape}")
+		# print(f"actions shape: {action_steering.shape}")
+		# actions = np.concatenate([action_throttle, action_steering], axis=1)
+		# return actions
 		return (action_throttle, action_steering)
 
 

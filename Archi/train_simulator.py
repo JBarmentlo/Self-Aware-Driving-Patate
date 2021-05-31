@@ -236,7 +236,6 @@ class NeuralPlayer():
 			self.agent = SoftActorCritic(self.state_size,
 								self.action_space,
 								input_shape=(config.prep_img_rows, config.prep_img_cols, config.prep_img_channels),
-								output_size=config.turn_bins,
 								learning_rate=1e-4,
 								train=not args.test)
 		self.preprocessing = Preprocessing()
@@ -319,7 +318,8 @@ class NeuralPlayer():
 				# Choose action
 				# TODO: It is time to make the model decide the throttle itself
 				if not self.args.no_sim:
-					steering = self.agent.choose_action(preprocessed_state)
+					action = self.agent.choose_action(preprocessed_state)
+					steering, _ = action
 					# Adding throttle
 					action = [steering, throttle]
 					print(f"Steering: {steering:10.3} | Throttle: {throttle:10.3}")

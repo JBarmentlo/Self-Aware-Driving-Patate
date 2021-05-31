@@ -24,18 +24,23 @@ def build_model_ValueNetwork(input_shape, output_size, learning_rate):
 	state_input = layers.Input(shape=input_shape[0])
 	current_layer = layers.Conv2D(24, (5, 5), strides=(2, 2), padding="same", activation=activations.relu)(state_input)
 
-	# current_layer = layers.Activation('relu')(state_input)
+	current_layer = layers.Activation('relu')(state_input)
 	current_layer = layers.Conv2D(32, (5, 5), strides=(2, 2), padding="same", activation=activations.relu)(current_layer)
+	current_layer = layers.Activation('relu')(current_layer)
 	current_layer = layers.Conv2D(64, (5, 5), strides=(2, 2), padding="same")(current_layer)
+	current_layer = layers.Activation('relu')(current_layer)
 	current_layer = layers.Conv2D(64, (3, 3), strides=(2, 2), padding="same")(current_layer)
+	current_layer = layers.Activation('relu')(current_layer)
 	current_layer = layers.Conv2D(64, (3, 3), strides=(1, 1), padding="same")(current_layer)
-	# current_layer = Activation('relu')(current_layer)
+	current_layer = layers.Activation('relu')(current_layer)
 	current_layer = layers.Flatten()(current_layer)
 	current_layer = layers.Dense(512)(current_layer)
 	state_end = layers.Activation('relu')(current_layer)
 
 	action_input = layers.Input(shape=input_shape[1])
-	current_layer = layers.Dense(4, input_shape=input_shape[0])(action_input)
+	# action_input_current_layer = layers.Dense(512)(action_input)
+	# action_input_current_layer = layers.Activation('relu')(action_input_current_layer)
+
 	merged = layers.Concatenate(axis=1)([state_end, action_input])
 
 	current_layer = layers.Dense(50)(merged)
@@ -47,16 +52,20 @@ def build_model_ValueNetwork(input_shape, output_size, learning_rate):
 	current_layer = layers.Dense(50)(current_layer)
 
 	# TODO: check activation layer for output
-	output_layer = layers.Dense(output_size, activation="linear")(current_layer)
 
-	model = Model(inputs=[state_input, action_input], outputs=output_layer)
+	output_size_throttle = output_size[0]
+	output_size_steering = output_size[1]
+
+	output_layer_throttle = layers.Dense(output_size_throttle, activation="sigmoid")(current_layer)
+	output_layer_steering = layers.Dense(output_size_steering, activation="tanh")(current_layer)
+
+	model = Model(inputs=[state_input, action_input], outputs=[output_layer_throttle, output_layer_steering])
 
 	adam = Adam(lr=learning_rate)
 	# TODO: check which loss to choose
 	model.compile(loss='mse', optimizer=adam)
 
 	return model
-
 	# input1 = keras.layers.Input(shape=(1, ))
 	# input2 = keras.layers.Input(shape=(1,))
 	# merged = keras.layers.Concatenate(axis=1)([input1, input2])
@@ -74,7 +83,6 @@ class SoftActorCritic():
 					state_size=1000,
 					action_space=(2,),
 					input_shape=(64, 64, 3),
-					output_size=2,
 					learning_rate=1e-4,
 					train=True):
 		print("Initialization of SAC")
@@ -85,7 +93,6 @@ class SoftActorCritic():
 
 		# Models characteristics
 		self.train = train
-		self.output_size = output_size
 		self.batch_size = 8
 
 		# Policy
@@ -94,40 +101,52 @@ class SoftActorCritic():
 		self.policy = GaussianPolicy(input_shape=input_shape, learning_rate=learning_rate)
 
 		# Q functions estimators:
+		self.lr_qfunc = 1e-4
 		self.input_shape_phi_state = input_shape
 		self.input_shape_phi_action = (2,)
-		self.lr_qfunc = 1e-4
-		print(f"Input shape of ValueNet is: {input_shape}")
-		
-		phi_input = (self.input_shape_phi_state, self.input_shape_phi_action)
 
-		self.phi_1 = build_model_ValueNetwork(phi_input, output_size, learning_rate)
-		self.phi_2 = build_model_ValueNetwork(phi_input, output_size, learning_rate)
+		phi_input = (self.input_shape_phi_state, self.input_shape_phi_action)
+		print(f"Input shape of ValueNet is: {phi_input}")
+		# self.output_size_throttle = 1
+		# self.output_size_steering = (1,)
+		self.output_size = (1, 1)
+		print(f"Output shape of 1tput_size {self.output_size}")
+
+		self.phi_1 = build_model_ValueNetwork(phi_input, self.output_size, learning_rate)
+		self.phi_2 = build_model_ValueNetwork(phi_input, self.output_size, learning_rate)
 		self.phi_1.summary()
 		self.discount_factor = 0.9
 
 	def update_epsilon(self):
 		pass
 
-	def choose_action(self, s_t):
+	def choose_action(self, s_t, concat=False):
 		a_t_throttle, a_t_steering = self.policy.choose_action(s_t)
+		a_t_throttle = np.squeeze(a_t_throttle)
+		a_t_steering = np.squeeze(a_t_steering)
+		# TODO: Make sure action are conscripted in 
 		print(f"a_t_throttle: {a_t_throttle.shape} => {a_t_throttle}")
 		print(f"a_t_steering: {a_t_steering.shape} => {a_t_steering}")
-		a_t_throttle = float(a_t_throttle)
-		a_t_steering = float(a_t_steering)
-		return a_t_steering
+		# a_t_throttle = float(a_t_throttle)
+		# a_t_steering = float(a_t_steering)
+		if concat:
+			a_t = np.concatenate([a_t_throttle.reshape(-1,1), a_t_steering.reshape(-1,1)], axis=1)
+			return a_t
+		return a_t_throttle, a_t_steering
 
 	def qfunc_predict(self, s_t1, a_t1, which=0):
-			# Implementation is not clear if we need to sample a_t1 twice
-			if which == 1:
-				q_values = self.phi_1([s_t1, a_t1])
-			elif which == 2:
-				q_values = self.phi_2([s_t1, a_t1])
-			else:
-				q_values_1 = self.phi_1([s_t1, a_t1])
-				q_values_2 = self.phi_2([s_t1, a_t1])
-				q_values = tf.math.minimum(q_values_1, q_values_2)
-			return q_values
+		# Implementation is not clear if we need to sample a_t1 twice
+		print(f"Input shape state: {np.shape(s_t1)}")
+		print(f"Input shape action: {np.shape(a_t1)}")
+		if which == 1:
+			q_values = self.phi_1([s_t1, a_t1])
+		elif which == 2:
+			q_values = self.phi_2([s_t1, a_t1])
+		else:
+			q_values_1 = self.phi_1([s_t1, a_t1])
+			q_values_2 = self.phi_2([s_t1, a_t1])
+			q_values = tf.math.minimum(q_values_1, q_values_2)
+		return q_values
 
 	def qfuncs_update(self, state_t, targets):
 		# * The update should be on new networks to allow for soft update
@@ -135,10 +154,11 @@ class SoftActorCritic():
 		phi_1 = deepcopy(self.phi_1)
 		phi_2 = deepcopy(self.phi_2)
 
-		phi_1.train_on_batch(state_t, targets)
-		phi_2.train_on_batch(state_t, targets)
+		print(f"qfuncs_update: Input shape: {state_t.shape},{targets.shape}")
+		phi_1.train_on_batch([state_t, targets])
+		phi_2.train_on_batch([state_t, targets])
 
-		return phi_i, phi_2
+		return phi_1, phi_2
 
 	def update_target_model(self):
 		# TODO: bad train_simulator interface
@@ -174,12 +194,16 @@ class SoftActorCritic():
 		return net_new
 
 	def compute_targets(self, r, s_t1, done):
-		a_t1 = self.choose_action(s_t1)
+		print(f"s_t1 shape: {np.shape(s_t1)}")
+		a_t1 = self.choose_action(s_t1, concat=True)
+		# actions = np.concatenate([action_throttle, action_steering], axis=1)
+		print(f"a_t1 : {a_t1.shape}")
 		# If done, eon (Expectation of ) is not necessary
 		# 	If none might even break code
+		# TODO Need to work through the shapes for getting the calcul right
 		eon = self.qfunc_predict(s_t1, a_t1, which=0) - \
-						(self.lr_qfunc * np.log(self.choose_action(a_t1)))
-		targets = r + self.discount_factor  (1 - done) * eon
+						(self.lr_qfunc * np.log(self.choose_action(s_t1, concat=True)))
+		targets = r + self.discount_factor * (1 - done) * eon
 		return targets
 
 	def train_on_memory(self, replay_bufer):
@@ -193,7 +217,17 @@ class SoftActorCritic():
 				# print(elem)
 				batch.append(elem)
 			
-			state_t, action_t, reward_t, state_t1, done, info = zip(*batch)
+			state_t, action_t, reward_t, state_t1, done, _ = zip(*batch)
+
+			state_t = np.concatenate(state_t, axis=0)
+			action_t = np.concatenate(action_t, axis=0)
+			# print(f"reward: {reward_t}")
+			reward_t = np.array(reward_t)
+			# print(f"reward: {reward_t}")
+			state_t1 = np.concatenate(state_t1, axis=0)
+			print(f"done: {done}")
+			done = np.array(done).astype(int)
+			print(f"done: {done}")
 
 			# * Compute targets
 			targets = self.compute_targets(reward_t, state_t1, done)
