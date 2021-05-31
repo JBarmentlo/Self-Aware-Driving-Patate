@@ -14,6 +14,8 @@ python3 Archi/train_simulator.py --sim ../../DonkeyCar/DonkeySimLinux/donkey_sim
 
 # Architecture
 
+![Architecture Overview](./Documentation/Overview.png)
+
 1. Input data
    - Interaction with simulator
    - From datasets
