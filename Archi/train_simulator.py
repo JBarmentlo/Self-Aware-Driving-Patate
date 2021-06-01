@@ -321,7 +321,10 @@ class NeuralPlayer():
 					action = self.agent.choose_action(preprocessed_state)
 					steering, _ = action
 					# Adding throttle
-					action = [steering, throttle]
+					# ATTENTION: change was needed for SAC agent
+					#		converted: 	[steering, throttle]
+					#		to:			np.array([steering, throttle])
+					action = np.array([steering, throttle])
 					print(f"Steering: {steering:10.3} | Throttle: {throttle:10.3}")
 					# Do action
 					new_state, reward, done, info = self.env.step(action)
