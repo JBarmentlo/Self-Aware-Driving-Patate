@@ -13,10 +13,10 @@ class GaussianPolicy():
 	"""
 
 	def __init__(self, input_shape=(1,),
-					bias_mu_throttle=0.0,
+					bias_mu_throttle=0.5,
 					bias_mu_steering=0.0,
-					bias_sigma_throttle=0.55,
-					bias_sigma_steering=0.55,
+					bias_sigma_throttle=0.03, # ~1% outside (0.5 +- 0.4)
+					bias_sigma_steering=0.1, # ~2% outside (0 +- 0.9)
 					learning_rate=0.001):
 		"""
 			Summary:
@@ -66,10 +66,10 @@ class GaussianPolicy():
 					input_shape,
 					number_of_layers=5,
 					neurons_by_layers=10,
-					bias_mu_throttle=0.0,
+					bias_mu_throttle=0.5,
 					bias_mu_steering=0.0,
-					bias_sigma_throttle=0.55,
-					bias_sigma_steering=0.55,
+					bias_sigma_throttle=0.03, # ~1% outside (0.5 +- 0.4)
+					bias_sigma_steering=0.1, # ~2% outside (0 +- 0.9)
 					dropout=0.15):
 		"""
 			Construct the actor network with mu and sigma as output
