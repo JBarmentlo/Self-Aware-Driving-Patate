@@ -21,13 +21,20 @@ from utils import is_cte_out
 ### Deya
 import pickle
 from gym.spaces import Box
-from inputs import get_key
+# from inputs import get_key
 from config import config
 import threading
 from datetime import datetime
 import json
 import boto3
 import os
+from encoder import encod_model
+
+def get_key():
+	pass
+
+
+model = encod_model()
 ### UNCONMMENT THE FOLLOWING LINE TO CONNECT TO S3 BUCKET:
 # from s3 import s3, bucket_name, bucket
 
@@ -128,6 +135,8 @@ def init_dic_info(args): ### TODO add infos about last commit ec...
 	upload_json_file(info_file_name, infos)
 	return (infos)
 
+
+
 class HumanPlayer():
 	def __init__(self, args):
 		self.args = args
@@ -209,6 +218,7 @@ class NeuralPlayer():
 		'''
 		run a DDQN training session, or test it's result, with the donkey simulator
 		'''
+		encoder = encod_model()
 		self.args = args
 		if not self.args.no_sim:
 			self = init_simulator(self)
@@ -219,6 +229,8 @@ class NeuralPlayer():
 		self.db_len = 0
 		if self.args.save:
 			self.general_infos = init_dic_info(self.args)
+		# Preprocessing
+		self.preprocessing = Preprocessing()
 		# Get size of state and action from environment
 		self.state_size = (config.img_rows, config.img_cols, config.img_channels)
 		self.action_space = Box(-1.0, 1.0, (2,), dtype=np.float32) ### TODO: not the best
@@ -236,7 +248,6 @@ class NeuralPlayer():
 								output_size=config.turn_bins,
 								learning_rate=1e-4,
 								train=not args.test)
-		self.preprocessing = Preprocessing()
 
 		# For numpy print formating:
 		np.set_printoptions(precision=4)
