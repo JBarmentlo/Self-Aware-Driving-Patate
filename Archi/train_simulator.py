@@ -275,7 +275,9 @@ class NeuralPlayer():
 			s_t = s_t.reshape(1, s_t.shape[0], s_t.shape[1], s_t.shape[2])  # 1*80*80*4
 		else:
 			x_t = x_t.reshape(1, x_t.shape[0], x_t.shape[1], 1)  # 1x80x80x1
-			s_t = np.append(x_t, old_state[:, :, :, :3], axis=3)  # 1x80x80x4 
+			s_t = np.append(x_t, old_state[:, :, :, :3], axis=3)  # 1x(128+128+128+128)
+		s_t = s_t.reshape((1, 4, -1)) # 1 x 512
+		print(f"Preprocessed state shape: {s_t.shape}")
 		return s_t
 
 	def reward_optimization(self, reward, done):

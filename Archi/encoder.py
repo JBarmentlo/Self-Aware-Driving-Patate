@@ -7,6 +7,32 @@ from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import TensorBoard
 from utils_get_abs_path import get_path_to_cache
 
+# class AutoEncoder():
+	# # Doit pouvoir construire un model en fonction d'hyper parametres donnes
+	# # Et l'entrainer avec un dossier d'image
+	# # Puis doit pouvoir gerer une image pour renvoyer la version vectorisee
+	# def __init__(self, output_size=128, input_shape=(80,80), learning_rate=0.01):
+	# 	# Construire avec keras
+	# 	pass
+	
+	# def preprocessing(self, image):
+	# 	# Crop sky
+	# 	# Uncolorize
+	# 	# Normalize image
+	# 	# return image
+	# 	pass
+	
+	# def encoder(self, image):
+	# 	self.preprocessing(image)
+	# 	res = self.model(image)
+	# 	return res
+
+	# def decoder(self, endocoded_img)
+	# 	pass
+
+	# def train(self, dataset, batch, epochs):
+	# 	pass
+
 def encod_model():
 
 	image_width  = 64

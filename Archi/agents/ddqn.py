@@ -5,7 +5,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.initializers import identity
 from tensorflow.keras.models import model_from_json
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten
+from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, Input
 from tensorflow.keras.layers import Conv2D, MaxPooling2D
 import tensorflow as tf
 # from tensorflow.keras import backend as K
@@ -44,25 +44,33 @@ class DQNAgent:
 		# Create main model and target model
 		self.model = self.build_model()
 		self.target_model = self.build_model()
+		self.target_model.summary()
 		# Copy the model to target model
 		# --> initialize the target model so that the parameters of model & target model to be same
 		self.update_target_model()
 
 	def build_model(self):
 		model = Sequential()
-		model.add(Conv2D(24, (5, 5), strides=(2, 2), padding="same",
-				   input_shape=self.input_shape))  # 80*80*4
+		model.add(Input(shape=(4, 128)))
+		# (4, 128) -> comment les parser ?
+		# On a besoin de se retrouver avec une dimension a la fin
+		# - Layer de convolution le plus pertinent ?
+		# - reshape pour mettre les vecteur a la suite
 		model.add(Activation('relu'))
-		model.add(Conv2D(32, (5, 5), strides=(2, 2), padding="same"))
+		model.add(Dense(128))
 		model.add(Activation('relu'))
-		model.add(Conv2D(64, (5, 5), strides=(2, 2), padding="same"))
+		model.add(Dense(128))
 		model.add(Activation('relu'))
-		model.add(Conv2D(64, (3, 3), strides=(2, 2), padding="same"))
+		model.add(Dense(128))
 		model.add(Activation('relu'))
-		model.add(Conv2D(64, (3, 3), strides=(1, 1), padding="same"))
+		model.add(Dense(128))
 		model.add(Activation('relu'))
 		model.add(Flatten())
-		model.add(Dense(512))
+		model.add(Dense(64))
+		model.add(Activation('relu'))
+		model.add(Dense(16))
+		model.add(Activation('relu'))
+		model.add(Dense(4))
 		model.add(Activation('relu'))
 		# 15 categorical bins for Steering angles
 		model.add(Dense(self.output_size, activation="linear"))
@@ -75,13 +83,14 @@ class DQNAgent:
 	# Get action from model using epsilon-greedy policy
 
 	def choose_action(self, s_t):
-		if np.random.rand() <= self.epsilon: 
+		if np.random.rand() <= self.epsilon:
+			print("\tRandom choice !")
 			return self.action_space.sample()[0]
 		else:
 			#print("Return Max Q Prediction")
 			q_values = self.model.predict(s_t)
 			# Convert q array to steering value
-			print(f"Model 'True' prediction: {q_values}")
+			print(f"\tModel 'True' prediction: {q_values.shape}")
 			return linear_unbin(q_values[0])
 
 	# def replay_memory(self, state, action, reward, next_state, done):
