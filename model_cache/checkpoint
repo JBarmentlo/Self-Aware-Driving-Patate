@@ -1,2 +1,2 @@
-model_checkpoint_path: "first_model.gh"
-all_model_checkpoint_paths: "first_model.gh"
+model_checkpoint_path: "rl_driver"
+all_model_checkpoint_paths: "rl_driver"

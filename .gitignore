@@ -1,7 +1,12 @@
-Archi/.env
-Archi/__pycache__
+**/.env
+**/__pycache__
 .env
 __pycache__
 unitylog.txt
 *.pyc
 .vscode
+venv/
+**/venv
+*.vscode
+*.vscode
+*-workspace
