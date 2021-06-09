@@ -1,6 +1,6 @@
 h5py
 pillow
-opencv
+opencv-python
 matplotlib
 tornado
 docopt
