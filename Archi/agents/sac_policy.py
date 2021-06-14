@@ -4,6 +4,7 @@ import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.layers as layers
 import tensorflow.keras.initializers as initializers
+import math
 # from keras.layers import Dropout
 
 class GaussianPolicy():
@@ -153,26 +154,33 @@ class GaussianPolicy():
 		return (action_throttle, action_steering)
 
 	def policy_probability(self, s_t):
-		# OH MY GOODNESS the LOG IS ABOUT THE PROBABILITY OF DRAWING THE ACTIONS,
-		# 	NOT THE ACTIONS ITSELF !!!!!!!!!!!
-		# Will need to adapt, for the moment I consider every action has a probability of one,
-		# 	Once this agent can run without generating Exceptions
-		# 	I will apply the changes correctly in SAC_policy
-		#  $ f(x, \mu, \sigma) = \frac{1}{\sigma\sqrt{2\pi}}e ^\frac{-(x -\mu) ^ 2}{2\sigma ^ 2} $
-		# normal_probability = lambda x, m, s: 1. / (s * np.power)
-		print("1st line policy_probability")
-		a_t_throttle, a_t_steering = self.choose_action(s_t)
-		print("Squeezing time")
-		a_t_throttle = np.squeeze(a_t_throttle)
-		a_t_steering = np.squeeze(a_t_steering)
-		print("Concatenate time")
-		a_t = np.concatenate([a_t_throttle.reshape(-1, 1),
-							  a_t_steering.reshape(-1, 1)], axis=1)
-		print("Ones time")
-		probability_to_draw_action = tf.ones(a_t.shape, tf.float64)
-		print("Cast time")
-		probability_to_draw_action = tf.cast(probability_to_draw_action, tf.float64)
-		print("Return time")
+		a_t, a_s = self.choose_action(s_t)
+
+		mu_t = self.mu_throttle
+		si_t = self.sigma_throttle
+		mu_s = self.mu_steering
+		si_s = self.sigma_steering
+
+		def prob_dis(x, m, s):
+			#  $ f(x, \mu, \sigma) = \frac{1}{\sigma\sqrt{2\pi}}e ^\frac{-(x -\mu) ^ 2}{2\sigma ^ 2} $
+			print(f"x.shape {tf.shape(x)}")
+			print(f"mu.shape {tf.shape(m)}")
+			print(f"sig.shape {tf.shape(s)}")
+			pi = tf.constant(math.pi)
+			sig_sqrt = s * tf.math.sqrt(2 * pi)
+			print(f"sig_sqrt.shape {tf.shape(sig_sqrt)}")
+			expo = tf.math.exp(- tf.math.pow(x - m, 2) / (2 * tf.math.pow(s, 2)))
+			print(f"expo.shape {tf.shape(expo)}")
+			return (1 / sig_sqrt) * expo 
+
+		prob_t = prob_dis(a_t, mu_t, si_t)
+		print(f"prob_t.shape {tf.shape(prob_t)}")
+		prob_s = prob_dis(a_s, mu_s, si_s)
+		print(f"prob_s.shape {tf.shape(prob_s)}")
+
+		probability_to_draw_action = prob_t * prob_s
+		print(f"prob.shape {tf.shape(probability_to_draw_action)}")
+		print(f"prob {probability_to_draw_action}")
 		return probability_to_draw_action
 
 	def custom_loss_gaussian(self, state, action, reward, debug=False):

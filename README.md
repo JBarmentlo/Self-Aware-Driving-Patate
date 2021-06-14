@@ -31,7 +31,9 @@ python3 Archi/train_simulator.py --sim ../../DonkeyCar/DonkeySimLinux/donkey_sim
 4. Model evaluation
 	- Saving the model, with HyperParams
 	- Evaluate the model
-  
+
+$$ f(x, \mu, \sigma) = \frac{1}{\sigma\sqrt{2\pi}}e ^\frac{-(x -\mu) ^ 2}{2\sigma ^ 2} $$
+
 # Utils
 
 - Multiprocessing -> Takes complete architecture in hand

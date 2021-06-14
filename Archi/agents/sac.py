@@ -214,6 +214,58 @@ class SoftActorCritic():
 		print(type(net_old))
 		print(type(net_new))
 
+		# Resources:
+		# 	https://github.com/tensorflow/tensorflow/issues/23906
+		# 	https://stackoverflow.com/questions/51354186/how-to-update-weights-manually-with-keras
+
+		with tf.Session() as sess:
+			def hello(scopeName='sc1'):
+				with tf.variable_scope(scopeName):
+					a1 = tf.get_variable(name='test_var1', initializer=0.)
+					b1 = tf.get_variable(name='test_var2', initializer=0.)
+
+			g=hello('sc1')
+			g2=hello('new')
+			g3=hello('old')
+			sess.run(tf.global_variables_initializer())
+
+			t_vars=tf.trainable_variables()
+			var_in_sc1= [var for var in t_vars if 'sc1' in var.name]
+			var_in_new= [var for var in t_vars if 'new' in var.name]
+			var_in_old= [var for var in t_vars if 'old' in var.name]
+			
+			print('save 0')
+			for var_idx, var in enumerate(var_in_sc1):
+				var_in_old[var_idx].load(var_in_sc1[var_idx].eval(),sess)
+			print('add 1')
+			for var in var_in_sc1:
+				sess.run(tf.assign_add(var,1.))
+
+			print('save 1')
+			for var_idx, var in enumerate(var_in_sc1):
+				var_in_new[var_idx].load(var_in_sc1[var_idx].eval(),sess)
+			print('add 1')
+			for var in var_in_sc1:
+				sess.run(tf.assign_add(var,1.))
+			print(sess.run(var_in_sc1))
+
+			print('load old')
+			for var_idx, var in enumerate(var_in_old):
+				var_in_sc1[var_idx].load(var_in_old[var_idx].eval(),sess)
+			print(sess.run(var_in_sc1))
+
+			print('load new')
+			for var_idx, var in enumerate(var_in_new):
+				var_in_sc1[var_idx].load(var_in_new[var_idx].eval(),sess)
+			print(sess.run(var_in_sc1))
+	
+		print(net_old.trainable_variables)
+		print(net_new.trainable_variables)
+
+		for i, otv in enumerate(net_old.trainable_variables):
+			net_new.trainable_variables[i] = ((TAU)*net_new.trainable_variables[i] + (1-TAU)*otv)
+
+
 		# # Get all the variables in the Q primary network.
 		# q_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="Q_primary")
 		# # Get all the variables in the Q target network.
@@ -224,17 +276,17 @@ class SoftActorCritic():
 		# 	# Soft update: polyak averaging.
 		# 	sess.run([v_t.assign(v_t * (1. - tau) + v * tau) for v_t, v in zip(q_target_vars, q_vars)])
 
-		net_old_params = net_old.named_parameters()
-		net_new_params = net_new.named_parameters()
+		# net_old_params = net_old.named_parameters()
+		# net_new_params = net_new.named_parameters()
 		
-		dic_net_new_params = dict(net_new_params)
+		# dic_net_new_params = dict(net_new_params)
 
-		for old_name, old_param in net_old_params:
-			if old_name in old_param:
-				dic_net_new_params[old_name].data.copy_(
-					(TAU)*predi_param.data + (1-TAU)*old_param[predi_param].data)
+		# for old_name, old_param in net_old_params:
+		# 	if old_name in old_param:
+		# 		dic_net_new_params[old_name].data.copy_(
+		# 			(TAU)*predi_param.data + (1-TAU)*old_param[predi_param].data)
 
-		net_new.load_state_dict(net_old.state_dict())
+		# net_new.load_state_dict(net_old.state_dict())
 		return net_new
 
 	def compute_targets(self, r, s_t1, done):
@@ -345,10 +397,14 @@ class SoftActorCritic():
 
 			# line 15:
 			# * Soft update the target networks
-			self.phi_1 = phi_1
-			self.phi_2 = phi_2
-			# self.soft_net_update(self.phi_1, phi_1)
-			# self.soft_net_update(self.phi_2, phi_2)
+			debug = False
+			# debug = True
+			if not debug:
+				self.phi_1 = phi_1
+				self.phi_2 = phi_2
+			else:
+				self.phi_1 = self.soft_net_update(self.phi_1, phi_1)
+				self.phi_2 = self.soft_net_update(self.phi_2, phi_2)
 		replay_bufer.clear()
 
 
