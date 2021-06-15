@@ -29,8 +29,10 @@ def compute_mean(data, x):
 
     b = numpy.ndarray(shape=(len(data), len(data)))
     for i in range(len(data)):
-        for j in range(len(data)):
-            b[i][j] = gaussian_kernel(1., data[i][0], data[j][0])
+        for j in range(i, len(data)):
+            val = gaussian_kernel(1., data[i][0], data[j][0])
+            b[i][j] = val
+            b[j][i] = val
     b = numpy.linalg.inv(b)
 
     c = data_y_to_vec(data)
@@ -45,8 +47,10 @@ def compute_std_deviation(data, x):
 
     c = numpy.ndarray(shape=(len(data), len(data)))
     for i in range(len(data)):
-        for j in range(len(data)):
-            c[i][j] = gaussian_kernel(1., data[i][0], data[j][0])
+        for j in range(i, len(data)):
+            val = gaussian_kernel(1., data[i][0], data[j][0])
+            c[i][j] = val
+            c[j][i] = val
     c = numpy.linalg.inv(c)
 
     d = numpy.ndarray(shape=(len(data), 1))
@@ -77,8 +81,7 @@ def bayesian_optimization(probe, random_iterations, max_iterations):
     max_index = 0
 
     while n < random_iterations:
-        # TODO Take range as parameter?
-        x = numpy.random.uniform(-100., 100., size=(probe.dim))
+        x = numpy.random.uniform(0., 1., size=(probe.dim))
 
         y = probe.probe(x)
         samples.append((x, y))
@@ -88,10 +91,10 @@ def bayesian_optimization(probe, random_iterations, max_iterations):
         n += 1
 
     while n < max_iterations:
-        begin = numpy.ones(shape=(probe.dim))
+        begin = numpy.random.uniform(0., 1., size=(probe.dim))
         max_sample = samples[max_index][1]
         print('max: ', max_sample)
-        x = scipy.optimize.minimize(negative_expected_improvement, begin, args=(samples, max_sample), method='L-BFGS-B').x
+        x = scipy.optimize.minimize(negative_expected_improvement, begin, args=(samples, max_sample), bounds=scipy.optimize.Bounds(0., 1.), method='L-BFGS-B').x
 
         y = probe.probe(x)
         samples.append((x, y))
@@ -117,8 +120,8 @@ class TestProbe(Probe):
 
     def probe(self, x):
         print('x:', x)
-        print('y:', math.sin(x[1] * x[1]) * (x[0] + 10.))
-        return math.sin(x[1] * x[1]) * (x[0] + 10.)
+        print('y:', 2. * math.sin(x[1] * x[1]) + math.cos(2. * x[0]))
+        return 2. * math.sin(x[1] * x[1]) + math.cos(2. * x[0])
 
 if __name__ == "__main__":
     probe = TestProbe()
