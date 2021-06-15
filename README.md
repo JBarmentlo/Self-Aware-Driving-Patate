@@ -1,6 +1,6 @@
 # Self-Aware-Driving-Patate
 
-A project by @dberger @jbarment @ldevelle @llenotre 
+A project by @dberger @jbarment @ldevelle @llenotre @gilles595
 
 A big thank to [Qarnot](https://qarnot.com/) who supports us through this endeaviour by offering us cloud computing.
 If you would like to see how we interact with their platforn to launch our calculations, [Here's our wrapper repository](https://github.com/ezalos/Qarnot_Wrapper)
