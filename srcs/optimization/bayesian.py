@@ -22,15 +22,15 @@ def data_y_to_vec(data):
         v[i][0] = data[i][1]
     return v
 
-def compute_mean(data, x):
+def compute_mean(data, x, alpha):
     a = numpy.ndarray(shape=(1, len(data)))
     for i in range(len(data)):
-        a[0][i] = gaussian_kernel(1., data[i][0], x)
+        a[0][i] = gaussian_kernel(alpha, data[i][0], x)
 
     b = numpy.ndarray(shape=(len(data), len(data)))
     for i in range(len(data)):
         for j in range(i, len(data)):
-            val = gaussian_kernel(1., data[i][0], data[j][0])
+            val = gaussian_kernel(alpha, data[i][0], data[j][0])
             b[i][j] = val
             b[j][i] = val
     b = numpy.linalg.inv(b)
@@ -38,17 +38,17 @@ def compute_mean(data, x):
     c = data_y_to_vec(data)
     return numpy.matmul(a, numpy.matmul(b, c))[0][0]
 
-def compute_std_deviation(data, x):
-    a = gaussian_kernel(1., x, x)
+def compute_std_deviation(data, x, alpha):
+    a = gaussian_kernel(alpha, x, x)
 
     b = numpy.ndarray(shape=(1, len(data)))
     for i in range(len(data)):
-        b[0][i] = gaussian_kernel(1., x, data[i][0])
+        b[0][i] = gaussian_kernel(alpha, x, data[i][0])
 
     c = numpy.ndarray(shape=(len(data), len(data)))
     for i in range(len(data)):
         for j in range(i, len(data)):
-            val = gaussian_kernel(1., data[i][0], data[j][0])
+            val = gaussian_kernel(alpha, data[i][0], data[j][0])
             c[i][j] = val
             c[j][i] = val
     c = numpy.linalg.inv(c)
@@ -57,13 +57,9 @@ def compute_std_deviation(data, x):
     for i in range(len(data)):
         d[i][0] = gaussian_kernel(1., data[i][0], x)
 
-    # TODO Keep abs?
     return math.sqrt(abs(a - (numpy.matmul(b, numpy.matmul(c, d)))))
 
-def negative_expected_improvement(x, samples, max_sample):
-    mean = compute_mean(samples, x)
-    std_deviation = compute_std_deviation(samples, x)
-
+def negative_expected_improvement(x, mean, std_deviation, max_sample, alpha):
     delta = mean - max_sample
 
     A = 0
@@ -75,7 +71,7 @@ def negative_expected_improvement(x, samples, max_sample):
 
     return -(max(delta, 0.) + std_deviation * density - abs(delta) * cumulative_density)
 
-def bayesian_optimization(probe, random_iterations, max_iterations):
+def bayesian_optimization(probe, random_iterations, max_iterations, alpha=1.):
     n = 0
     samples = []
     max_index = 0
@@ -94,7 +90,10 @@ def bayesian_optimization(probe, random_iterations, max_iterations):
         begin = numpy.random.uniform(0., 1., size=(probe.dim))
         max_sample = samples[max_index][1]
         print('max: ', max_sample)
-        x = scipy.optimize.minimize(negative_expected_improvement, begin, args=(samples, max_sample), bounds=scipy.optimize.Bounds(0., 1.), method='L-BFGS-B').x
+
+        mean = compute_mean(samples, x, alpha)
+        std_deviation = compute_std_deviation(samples, x, alpha)
+        x = scipy.optimize.minimize(negative_expected_improvement, begin, args=(mean, std_deviation, max_sample, alpha), bounds=scipy.optimize.Bounds(0., 1.), method='L-BFGS-B').x
 
         y = probe.probe(x)
         samples.append((x, y))
