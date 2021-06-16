@@ -4,6 +4,10 @@ from Simulator import Simulator
 from config import config
 import threading
 from s3 import S3
+import signal
+import sys
+
+
 
 class HumanPlayer():
     def __init__(self, args):
@@ -28,6 +32,7 @@ class HumanPlayer():
     def run_supervised(self):
         print("-------- PRESS any key to start connecting the keyboard, it can take a while...")
         state = self.env.reset()
+        action = None
         get_key()
         print("\n\n**********         Now you can start driving with your KEYPADS :) :)         **********\n\n")
         while self.stop == 0:
@@ -79,4 +84,15 @@ class HumanPlayer():
         if self.steering > config.max_steering:
             self.steering = config.max_steering
         if self.steering < config.min_steering:
-            self.steering = config.min_steering 
+            self.steering = config.min_steering
+    
+    def signal_handler(self, signal, frame):
+        print("catching ctrl+c")
+        save_memory_db(self.episode_memory, self.general_infos, "last", self.our_s3)
+        self.env.unwrapped.close()
+        sys.exit(0)
+
+
+signal.signal(signal.SIGINT, HumanPlayer.signal_handler)
+signal.signal(signal.SIGTERM, HumanPlayer.signal_handler)
+signal.signal(signal.SIGABRT, HumanPlayer.signal_handler)

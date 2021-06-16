@@ -80,11 +80,11 @@ def append_db(episode_memory, state, action, reward, new_state, done, info):
 	
 
 def save_memory_db(memory_list, infos, episode, our_s3 = None):
-    file_name = f"{infos['prefix']}_{episode}{config.memory_sufix}"
-    if our_s3 != None:
-        our_s3.pickle_upload(file_name, memory_list)
-    else:
-        upload_pickle_file(file_name, memory_list)
+	file_name = f"{infos['prefix']}_{episode}{config.memory_sufix}"
+	if our_s3 != None:
+		our_s3.pickle_upload(file_name, memory_list)
+	else:
+		upload_pickle_file(file_name, memory_list)
 
 
 def init_dic_info(args, our_s3 = None): ### TODO add infos about last commit ec...
