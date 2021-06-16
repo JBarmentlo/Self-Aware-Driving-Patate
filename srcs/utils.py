@@ -1,5 +1,10 @@
 import numpy as np
 from config import config, cte_config
+import pickle
+import json
+from datetime import datetime
+from s3 import S3
+
 
 def linear_unbin(arr, turn_bins=config.turn_bins):
 	#TODO: remove function
@@ -44,3 +49,58 @@ def is_cte_out(cte):
 		return True
 	else:
 		return False
+
+
+def upload_pickle_file(file_name, content):
+	with open(file_name, "wb") as f:
+		pickle.dump(content, f)
+
+
+def upload_json_file(file_name, content):
+	with open(file_name, "w") as f:
+		json.dump(content, f)
+
+
+def read_json_file(name):
+	with open(name, "r") as f:
+		result = json.load(f)
+	return(result)
+
+
+def read_pickle_file(name):
+	with open(name, "rb") as f:
+		result = pickle.load(f)
+	return(result)
+
+
+def append_db(episode_memory, state, action, reward, new_state, done, info):
+		### TODO: rajouter check des arguments
+	# MEMORY for database (to train without simulator)
+	episode_memory.append((state, action, reward, new_state, done, info))
+	
+
+def save_memory_db(memory_list, infos, episode, our_s3 = None):
+    file_name = f"{infos['prefix']}_{episode}{config.memory_sufix}"
+    if our_s3 != None:
+        our_s3.pickle_upload(file_name, memory_list)
+    else:
+        upload_pickle_file(file_name, memory_list)
+
+
+def init_dic_info(args, our_s3 = None): ### TODO add infos about last commit ec...
+	date = datetime.now().strftime("%d_%m_%Hh%Mm")
+	name = config.name_neural_player
+	if args.supervised:
+		name = config.name_human_player
+	if args.destination == "s3":
+		folder = config.s3_memory_folder
+	else:
+		folder = config.local_memory_folder
+	info_prefix = f"{folder}/{name}_{date}"
+	infos = {"name" : name, "date" : str(date), "env_name" : args.env_name, "prefix" : info_prefix}
+	info_file_name = f"{info_prefix}{config.info_sufix}"
+	if args.destination == "s3" and our_s3:
+		our_s3.upload_json_file(info_file_name, infos)
+	else:
+		upload_json_file(info_file_name, infos)
+	return (infos)

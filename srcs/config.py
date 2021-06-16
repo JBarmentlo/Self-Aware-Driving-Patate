@@ -62,10 +62,12 @@ config.coef = 1.7
 
 config.name_neural_player = "NeuralPlayer"
 config.name_human_player = "HumanPlayer"
-config.memory_folder = "memory"
+config.local_memory_folder = "local_memory"
+config.s3_memory_folder = "memory"
 config.memory_sufix = ".pkl"
 config.info_sufix = "_infos.json"
 config.main_folder = get_path_to_cache("")
+config.bucket_name = "deyopotato"
 
 
 
