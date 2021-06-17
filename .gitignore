@@ -10,3 +10,5 @@ venv/
 *.vscode
 *.vscode
 *-workspace
+srcs/.env
+.env
