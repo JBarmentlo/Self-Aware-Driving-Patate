@@ -11,6 +11,8 @@ import gym
 # from skimage.transform import rotate
 # from skimage.viewer import ImageViewer
 from collections import deque
+
+from tensorflow.python.keras.models import Model
 from preprocessing import Preprocessing
 from agents.ddqn import DQNAgent
 from agents.sac import SoftActorCritic
@@ -21,20 +23,18 @@ from utils import is_cte_out
 ### Deya
 import pickle
 from gym.spaces import Box
-# from inputs import get_key
 from config import config
 import threading
 from datetime import datetime
 import json
 import boto3
 import os
-from encoder import encod_model
+from encodDecod import AutoEncoder
+from PIL import Image
 
 def get_key():
 	pass
 
-
-model = encod_model()
 ### UNCONMMENT THE FOLLOWING LINE TO CONNECT TO S3 BUCKET:
 # from s3 import s3, bucket_name, bucket
 
@@ -218,7 +218,7 @@ class NeuralPlayer():
 		'''
 		run a DDQN training session, or test it's result, with the donkey simulator
 		'''
-		encoder = encod_model()
+		
 		self.args = args
 		if not self.args.no_sim:
 			self = init_simulator(self)
@@ -231,6 +231,10 @@ class NeuralPlayer():
 			self.general_infos = init_dic_info(self.args)
 		# Preprocessing
 		self.preprocessing = Preprocessing()
+		self.AC = AutoEncoder()
+		self.encoder, _, _ = self.AC.AutoEncoder_model(config.img_rows, config.img_cols)
+		self.enc_loaded = self.AC.Loaded_Encoder("", self.encoder)
+
 		# Get size of state and action from environment
 		self.state_size = (config.img_rows, config.img_cols, config.img_channels)
 		self.action_space = Box(-1.0, 1.0, (2,), dtype=np.float32) ### TODO: not the best
@@ -267,14 +271,16 @@ class NeuralPlayer():
 				self.env.unwrapped.close()
 
 	def prepare_state(self, state, old_state=None): ### TODO: rename old state
-		x_t = self.preprocessing.process_image(state)
+		# Preprocessing is done on image not numpy array	
+		state = Image.fromarray(state) # to check
+		x_t = np.array(self.preprocessing.process_image(state, self.enc_loaded))
 		if type(old_state) != type(np.ndarray):
 			# For 1st iteration when we do not have old_state
 			s_t = np.stack((x_t, x_t, x_t, x_t), axis=2)
 			# In Keras, need to reshape
-			s_t = s_t.reshape(1, s_t.shape[0], s_t.shape[1], s_t.shape[2])  # 1*80*80*4
+			s_t = s_t.reshape(1, s_t.shape[0], s_t.shape[1], s_t.shape[2])  # 1*64*64*4
 		else:
-			x_t = x_t.reshape(1, x_t.shape[0], x_t.shape[1], 1)  # 1x80x80x1
+			x_t = x_t.reshape(1, x_t.shape[0], x_t.shape[1], 1)  # 1x64x64x1
 			s_t = np.append(x_t, old_state[:, :, :, :3], axis=3)  # 1x(128+128+128+128)
 		s_t = s_t.reshape((1, 4, -1)) # 1 x 512
 		print(f"Preprocessed state shape: {s_t.shape}")

@@ -1,2 +1,2 @@
 ##key to connect to qarnot
-keys = {'token' : "35ab0e8a02753c7417c6abb2846b27da44b4ca080c1cac595d91a90126c0f483"}
+keys = {'token' : "6068aa95cfe0bdc5a2cdedfaf172b6328482ae213e27a756fb3659544e2bc181"}

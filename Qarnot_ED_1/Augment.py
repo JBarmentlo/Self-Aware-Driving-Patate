@@ -10,9 +10,9 @@ from PIL import Image
 from tqdm import tqdm
 import Augmentor
 
-def get_pixel(image, i, j):
-    """ Returns a pixel at coordinate (`i`, `j`). """
-    return image.getpixel((i,j))
+# def get_pixel(image, i, j):
+#     """ Returns a pixel at coordinate (`i`, `j`). """
+#     return image.getpixel((i,j))
 
 def create_augmentor_pipeline(dir_path):
     """ Creates a pipeline for generating extra images from images at folder `dir_path`."""
@@ -25,16 +25,16 @@ def create_augmentor_pipeline(dir_path):
     return p
 
 
-def load_data(dir_path):
-    """ Loads all the images from directory `dir_path`, converts them to matrices and return a list."""
-    files = os.listdir(dir_path)
-    num_files = len(files)
-    data = []
-    for f in tqdm(files, total=num_files):
-        img = Image.open(os.path.join(dir_path,f))
-        img_array = np.array(img)
-        data.append(img_array)
-    return data
+# def load_data(dir_path):
+#     """ Loads all the images from directory `dir_path`, converts them to matrices and return a list."""
+#     files = os.listdir(dir_path)
+#     num_files = len(files)
+#     data = []
+#     for f in tqdm(files, total=num_files):
+#         img = Image.open(os.path.join(dir_path,f))
+#         img_array = np.array(img)
+#         data.append(img_array)
+#     return data
 
 p = create_augmentor_pipeline(".")
 

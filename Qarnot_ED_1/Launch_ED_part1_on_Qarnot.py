@@ -91,7 +91,7 @@ try:
     task.download_results('output')
 
 finally:
-    task.delete(purge_resources=True, purge_results=True)
+    task.delete(purge_resources=True, purge_results=False)
     # Exit code in case of error
     if error_happened:
         sys.exit(1)

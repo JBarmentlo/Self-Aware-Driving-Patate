@@ -21,12 +21,12 @@ config = DotDict()
 
 # Simulator
 config.EPISODES = 10_000
-config.img_rows, config.img_cols = 80, 80
+config.img_rows, config.img_cols = 64, 64
 config.turn_bins = 7
 config.img_channels = 4
 
-config.sim_img_rows = 150  # TODO: check real value
-config.sim_img_cols = 150  # TODO: check real value
+config.sim_img_rows = 120  # TODO: check real value : OK Gilles
+config.sim_img_cols = 160  # TODO: check real value : OK Gilles
 # sim_img_channels is the number of colors in image
 config.sim_img_channels = 3
 config.sim_img_shape = (config.sim_img_rows,
@@ -34,13 +34,15 @@ config.sim_img_shape = (config.sim_img_rows,
 						config.sim_img_channels)
 
 # Preprocessing
-config.prep_img_rows = 80
-config.prep_img_cols = 80
+config.prep_img_rows = 64
+config.prep_img_cols = 64
 # prep_img_channels is the number of previous images given to the model
 config.prep_img_channels = 4
 config.prep_img_shape = (config.prep_img_rows,
                          config.prep_img_cols,
                          config.prep_img_channels)
+# size of the vector at the encoder output
+config.output_shape = 128 
 
 # Model Prediction
 config.turn_bins = 7
@@ -67,5 +69,9 @@ config.memory_sufix = ".pkl"
 config.info_sufix = "_infos.json"
 config.main_folder = get_path_to_cache("")
 
-
+# ----------------------------
+# Hyperparameters AutoEncoder
+# ----------------------------
+config.epochs=100
+config.batch_size=128
 
