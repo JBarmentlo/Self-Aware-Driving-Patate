@@ -1,0 +1,30 @@
+DEBUG:PortHandler :Created PortHandler with status: {9093: True, 9094: True, 9095: True, 9096: True, 9097: True, 9098: True, 9099: True, 9100: True, 9101: True, 9102: True, 9103: True, 9104: True, 9105: True, 9106: True, 9107: True, 9108: True, 9109: True, 9110: True, 9111: True, 9112: True} and start port: 9093
+DEBUG:SimHandler :Started Simhandler with self.max_concurrent_sims =20
+DEBUG:Server:
+
+Started Server Instance
+DEBUG:Server:Socket <socket.socket fd=4, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=0, laddr=('127.0.0.1', 9087)> bound, listening
+DEBUG:Server:Connected by ('127.0.0.1', 43652)
+DEBUG:Server:Msg received: {'pass': 'potot', 'req': 'start'}
+DEBUG:SimHandler :Trying to start new sim.
+DEBUG:SimProcess 9093:Launching sim at port 9093
+DEBUG:SimProcess 9093:Launched sim at port 9093
+DEBUG:SimHandler :Sim started with port : 9093
+DEBUG:Server:Reply: {'sim_port': 9093}
+DEBUG:SimHandler :Checking for idle sims. sim_config.kill_on_timeout =True
+DEBUG:SimProcess 9093:Checking timeout for sim 9093
+DEBUG:SimProcess 9093:not timed out
+DEBUG:Server:Connected by ('127.0.0.1', 43660)
+DEBUG:Server:Msg received: {'pass': 'potot', 'req': 'kill', 'port': 9093}
+DEBUG:SimHandler :Killing sim
+DEBUG:SimHandler :Sim: Sim instance at port 9093 to be killed
+DEBUG:SimProcess 9093:Killing Sim instance at port 9093
+DEBUG:SimHandler :Successfully killed sim process
+DEBUG:Server:Reply: {'killed_sim': 9093}
+DEBUG:SimHandler :Checking for idle sims. sim_config.kill_on_timeout =True
+DEBUG:SimHandler :Checking for idle sims. sim_config.kill_on_timeout =True
+DEBUG:SimHandler :Checking for idle sims. sim_config.kill_on_timeout =True
+DEBUG:SimHandler :Checking for idle sims. sim_config.kill_on_timeout =True
+DEBUG:SimHandler :Checking for idle sims. sim_config.kill_on_timeout =True
+DEBUG:SimHandler :Checking for idle sims. sim_config.kill_on_timeout =True
+DEBUG:SimHandler :Checking for idle sims. sim_config.kill_on_timeout =True

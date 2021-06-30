@@ -40,3 +40,13 @@ $$ f(x, \mu, \sigma) = \frac{1}{\sigma\sqrt{2\pi}}e ^\frac{-(x -\mu) ^ 2}{2\sigm
 - Qarnot computing -> HyperParams optim : https://github.com/ezalos/Qarnot_Wrapper
 - Distance control of WS : https://github.com/ezalos/emails
   
+
+# SimLauncher3000
+Source the .env file, import Client, Server and start_server from the package.   
+use
+```python
+c = Client()
+c.request_simulator()
+c.kill_sim()
+```
+
