@@ -2,6 +2,7 @@ import argparse
 from HumanPlayer import HumanPlayer
 from NeuralPlayer import NeuralPlayer
 
+
 def parse_arguments():
 	env_list = [
 		"donkey-warehouse-v0",
@@ -41,6 +42,7 @@ def parse_arguments():
 
 if __name__ == "__main__":
 	args = parse_arguments()
+
 	if args.supervised:
 		human = HumanPlayer(args)
 	else:

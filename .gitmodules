@@ -1,0 +1,3 @@
+[submodule "srcs/simlaunch3000"]
+	path = srcs/simlaunch3000
+	url = git@gitlab.com:jBarment/simlaunch3000.git

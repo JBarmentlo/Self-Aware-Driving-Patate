@@ -25,8 +25,8 @@ config.img_rows, config.img_cols = 80, 80
 config.turn_bins = 7
 config.img_channels = 4
 
-config.sim_img_rows = 150  # TODO: check real value
-config.sim_img_cols = 150  # TODO: check real value
+config.sim_img_rows = 120
+config.sim_img_cols = 160
 # sim_img_channels is the number of colors in image
 config.sim_img_channels = 3
 config.sim_img_shape = (config.sim_img_rows,

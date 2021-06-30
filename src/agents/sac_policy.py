@@ -4,6 +4,7 @@ import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.layers as layers
 import tensorflow.keras.initializers as initializers
+import math
 # from keras.layers import Dropout
 
 class GaussianPolicy():
@@ -13,10 +14,10 @@ class GaussianPolicy():
 	"""
 
 	def __init__(self, input_shape=(1,),
-					bias_mu_throttle=0.0,
+					bias_mu_throttle=0.5,
 					bias_mu_steering=0.0,
-					bias_sigma_throttle=0.55,
-					bias_sigma_steering=0.55,
+					bias_sigma_throttle=0.03, # ~1% outside (0.5 +- 0.4)
+					bias_sigma_steering=0.1, # ~2% outside (0 +- 0.9)
 					learning_rate=0.001):
 		"""
 			Summary:
@@ -52,6 +53,8 @@ class GaussianPolicy():
                					bias_sigma_steering=self.bias_sigma_steering)
 
 		self.opt = keras.optimizers.Adam(learning_rate=self.lr)
+		self.actor_network.compile(loss='mse', optimizer=self.opt)
+		self.actor_network.summary()
 
 		# For debugging purposes
 		self.loss_ = 0
@@ -64,14 +67,15 @@ class GaussianPolicy():
 					input_shape,
 					number_of_layers=5,
 					neurons_by_layers=10,
-					bias_mu_throttle=0.0,
+					bias_mu_throttle=0.5,
 					bias_mu_steering=0.0,
-					bias_sigma_throttle=0.55,
-					bias_sigma_steering=0.55,
+					bias_sigma_throttle=0.03, # ~1% outside (0.5 +- 0.4)
+					bias_sigma_steering=0.1, # ~2% outside (0 +- 0.9)
 					dropout=0.15):
 		"""
 			Construct the actor network with mu and sigma as output
 		"""
+		print(f"Input shape of policy: {input_shape}")
 		inputs = layers.Input(shape=input_shape)
 
 		prev_layer = inputs
@@ -83,9 +87,9 @@ class GaussianPolicy():
 			if i < number_of_layers - 1:
 				prev_layer = current_layer
 				layers.Dropout(dropout)(prev_layer)
-			# TODO add dropout
-			# Dropout(0.2)
 			prev_layer = current_layer
+
+		current_layer = layers.Flatten()(prev_layer)
 
 		mu_throttle = layers.Dense(1,
                     activation="linear",
@@ -112,19 +116,72 @@ class GaussianPolicy():
 
 		return actor_network
 
-	def choose_action(self, state, one=False):
+	def choose_action(self, state, one=False, constrained=False):
 		# Obtain mu and sigma from network
+		print(f"state shape: {state.shape}")
 		self.mu_throttle, self.sigma_throttle, self.mu_steering, self.sigma_steering = self.actor_network(state)
+		print(f"sigma_throttle shape: {self.sigma_throttle.shape}")
+		print(f"mu_throttle shape: {self.mu_throttle.shape}")
+		print(f"sigma_steering shape: {self.sigma_steering.shape}")
+		print(f"mu_steering shape: {self.mu_steering.shape}")
 
+		# TODO: IT'S A QUICK FIX TO SEE IF IT WORKS -> WILL BREAK IN THE LONG TERM !!!!
+		# if len(state.shape) == 4:
+		# 	m = [1, state.shape[0]]
+		# else:
+		# 	m = [1]
 		# Draw action from normal distribution
-		action_throttle = tf.random.normal([1], mean=self.mu_throttle, stddev=self.sigma_throttle)
-		action_steering = tf.random.normal([1], mean=self.mu_steering, stddev=self.sigma_steering)
+		action_throttle = tf.random.normal(self.mu_throttle.shape, mean=self.mu_throttle, stddev=self.sigma_throttle)
+		action_steering = tf.random.normal(self.mu_throttle.shape, mean=self.mu_steering, stddev=self.sigma_steering)
+
+		action_throttle = action_throttle.numpy().reshape(-1, 1)
+		action_steering = action_steering.numpy().reshape(-1, 1)
+
+		
+		if constrained:
+			sigmoid = lambda Z: 1 / (1 + np.exp(-Z))
+			action_throttle = sigmoid(action_throttle)
+			tanh = lambda Z: (np.exp(Z) - np.exp(-Z)) / (np.exp(Z) + np.exp(-Z))
+			action_steering = tanh(action_steering)
 
 		if one:
 			return action_steering
 
+		print(f"actions throt shape: {action_throttle.shape}")
+		# print(f"actions shape: {action_steering.shape}")
+		# actions = np.concatenate([action_throttle, action_steering], axis=1)
+		# return actions
 		return (action_throttle, action_steering)
 
+	def policy_probability(self, s_t):
+		a_t, a_s = self.choose_action(s_t)
+
+		mu_t = self.mu_throttle
+		si_t = self.sigma_throttle
+		mu_s = self.mu_steering
+		si_s = self.sigma_steering
+
+		def prob_dis(x, m, s):
+			#  $ f(x, \mu, \sigma) = \frac{1}{\sigma\sqrt{2\pi}}e ^\frac{-(x -\mu) ^ 2}{2\sigma ^ 2} $
+			print(f"x.shape {tf.shape(x)}")
+			print(f"mu.shape {tf.shape(m)}")
+			print(f"sig.shape {tf.shape(s)}")
+			pi = tf.constant(math.pi)
+			sig_sqrt = s * tf.math.sqrt(2 * pi)
+			print(f"sig_sqrt.shape {tf.shape(sig_sqrt)}")
+			expo = tf.math.exp(- tf.math.pow(x - m, 2) / (2 * tf.math.pow(s, 2)))
+			print(f"expo.shape {tf.shape(expo)}")
+			return (1 / sig_sqrt) * expo 
+
+		prob_t = prob_dis(a_t, mu_t, si_t)
+		print(f"prob_t.shape {tf.shape(prob_t)}")
+		prob_s = prob_dis(a_s, mu_s, si_s)
+		print(f"prob_s.shape {tf.shape(prob_s)}")
+
+		probability_to_draw_action = prob_t * prob_s
+		print(f"prob.shape {tf.shape(probability_to_draw_action)}")
+		print(f"prob {probability_to_draw_action}")
+		return probability_to_draw_action
 
 	def custom_loss_gaussian(self, state, action, reward, debug=False):
 		"""[summary]
@@ -139,17 +196,32 @@ class GaussianPolicy():
 			[type]: loss_actor
 			Next step will be to apply it
 		"""
-		action_throttle, action_steering = action
+		action_throttle = action[:, 0]
+		action_steering = action[:, 1]
+		action_throttle = tf.reshape(action_throttle, (-1, 1))
+		action_steering = tf.reshape(action_steering, (-1, 1))
+		print(f"action_throttle shape: {action_throttle.shape}")
+		print(f"action_steering shape: {action_steering.shape}")
 
 		# * Predict mu and sigma with actor network
 		mu_throttle, sigma_throttle, mu_steering, sigma_steering = self.actor_network(state)
 
-		# * Compute Gaussian pdf value
+		action_throttle = tf.cast(action_throttle, tf.float64)
+		action_steering = tf.cast(action_steering, tf.float64)
+		mu_throttle = tf.cast(mu_throttle, tf.float64)
+		sigma_throttle = tf.cast(sigma_throttle, tf.float64)
+		mu_steering = tf.cast(mu_steering, tf.float64)
+		sigma_steering = tf.cast(sigma_steering, tf.float64)
+		print(f"mu_throttle shape: {mu_throttle.shape}")
+		print(f"sigma_throttle shape: {sigma_throttle.shape}")
+
+
+		# * Compute Gaussian probability distribution function value
 		pdf_value_throttle = tf.exp(-0.5 * ((action_throttle - mu_throttle) / (sigma_throttle))**2) * \
-				1 / (sigma_throttle * tf.sqrt(2 * np.pi))
+				1 / (sigma_throttle * tf.cast(tf.sqrt(2 * np.pi), tf.float64))
 
 		pdf_value_steering = tf.exp(-0.5 * ((action_steering - mu_steering) / (sigma_steering))**2) * \
-				1 / (sigma_steering * tf.sqrt(2 * np.pi))
+				1 / (sigma_steering * tf.cast(tf.sqrt(2 * np.pi), tf.float64))
 
 		# * Convert probability distribution function value to log probability
 		log_probability_throttle = tf.math.log(pdf_value_throttle + 1e-5)
@@ -164,6 +236,8 @@ class GaussianPolicy():
 		self.loss_ = - reward * ((log_probability_throttle) + (log_probability_steering))
 		if debug:
 			print(f"Loss: {self.loss_}")
+
+		print(f"Loss: {self.loss_}")
 
 		return self.loss_
 
