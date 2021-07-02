@@ -50,3 +50,21 @@ c.request_simulator()
 c.kill_sim()
 ```
 
+# How to use with SimLauncher3000
+
+## In docker
+
+Where we train the agent:
+
+```sh
+export PS="wesh" ; python3.8 srcs --sim simlaunch3000 --model 'new_model.h5' --agent DDQN
+```
+
+## In computer
+
+Where we run the simulator:
+
+```sh
+cd srcs/simlaunch3000
+export PS="wesh" ; export SIM_PATH="/home/ezalos/Downloads/DonkeySimLinux/donkey_sim.x86_64" ; python3.8 test_server.py
+```

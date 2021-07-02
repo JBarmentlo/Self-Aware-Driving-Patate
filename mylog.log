@@ -1,0 +1,63 @@
+DEBUG:tensorflow:Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+WARNING:tensorflow:From /workspaces/Self-Aware-Driving-Patate/srcs/Simulator.py:53: The name tf.keras.backend.set_session is deprecated. Please use tf.compat.v1.keras.backend.set_session instead.
+
+DEBUG:gym_donkeycar.envs.donkey_env:DEBUG ON
+DEBUG:gym_donkeycar.envs.donkey_env:{'exe_path': 'manual', 'host': '127.0.0.1', 'port': 9091, 'body_style': 'donkey', 'body_rgb': (128, 128, 128), 'car_name': 'me', 'font_size': 100, 'racer_name': 'DDQN', 'country': 'FR', 'bio': 'Learning to drive w DDQN RL', 'guid': '515c0ec1-41e8-4f20-b4cf-afc4817bb0f7', 'max_cte': 10, 'level': 'generated_road', 'start_delay': 5.0, 'frame_skip': 2, 'cam_resolution': (120, 160, 3), 'log_level': 20}
+INFO:gym_donkeycar.core.client:connecting to 127.0.0.1:9091 
+DEBUG:tensorflow:Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+WARNING:tensorflow:From /workspaces/Self-Aware-Driving-Patate/srcs/Simulator.py:53: The name tf.keras.backend.set_session is deprecated. Please use tf.compat.v1.keras.backend.set_session instead.
+
+DEBUG:gym_donkeycar.envs.donkey_env:DEBUG ON
+DEBUG:gym_donkeycar.envs.donkey_env:{'exe_path': 'manual', 'host': '127.0.0.1', 'port': 9093, 'body_style': 'donkey', 'body_rgb': (128, 128, 128), 'car_name': 'me', 'font_size': 100, 'racer_name': 'DDQN', 'country': 'FR', 'bio': 'Learning to drive w DDQN RL', 'guid': 'edd19b9f-8ece-4aa6-9ee1-5837a4dd5615', 'max_cte': 10, 'level': 'generated_road', 'start_delay': 5.0, 'frame_skip': 2, 'cam_resolution': (120, 160, 3), 'log_level': 20}
+INFO:gym_donkeycar.core.client:connecting to 127.0.0.1:9093 
+DEBUG:tensorflow:Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+WARNING:tensorflow:From /workspaces/Self-Aware-Driving-Patate/srcs/Simulator.py:53: The name tf.keras.backend.set_session is deprecated. Please use tf.compat.v1.keras.backend.set_session instead.
+
+DEBUG:gym_donkeycar.envs.donkey_env:DEBUG ON
+DEBUG:gym_donkeycar.envs.donkey_env:{'exe_path': 'manual', 'host': '127.0.0.1', 'port': 9093, 'body_style': 'donkey', 'body_rgb': (128, 128, 128), 'car_name': 'me', 'font_size': 100, 'racer_name': 'DDQN', 'country': 'FR', 'bio': 'Learning to drive w DDQN RL', 'guid': '88bc7065-60fc-41ae-b6e9-f9a9b9887ee6', 'max_cte': 10, 'level': 'generated_road', 'start_delay': 5.0, 'frame_skip': 2, 'cam_resolution': (120, 160, 3), 'log_level': 20}
+DEBUG:tensorflow:Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+WARNING:tensorflow:From /workspaces/Self-Aware-Driving-Patate/srcs/Simulator.py:53: The name tf.keras.backend.set_session is deprecated. Please use tf.compat.v1.keras.backend.set_session instead.
+
+DEBUG:gym_donkeycar.envs.donkey_env:DEBUG ON
+DEBUG:gym_donkeycar.envs.donkey_env:{'exe_path': 'manual', 'host': '127.0.0.1', 'port': 9093, 'body_style': 'donkey', 'body_rgb': (128, 128, 128), 'car_name': 'me', 'font_size': 100, 'racer_name': 'DDQN', 'country': 'FR', 'bio': 'Learning to drive w DDQN RL', 'guid': 'e566061a-a1e9-40ce-8522-895c35ff3cb2', 'max_cte': 10, 'level': 'generated_road', 'start_delay': 5.0, 'frame_skip': 2, 'cam_resolution': (120, 160, 3), 'log_level': 20}
+INFO:gym_donkeycar.core.client:connecting to 127.0.0.1:9093 
+DEBUG:tensorflow:Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+WARNING:tensorflow:From /workspaces/Self-Aware-Driving-Patate/srcs/Simulator.py:53: The name tf.keras.backend.set_session is deprecated. Please use tf.compat.v1.keras.backend.set_session instead.
+
+DEBUG:gym_donkeycar.envs.donkey_env:DEBUG ON
+DEBUG:gym_donkeycar.envs.donkey_env:{'exe_path': 'manual', 'host': '127.0.0.1', 'port': 9093, 'body_style': 'donkey', 'body_rgb': (128, 128, 128), 'car_name': 'me', 'font_size': 100, 'racer_name': 'DDQN', 'country': 'FR', 'bio': 'Learning to drive w DDQN RL', 'guid': '178786c3-e3ca-4101-aab0-cd90b941b7df', 'max_cte': 10, 'level': 'generated_road', 'start_delay': 5.0, 'frame_skip': 2, 'cam_resolution': (120, 160, 3), 'log_level': 20}
+INFO:gym_donkeycar.core.client:connecting to 127.0.0.1:9093 
+WARNING:gym_donkeycar.envs.donkey_sim:waiting for sim to start..
+DEBUG:gym_donkeycar.core.client:sending {"msg_type": "get_scene_names"}
+DEBUG:gym_donkeycar.core.client:sending {"msg_type": "load_scene", "scene_name": "generated_road"}
+INFO:gym_donkeycar.envs.donkey_sim:on need car config
+INFO:gym_donkeycar.envs.donkey_sim:sending car config.
+DEBUG:gym_donkeycar.core.client:send_now:{"msg_type": "car_config", "body_style": "donkey", "body_r": "128", "body_g": "128", "body_b": "128", "car_name": "me", "font_size": "100"}
+DEBUG:gym_donkeycar.core.client:send_now:{"msg_type": "cam_config", "fov": "0", "fish_eye_x": "0", "fish_eye_y": "0", "img_w": "0", "img_h": "0", "img_d": "0", "img_enc": "0", "offset_x": "0", "offset_y": "0", "offset_z": "0", "rot_x": "0", "rot_y": "0", "rot_z": "0"}
+INFO:gym_donkeycar.envs.donkey_sim:done sending cam config. {}
+INFO:gym_donkeycar.envs.donkey_sim:sending lidar config FAILED.
+INFO:gym_donkeycar.envs.donkey_sim:done sending car config.
+DEBUG:gym_donkeycar.core.client:sending {"msg_type": "reset_car"}
+DEBUG:gym_donkeycar.core.client:sending {"msg_type": "control", "steering": "-0.5987396", "throttle": "0.3", "brake": "0.0"}
+DEBUG:gym_donkeycar.core.client:sending {"msg_type": "control", "steering": "-0.76900774", "throttle": "0.3", "brake": "0.0"}
+DEBUG:gym_donkeycar.core.client:sending {"msg_type": "control", "steering": "0.6666666666666665", "throttle": "0.3", "brake": "0.0"}
+DEBUG:gym_donkeycar.core.client:sending {"msg_type": "control", "steering": "-0.43868846", "throttle": "0.3", "brake": "0.0"}
+DEBUG:gym_donkeycar.core.client:sending {"msg_type": "control", "steering": "0.3009807", "throttle": "0.3", "brake": "0.0"}
+DEBUG:gym_donkeycar.core.client:sending {"msg_type": "control", "steering": "0.9609813", "throttle": "0.3", "brake": "0.0"}
+DEBUG:gym_donkeycar.core.client:sending {"msg_type": "control", "steering": "0.68937796", "throttle": "0.3", "brake": "0.0"}
+DEBUG:gym_donkeycar.core.client:sending {"msg_type": "control", "steering": "0.8080839", "throttle": "0.3", "brake": "0.0"}
+DEBUG:gym_donkeycar.core.client:sending {"msg_type": "control", "steering": "-0.36052766", "throttle": "0.3", "brake": "0.0"}
+DEBUG:gym_donkeycar.core.client:sending {"msg_type": "control", "steering": "-0.434279", "throttle": "0.3", "brake": "0.0"}
+DEBUG:gym_donkeycar.core.client:sending {"msg_type": "control", "steering": "0.8780068", "throttle": "0.3", "brake": "0.0"}
+DEBUG:gym_donkeycar.core.client:sending {"msg_type": "control", "steering": "-0.57359076", "throttle": "0.3", "brake": "0.0"}
+DEBUG:tensorflow:Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+WARNING:tensorflow:From /workspaces/Self-Aware-Driving-Patate/srcs/Simulator.py:53: The name tf.keras.backend.set_session is deprecated. Please use tf.compat.v1.keras.backend.set_session instead.
+
+DEBUG:gym_donkeycar.envs.donkey_env:DEBUG ON
+DEBUG:gym_donkeycar.envs.donkey_env:{'exe_path': 'manual', 'host': '127.0.0.1', 'port': 9093, 'body_style': 'donkey', 'body_rgb': (128, 128, 128), 'car_name': 'me', 'font_size': 100, 'racer_name': 'DDQN', 'country': 'FR', 'bio': 'Learning to drive w DDQN RL', 'guid': '3efdd17f-57f5-414b-ab61-00ee4400cabb', 'max_cte': 10, 'level': 'generated_road', 'start_delay': 5.0, 'frame_skip': 2, 'cam_resolution': (120, 160, 3), 'log_level': 20}
+INFO:gym_donkeycar.core.client:connecting to 127.0.0.1:9093 
+DEBUG:tensorflow:Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+WARNING:tensorflow:From /workspaces/Self-Aware-Driving-Patate/srcs/Simulator.py:53: The name tf.keras.backend.set_session is deprecated. Please use tf.compat.v1.keras.backend.set_session instead.
+
+DEBUG:gym_donkeycar.envs.donkey_env:DEBUG ON
+DEBUG:gym_donkeycar.envs.donkey_env:{'exe_path': 'manual', 'host': '127.0.0.1', 'port': 9093, 'body_style': 'donkey', 'body_rgb': (128, 128, 128), 'car_name': 'me', 'font_size': 100, 'racer_name': 'DDQN', 'country': 'FR', 'bio': 'Learning to drive w DDQN RL', 'guid': '0e3955d9-d1ab-4b01-95c9-e2d08687e5ed', 'max_cte': 10, 'level': 'generated_road', 'start_delay': 5.0, 'frame_skip': 2, 'cam_resolution': (120, 160, 3), 'log_level': 20}

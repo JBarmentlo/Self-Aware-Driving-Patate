@@ -26,7 +26,7 @@ from utils_get_abs_path import get_path_to_cache
 path = get_path_to_cache("src/simlaunch3000/src/")
 if path not in sys.path:
     sys.path.insert(0, path)
-from simlaunch3000.src import Client
+from simlaunch3000 import Client
 # TODO: end of todo
 
 import tensorflow as tf
