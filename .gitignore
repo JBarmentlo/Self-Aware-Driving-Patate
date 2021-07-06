@@ -12,3 +12,4 @@ venv/
 *-workspace
 srcs/.env
 .env
+*.log
