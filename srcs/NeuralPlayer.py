@@ -28,6 +28,8 @@ class NeuralPlayer():
 			Simulator(self)
 		# Construct gym environment. Starts the simulator if path is given.
 		self.memory = deque(maxlen=10000)
+		self.model_path = f"{config.main_folder}/model_cache/"
+		self.model_name = self.args.model
 		self.episode_memory = []
 		self.db = None
 		self.db_len = 0
@@ -44,8 +46,7 @@ class NeuralPlayer():
 		elif args.agent == "SAC":
 			self.agent = SoftActorCritic(self.state_size,
 								self.action_space,
-								input_shape=(config.img_rows, config.img_cols, config.img_channels),
-								output_size=config.turn_bins,
+								input_shape=(config.prep_img_rows, config.prep_img_cols, config.prep_img_channels),
 								learning_rate=1e-4,
 								train=not args.test)
 		self.preprocessing = Preprocessing()
@@ -132,10 +133,20 @@ class NeuralPlayer():
 				# Choose action
 				# TODO: It is time to make the model decide the throttle itself
 				if not self.args.no_sim:
-					steering = self.agent.choose_action(preprocessed_state)
-					# Adding throttle
-					action = [steering, throttle]
-					# Do action
+					if self.args.agent == "SAC":
+						action = self.agent.choose_action(preprocessed_state)
+						steering, _ = action
+						# Adding throttle
+						# ATTENTION: change was needed for SAC agent
+						#		converted: 	[steering, throttle]
+						#		to:			np.array([steering, throttle])
+						action = np.array([steering, throttle])
+						print(f"Steering: {steering:10.3} | Throttle: {throttle:10.3}")
+					elif self.args.agent == "DDQN":
+						steering = self.agent.choose_action(preprocessed_state)
+						# Adding throttle
+						action = [steering, throttle]
+						# Do action
 					new_state, reward, done, info = self.env.step(action)
 					# episode_len > 10 because sometimes
 					# 	simulator gives cte value from previous episode at the begining
@@ -166,10 +177,11 @@ class NeuralPlayer():
 					self.agent.update_target_model()
 					# Save model for each episode
 					if self.agent.train:
-						self.agent.save_model(f"{config.main_folder}/model_cache/{self.args.model}") ### TODO: faire un truc propre avec os
+						self.agent.save_model(self.model_path, self.model_name)
+						# self.agent.save_model(f"{config.main_folder}/model_cache/{self.args.model}") ### TODO: faire un truc propre avec os
 					if self.args.save:
 						save_memory_db(self.episode_memory, self.general_infos, e, self.our_s3)
-					print(f"episode: {e} memory length: {len(self.agent.memory)} epsilon: {self.agent.epsilon} episode length: {episode_len}")
+					print(f"episode: {e} memory length: {len(self.memory)} epsilon: {self.agent.epsilon} episode length: {episode_len}")
 				
 				# Updating state variables
 				state = new_state
