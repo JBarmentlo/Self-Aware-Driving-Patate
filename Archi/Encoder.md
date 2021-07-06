@@ -29,6 +29,9 @@ command python encodDecod.py 'Training_AutoEncoder' "Convergence Visualization"
 Allow the Visualization of the learning curve and comparison of 10 images form test dataset with autoencoded images
 with metrics 'similarity' and Root Mean Square Error 
 
++ Possibility to see stored learning curves and comparison raw images // autoencoded images
+
+command : python encodDecod.py "Convergence Visualization"
 
 For the train simulator 
 * Encoded Image
