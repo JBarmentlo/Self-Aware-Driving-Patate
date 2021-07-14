@@ -83,7 +83,7 @@ class DQNAgent:
 	# Get action from model using epsilon-greedy policy
 
 	def choose_action(self, s_t):
-		if np.random.rand() <= self.epsilon and False:
+		if np.random.rand() <= self.epsilon:
 			print("\tRandom choice !")
 			return self.action_space.sample()[0]
 		else:
