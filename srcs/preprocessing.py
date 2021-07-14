@@ -81,11 +81,12 @@ class Preprocessing():
 		obs = self.Image_crop(obs)
 		obs = self.Image_resize(obs)
 		obs = self.rgb2gray(obs)
+		# print(f"{obs.shape =}")
 		obs = self.EncodedImage(obs, encoder)
-
+		# print(f"{obs.shape =}")
 		print("obs_cv2", obs.shape)
-
 		return obs
+
 	def create_augmentor_pipeline(self, dir_path):
 		""" Creates a pipeline for generating extra images from images at folder `dir_path`."""
 		p = Augmentor.Pipeline(dir_path)

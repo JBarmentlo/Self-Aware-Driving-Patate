@@ -9,9 +9,17 @@ from Simulator import Simulator
 from gym.spaces import Box
 from config import config
 import os
+from encodDecod import AutoEncoder
+from PIL import Image
 from s3 import S3
 # doesn't show TF warnings..
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+from inspect import currentframe
+
+def get_linenumber():
+    cf = currentframe()
+    return cf.f_back.f_lineno
 
 class NeuralPlayer():
 	def __init__(self, args):
@@ -33,6 +41,14 @@ class NeuralPlayer():
 		self.episode_memory = []
 		self.db = None
 		self.db_len = 0
+		# Preprocessing
+		# Create an instance of autoencoder, load model parametter 
+		# Call encoder and encode image
+		self.preprocessing = Preprocessing()
+		self.AC = AutoEncoder()
+		self.encoder, _, _ = self.AC.AutoEncoder_model(config.img_rows, config.img_cols)
+		self.enc_loaded = self.AC.Loaded_Encoder("", self.encoder)
+
 		# Get size of state and action from environment
 		self.state_size = (config.img_rows, config.img_cols, config.img_channels)
 		self.action_space = Box(-1.0, 1.0, (2,), dtype=np.float32) ### TODO: not the best
@@ -49,7 +65,7 @@ class NeuralPlayer():
 								input_shape=(config.prep_img_rows, config.prep_img_cols, config.prep_img_channels),
 								learning_rate=1e-4,
 								train=not args.test)
-		self.preprocessing = Preprocessing()
+		# self.preprocessing = Preprocessing()
 
 		# For numpy print formating:
 		np.set_printoptions(precision=4)
@@ -71,15 +87,28 @@ class NeuralPlayer():
 				self.env.unwrapped.close()
 
 	def prepare_state(self, state, old_state=None): ### TODO: rename old state
-		x_t = self.preprocessing.process_image(state)
-		if type(old_state) != type(np.ndarray):
+		# Preprocessing is done on image not numpy array	
+		state = Image.fromarray(state) # to check
+		x_t = np.array(self.preprocessing.process_image(state, self.enc_loaded))
+		# x_t = self.preprocessing.process_image(state)
+		print(f"{type(old_state)=}")
+		if type(old_state) == type(None):
+			print("1st iteration")
 			# For 1st iteration when we do not have old_state
 			s_t = np.stack((x_t, x_t, x_t, x_t), axis=2)
+			print(f"{s_t.shape =}")
 			# In Keras, need to reshape
-			s_t = s_t.reshape(1, s_t.shape[0], s_t.shape[1], s_t.shape[2])  # 1*80*80*4
+			s_t = s_t.reshape(1, config.prep_img_channels, config.encoder_output_shape)  # 1*80*80*4
+			print(f"{s_t.shape =}")
 		else:
-			x_t = x_t.reshape(1, x_t.shape[0], x_t.shape[1], 1)  # 1x80x80x1
-			s_t = np.append(x_t, old_state[:, :, :, :3], axis=3)  # 1x80x80x4 
+			print("Not 1st iteration")
+			print(f"{x_t.shape =}")
+			x_t = x_t.reshape(1, 1, config.encoder_output_shape)  # 1x80x80x1
+			print(f"{x_t.shape =}")
+			print(f"{old_state.shape =}")
+			print(f"{old_state[:, :3, :].shape =}")
+			s_t = np.append(x_t, old_state[:, :3, :], axis=1)  # 1x80x80x4 
+			print(f"{s_t.shape =}")
 		return s_t
 
 	def reward_optimization(self, reward, done):
@@ -124,17 +153,20 @@ class NeuralPlayer():
 				state = self.env.reset()
 				throttle = self.args.throttle  # Set throttle as constant value
 			print(f"done = {done}")
+			preprocessed_state = None
 			while not done:
 				if self.args.sim == "simlaunch3000":
 					self.client.ping_sim()
 				# Apply preprocessing and stack 4 frames
-				preprocessed_state = self.prepare_state(state, old_state=None)
+				preprocessed_state = self.prepare_state(state, old_state=preprocessed_state)
+				print(f"{get_linenumber()} -> {preprocessed_state.shape = }")
 				# print(f"From env: cte {self.env.viewer.handler.cte}")
 				# Choose action
 				# TODO: It is time to make the model decide the throttle itself
 				if not self.args.no_sim:
 					if self.args.agent == "SAC":
 						action = self.agent.choose_action(preprocessed_state)
+						print(f"{get_linenumber()} -> {preprocessed_state.shape = }")
 						steering, _ = action
 						# Adding throttle
 						# ATTENTION: change was needed for SAC agent
@@ -144,6 +176,7 @@ class NeuralPlayer():
 						print(f"Steering: {steering:10.3} | Throttle: {throttle:10.3}")
 					elif self.args.agent == "DDQN":
 						steering = self.agent.choose_action(preprocessed_state)
+						print(f"{get_linenumber()} -> {preprocessed_state.shape = }")
 						# Adding throttle
 						action = [steering, throttle]
 						# Do action
@@ -160,7 +193,8 @@ class NeuralPlayer():
 				# Reward opti
 				reward = self.reward_optimization(reward, done)
 				# Apply preprocessing and stack 4 frames
-				new_preprocessed_state = self.prepare_state(new_state, old_state=state)
+				new_preprocessed_state = self.prepare_state(new_state, old_state=preprocessed_state)
+				print(f"{get_linenumber()} -> {new_preprocessed_state.shape = }")
 				
 				self.save_memory_train(preprocessed_state, action, reward, new_preprocessed_state, done, info)
 				

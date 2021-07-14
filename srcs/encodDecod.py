@@ -95,7 +95,7 @@ class AutoEncoder():
         the function load weights stored in weight_path
          and return encoder that is able to predict """
         if weight_path =="":
-            weight_path = get_path_to_cache("./model_cache/encoder/encoder_weigths") 
+            weight_path = get_path_to_cache("model_cache/encoder/encoder_weights")
         encoder.load_weights(weight_path)
         return encoder
 
@@ -134,11 +134,11 @@ class AutoEncoder():
     def visualize(self, file_autoencoder_learning_curve, n_samples, model, weight_path_autoencoder, X_test):
 
         "Load data of convergence"
-        Lrn_file_pickle_path = get_path_to_cache("./model_cache/pickle_archive")
+        Lrn_file_pickle_path = get_path_to_cache("/model_cache/pickle_archive")
         data_hist = pickle.load( open(Lrn_file_pickle_path + "/" + file_autoencoder_learning_curve, "rb" ) )
         "load weitghts in autoencoder"
         if weight_path_autoencoder =="":
-            weight_path_autoencoder = get_path_to_cache("./model_cache/autoencoder/autoencoder_weigths")
+            weight_path_autoencoder = get_path_to_cache("/model_cache/autoencoder/autoencoder_weights")
             model.load_weights(weight_path_autoencoder)
 
         train_source = data_hist[0]
@@ -226,7 +226,7 @@ if __name__ == "__main__":
         aec.save_weights(weight_path_autoencoder +'/autoencoder_weights')
 
         # reconstructed_images = aec.predict(normalized_test_data)
-        # weight_path = get_path_to_cache("./model_cache/autoencoder/autoencoder_weigths") 
+        # weight_path = get_path_to_cache("./model_cache/autoencoder/autoencoder_weights") 
         # aec.load_weights(weight_path)
 
 
@@ -236,7 +236,7 @@ if __name__ == "__main__":
         legends = ['train loss', 'val loss']
         N = np.arange(0, epochs)
         data_hist = [train_source, val_source, N,h.history['loss'], h.history['val_loss']]
-        pickle_archive_path = get_path_to_cache("./model_cache/pickle_archive")
+        pickle_archive_path = get_path_to_cache("/model_cache/pickle_archive")
         with open(pickle_archive_path+"/file_autoencoder_learning_curve.pk", "wb") as f:
             pickle.dump(data_hist, f)
 
@@ -260,7 +260,7 @@ if __name__ == "__main__":
         # keep random_state identical in VisuEncoding and Encoding 
 
         normalized_train_data, normalized_test_data = AC.Prepare_input_data(data)
-        weight_path = get_path_to_cache("\\model_cache\\autoencoder\\autoencoder_weights")
+        weight_path = get_path_to_cache("/model_cache/autoencoder/autoencoder_weights")
 
         aec.load_weights(weight_path)
 

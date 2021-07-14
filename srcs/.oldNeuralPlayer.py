@@ -9,8 +9,6 @@ from Simulator import Simulator
 from gym.spaces import Box
 from config import config
 import os
-from encodDecod import AutoEncoder
-from PIL import Image
 from s3 import S3
 # doesn't show TF warnings..
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -35,14 +33,6 @@ class NeuralPlayer():
 		self.episode_memory = []
 		self.db = None
 		self.db_len = 0
-		# Preprocessing
-		# Create an instance of autoencoder, load model parametter 
-		# Call encoder and encode image
-		self.preprocessing = Preprocessing()
-		self.AC = AutoEncoder()
-		self.encoder, _, _ = self.AC.AutoEncoder_model(config.img_rows, config.img_cols)
-		self.enc_loaded = self.AC.Loaded_Encoder("", self.encoder)
-
 		# Get size of state and action from environment
 		self.state_size = (config.img_rows, config.img_cols, config.img_channels)
 		self.action_space = Box(-1.0, 1.0, (2,), dtype=np.float32) ### TODO: not the best
@@ -59,7 +49,7 @@ class NeuralPlayer():
 								input_shape=(config.prep_img_rows, config.prep_img_cols, config.prep_img_channels),
 								learning_rate=1e-4,
 								train=not args.test)
-		# self.preprocessing = Preprocessing()
+		self.preprocessing = Preprocessing()
 
 		# For numpy print formating:
 		np.set_printoptions(precision=4)
@@ -81,10 +71,7 @@ class NeuralPlayer():
 				self.env.unwrapped.close()
 
 	def prepare_state(self, state, old_state=None): ### TODO: rename old state
-		# Preprocessing is done on image not numpy array	
-		state = Image.fromarray(state) # to check
-		x_t = np.array(self.preprocessing.process_image(state, self.enc_loaded))
-		# x_t = self.preprocessing.process_image(state)
+		x_t = self.preprocessing.process_image(state)
 		if type(old_state) != type(np.ndarray):
 			# For 1st iteration when we do not have old_state
 			s_t = np.stack((x_t, x_t, x_t, x_t), axis=2)

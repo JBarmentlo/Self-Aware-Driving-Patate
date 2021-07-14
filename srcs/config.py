@@ -43,6 +43,7 @@ config.prep_img_shape = (config.prep_img_rows,
                          config.prep_img_channels)
 # size of the vector at the encoder output
 config.output_shape = 128 
+config.encoder_output_shape = 128 
 
 # Model Prediction
 config.turn_bins = 7
