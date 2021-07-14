@@ -1,10 +1,12 @@
 absl-py==0.13.0
 aiohttp==3.7.4.post0
+altair==4.1.0
 asn1crypto==0.24.0
 astroid==2.6.1
 astunparse==1.6.3
 async-timeout==3.0.1
 attrs==21.2.0
+Augmentor==0.2.8
 boto3==1.17.102
 botocore==1.20.102
 cachetools==4.2.2
@@ -19,6 +21,7 @@ decorator==4.4.2
 docopt==0.6.2
 docutils==0.17.1
 -e git+https://github.com/autorope/donkeycar@81c2ea397695790c370669ce57988c403f7cf7ea#egg=donkeycar
+entrypoints==0.3
 fsspec==2021.6.1
 future==0.18.2
 gast==0.3.3
@@ -36,7 +39,10 @@ imgaug==0.4.0
 iniconfig==1.1.1
 inputs==0.5
 isort==5.9.1
+Jinja2==3.0.1
 jmespath==0.10.0
+joblib==1.0.1
+jsonschema==3.2.0
 Keras-Preprocessing==1.1.2
 keras-vis @ git+https://github.com/autorope/keras-vis.git@3d9d61728312f278a62cbe6b3f9ae92eb4c51520
 keyring==10.6.0
@@ -46,6 +52,7 @@ Kivy-Garden==0.1.4
 kiwisolver==1.3.1
 lazy-object-proxy==1.6.0
 Markdown==3.3.4
+MarkupSafe==2.0.1
 matplotlib==3.4.2
 mccabe==0.6.1
 moviepy==1.0.3
@@ -80,6 +87,7 @@ Pygments==2.9.0
 pygobject==3.26.1
 pylint==2.9.0
 pyparsing==2.4.7
+pyrsistent==0.18.0
 pytest==6.2.4
 pytest-cov==2.12.1
 python-apt==1.6.5+ubuntu0.6
@@ -94,19 +102,23 @@ requests-oauthlib==1.3.0
 rsa==4.7.2
 s3transfer==0.4.2
 scikit-image==0.18.2
+scikit-learn==0.24.2
 scipy==1.4.1
 SecretStorage==2.3.1
 Shapely==1.7.1
 simple-pid==1.0.1
 six==1.16.0
+sklearn==0.0
 tenacity==7.0.0
 tensorboard==2.2.2
 tensorboard-plugin-wit==1.8.0
 tensorflow==2.2.0
 tensorflow-estimator==2.2.0
 termcolor==1.1.0
+threadpoolctl==2.2.0
 tifffile==2021.6.14
 toml==0.10.2
+toolz==0.11.1
 torch==1.9.0
 torchaudio==0.9.0
 torchmetrics==0.4.0
