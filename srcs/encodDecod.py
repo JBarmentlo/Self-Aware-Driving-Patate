@@ -31,11 +31,13 @@ class AutoEncoder():
             self.output_shape = (config.prep_img_rows,
 								config.prep_img_cols)
         else:
+			# TODO use config.encoder_output_shape from config.py for shape
             self.output_shape = config.output_shape
         print("output_shape",self.output_shape)
 
     def load_data(self, dir_path):
         """ Loads all the images from directory `dir_path`, converts them to matrices and return a list."""
+		# TODO: S3 Bucket integration
         files = os.listdir(dir_path)
         num_files = len(files)
         data = []
@@ -53,7 +55,8 @@ class AutoEncoder():
         input size of images to autoencode
         return 3 models  """
         
-        input_img = Input(shape=(image_width, image_height, 1)) 
+        input_img = Input(shape=(image_width, image_height, 1))
+		# TODO use config.encoder_output_shape from config.py for shape
         output_shape_encoded = self.output_shape
         # You can experiment with the encoder layers, i.e. add or change them
         x = Conv2D(32, (3, 3), activation='relu', strides=2, padding='same')(input_img)
@@ -193,6 +196,8 @@ class AutoEncoder():
 if __name__ == "__main__":
     if sys.argv[1] == "Training_AutoEncoder":
         AC = AutoEncoder()
+		# ! Think to launch preprocessing.py before so you get the advantage of data augmentation for training
+		# ! Also, it does all the preprocessing
         data = AC.load_data("./output/output")
         print(len(data))
         # Split the dataset into 80% train and 20% test sets.
