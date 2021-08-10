@@ -1,23 +1,23 @@
-
-
+from agents.AgentDummy import AgentDummy
+from PreprocessingDummy import PreprocessingDummy
 
 class NeuralPlayerDummy():
 	def __init__(self, config = None, env = None):
-		self.config = config.config_NeuralPlayer
+		self.config = config
 		self.env = env
 		self.agent =  None
 		self.preprocessor = None
-		self._init_agent(self.config.config_Agent)
-		self._init_preprocessor(self.config.config_Preprocessing)
+		self._init_agent(None)
+		self._init_preprocessor(None)
 
 
 
 	def _init_preprocessor(self, config_Preprocessing = None):
-		self.preprocessor = None
+		self.preprocessor = PreprocessingDummy()
 
 
 	def _init_agent(self, agentConfig = None):
-		self.agent = None
+		self.agent = AgentDummy()
 
 
 	def _train_agent(self):
@@ -30,8 +30,8 @@ class NeuralPlayerDummy():
 
 	def do_races(self, episodes = None):
 		for e in range(1, episodes):
-			state, _, _, _ = self.env.reset()
-			processed_state = self.preprocessor.preprocess(state)
+			state = self.env.reset()
+			processed_state = self.preprocessor.process(state)
 
 			end_race = False
 			while (not end_race):
@@ -42,5 +42,5 @@ class NeuralPlayerDummy():
 				# self.agent.memory.add(blabla)
 				processed_state = new_processed_state
 				end_race  = self._is_over_race(info) or done
-			if (e % self.config.train_frequency == 0):
-				self.train_agent()
+			# if (e % self.config.train_frequency == 0):
+			# 	self.train_agent()

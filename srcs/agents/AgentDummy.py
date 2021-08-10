@@ -3,7 +3,7 @@ import numpy as np
 class AgentDummy():
 	def __init__(self, config_Agent = None):
 		self.config = config_Agent
-		self.memory = self._init_memory(config_Agent.config_Memory)
+		self.memory = self._init_memory()
 	
 
 	def _init_memory(self, memory_config = None):

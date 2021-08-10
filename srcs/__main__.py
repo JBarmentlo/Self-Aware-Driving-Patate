@@ -2,6 +2,8 @@ import argparse
 from HumanPlayer import HumanPlayer
 from NeuralPlayer import NeuralPlayer
 
+from SimulatorDummy import SimulatorDummy
+from NeuralPlayerDummy import NeuralPlayerDummy
 
 def parse_arguments():
 	env_list = [
@@ -46,5 +48,10 @@ if __name__ == "__main__":
 	if args.supervised:
 		human = HumanPlayer(args)
 	else:
-		neural = NeuralPlayer(args)
-	
+		simulator = SimulatorDummy(args.env_name)
+		try:
+			neural = NeuralPlayerDummy(args, env = simulator.env)
+			neural.do_races(100)
+		finally:
+			simulator.client.kill_sim()
+			simulator.env.unwrapped.close()
