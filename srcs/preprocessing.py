@@ -68,7 +68,7 @@ class Preprocessing():
 		encode_im = encoder.predict(normalized_im)
 		return encode_im
 
-	def process_image(self, obs: np.ndarray, encoder) -> np.ndarray:
+	def process_image(self, obs: np.ndarray) -> np.ndarray:
 		"""Function to apply preprocessing to incomming observation to train the Patate
 
 		Args:
@@ -78,10 +78,10 @@ class Preprocessing():
 			A preprocessed observation of shape self.output_shape
 
 		"""
-		obs = self.Image_crop(obs)
+		# obs = self.Image_crop(obs)
 		obs = self.Image_resize(obs)
 		obs = self.rgb2gray(obs)
-		obs = self.EncodedImage(obs, encoder)
+		# obs = self.EncodedImage(obs, encoder)
 		# print("obs_cv2", obs.shape)
 		return obs
 

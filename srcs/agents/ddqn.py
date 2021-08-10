@@ -15,6 +15,8 @@ import numpy as np
 import random
 from utils import linear_unbin, linear_bin
 
+# K.tensorflow_backend._get_available_gpus()
+
 
 class DQNAgent:
 	def __init__(self, state_size, action_space, input_shape, output_size, train=True):
@@ -51,7 +53,8 @@ class DQNAgent:
 
 	def build_model(self):
 		model = Sequential()
-		model.add(Input(shape=(4, 128)))
+		model.add(Input(shape=(64, 64, 4)))
+		model.add(Flatten())
 		# (4, 128) -> comment les parser ?
 		# On a besoin de se retrouver avec une dimension a la fin
 		# - Layer de convolution le plus pertinent ?

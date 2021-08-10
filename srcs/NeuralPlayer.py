@@ -83,16 +83,25 @@ class NeuralPlayer():
 	def prepare_state(self, state, old_state=None): ### TODO: rename old state
 		# Preprocessing is done on image not numpy array	
 		state = Image.fromarray(state) # to check
-		x_t = np.array(self.preprocessing.process_image(state, self.enc_loaded))
+		x_t = np.array(self.preprocessing.process_image(state))
 		# x_t = self.preprocessing.process_image(state)
 		if type(old_state) == type(None):
 			# For 1st iteration when we do not have old_state
 			s_t = np.stack((x_t, x_t, x_t, x_t), axis=2)
 			# In Keras, need to reshape
-			s_t = s_t.reshape(1, config.prep_img_channels, config.encoder_output_shape)  # 1*80*80*4 wrong size ?
+			# print(f"before:\t{s_t.shape = }")
+			# s_t = s_t.reshape(1, config.prep_img_rows, config.prep_img_cols)  # 1*80*80*4 wrong size ?
+			s_t = np.expand_dims(s_t, axis=0)
+			# print(f"after:\t{s_t.shape = }")
+
 		else:
-			x_t = x_t.reshape(1, 1, config.encoder_output_shape)  # 1x80x80x1
-			s_t = np.append(x_t, old_state[:, :3, :], axis=1)  # 1x80x80x4 
+			# print(f"before:\t{x_t.shape = }")
+			# x_t = x_t.reshape(1, 1, config.encoder_output_shape)  # 1x80x80x1
+			x_t = np.expand_dims(x_t, axis=(0, 3))
+			# print(f"after:\t{x_t.shape = }")
+
+			s_t = np.append(x_t, old_state[:, :, :, :3], axis=3)  # 1x80x80x4 
+			# print(f"{s_t.shape = }")
 		return s_t
 
 	def reward_optimization(self, reward, done):
