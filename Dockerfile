@@ -12,7 +12,7 @@ RUN apt-get update \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN python3.8 -m pip install --upgrade pip
-RUN alias pip='python3.8 -m pip'
+RUN alias pip="echo 'carefull alias for pip 3.8';python3.8 -m pip"
 
 # gym-donkeycar setup/install
 COPY donkey_req.txt donkey_req.txt

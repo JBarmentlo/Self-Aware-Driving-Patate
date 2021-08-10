@@ -26,8 +26,8 @@
 	"runArgs": [
 		"--network",
 		"host",
-		// "--gpus",
-		// "all",
+		"--gpus",
+		"all",
 		// "ubuntu",
 		// "nvidia-smi"
 	],

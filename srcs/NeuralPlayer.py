@@ -89,7 +89,7 @@ class NeuralPlayer():
 			# For 1st iteration when we do not have old_state
 			s_t = np.stack((x_t, x_t, x_t, x_t), axis=2)
 			# In Keras, need to reshape
-			s_t = s_t.reshape(1, config.prep_img_channels, config.encoder_output_shape)  # 1*80*80*4
+			s_t = s_t.reshape(1, config.prep_img_channels, config.encoder_output_shape)  # 1*80*80*4 wrong size ?
 		else:
 			x_t = x_t.reshape(1, 1, config.encoder_output_shape)  # 1x80x80x1
 			s_t = np.append(x_t, old_state[:, :3, :], axis=1)  # 1x80x80x4 
