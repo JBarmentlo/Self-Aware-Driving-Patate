@@ -1,12 +1,12 @@
 import numpy as np
 
 class AgentDummy():
-	def __init__(self, config_Agent = None):
-		self.config = config_Agent
-		self.memory = self._init_memory()
+	def __init__(self, config):
+		self.config = config
+		self.memory = self._init_memory(config.config_Memory)
 	
 
-	def _init_memory(self, memory_config = None):
+	def _init_memory(self, config = None):
 		pass
 
 

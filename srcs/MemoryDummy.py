@@ -1,5 +1,5 @@
 class MemoryDummy():
-	def __init__(self, config = None):
+	def __init__(self, config):
 		self.config = config
 		self.data = None
 

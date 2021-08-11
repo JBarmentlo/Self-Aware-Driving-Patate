@@ -9,26 +9,13 @@ import sys
 
 
 class SimulatorDummy:
-	def __init__(self, env_name):
+	def __init__(self, config, env_name):
 		exe_path = "manual"
 		self.client = Client()
 		self.client.request_simulator()
 		self.port = self.client.sim_port
-		# port = 9093
-		conf = {"exe_path": exe_path,
-						"host": "127.0.0.1",
-						"port": self.port,
-						"body_style": "donkey",
-						"body_rgb": (128, 128, 128),
-						"car_name": "me",
-						"font_size": 100,
-						"racer_name": "DDQN",
-						"country": "FR",
-						"bio": "Learning to drive w DDQN RL",
-						"guid": str(uuid.uuid4()),
-						"max_cte": 10,
-				}
-		self.env = gym.make(env_name, conf=conf)
+		config.port = self.port
+		self.env = gym.make(env_name, conf=config)
 
 		env = self.env
 
@@ -40,3 +27,4 @@ class SimulatorDummy:
 		signal.signal(signal.SIGINT, signal_handler)
 		signal.signal(signal.SIGTERM, signal_handler)
 		signal.signal(signal.SIGABRT, signal_handler)
+	

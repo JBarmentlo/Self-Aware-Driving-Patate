@@ -7,17 +7,18 @@ class NeuralPlayerDummy():
 		self.env = env
 		self.agent =  None
 		self.preprocessor = None
-		self._init_agent(None)
-		self._init_preprocessor(None)
+		self._init_agent(config.config_Agent)
+		self._init_preprocessor(config.config_Preprocessing)
 
 
 
-	def _init_preprocessor(self, config_Preprocessing = None):
-		self.preprocessor = PreprocessingDummy()
+	def _init_preprocessor(self, config_Preprocessing):
+		self.preprocessor = PreprocessingDummy(config = config_Preprocessing)
 
 
-	def _init_agent(self, agentConfig = None):
-		self.agent = AgentDummy()
+	def _init_agent(self, config_Agent):
+		if config_Agent.agent_name == "random":
+			self.agent = AgentDummy(config = config_Agent)
 
 
 	def _train_agent(self):
@@ -37,6 +38,7 @@ class NeuralPlayerDummy():
 			while (not end_race):
 				action = self.agent.get_action(processed_state, e)
 				# steering, throttle = action[0], action[1]
+				print(action)
 				new_state, reward, done, info = self.env.step(action)
 				new_processed_state = self.preprocessor.process(new_state)
 				# self.agent.memory.add(blabla)

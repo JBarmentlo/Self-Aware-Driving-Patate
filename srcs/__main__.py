@@ -5,6 +5,8 @@ from NeuralPlayer import NeuralPlayer
 from SimulatorDummy import SimulatorDummy
 from NeuralPlayerDummy import NeuralPlayerDummy
 
+from configDummy import config
+
 def parse_arguments():
 	env_list = [
 		"donkey-warehouse-v0",
@@ -30,7 +32,7 @@ def parse_arguments():
 	parser.add_argument('--env_name', type=str, default="donkey-generated-roads-v0",
 						help='name of donkey sim environment', choices=env_list)
 	parser.add_argument('--agent', type=str, default="DDQN",
-						help='Choice of reinforcement Learning Agent', choices=["DDQN", "SAC"])
+						help='Choice of reinforcement Learning Agent (now determined by config file)', choices=["DDQN", "SAC"])
 	parser.add_argument('--no_sim', type=str, default=False,
 						help='agent uses stored database to train')
 	parser.add_argument('--save', action="store_true",
@@ -48,10 +50,10 @@ if __name__ == "__main__":
 	if args.supervised:
 		human = HumanPlayer(args)
 	else:
-		simulator = SimulatorDummy(args.env_name)
+		simulator = SimulatorDummy(config.config_Simulator, args.env_name)
 		try:
-			neural = NeuralPlayerDummy(args, env = simulator.env)
-			neural.do_races(100)
+			neural = NeuralPlayerDummy(config.config_NeuralPlayer, env = simulator.env)
+			neural.do_races(10)
 		finally:
 			simulator.client.kill_sim()
 			simulator.env.unwrapped.close()
