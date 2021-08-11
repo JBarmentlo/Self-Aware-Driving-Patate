@@ -1,5 +1,5 @@
-from agents.AgentDummy import AgentDummy
-from PreprocessingDummy import PreprocessingDummy
+from agents.AgentDummy import DQNAgent
+from PreprocessingDummy import Preprocessing
 
 class NeuralPlayerDummy():
 	def __init__(self, config = None, env = None):
@@ -13,12 +13,11 @@ class NeuralPlayerDummy():
 
 
 	def _init_preprocessor(self, config_Preprocessing):
-		self.preprocessor = PreprocessingDummy(config = config_Preprocessing)
+		self.preprocessor = Preprocessing(config = config_Preprocessing)
 
 
 	def _init_agent(self, config_Agent):
-		if config_Agent.agent_name == "random":
-			self.agent = AgentDummy(config = config_Agent)
+		self.agent = DQNAgent(config = config_Agent)
 
 
 	def _train_agent(self):
@@ -27,6 +26,10 @@ class NeuralPlayerDummy():
 
 	def _is_over_race(self, info):
 		return False
+
+
+	def get_action(self, state):
+		return self.agent.get_action(self.preprocessor.process(state))
 
 
 	def do_races(self, episodes = None):

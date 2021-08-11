@@ -65,28 +65,37 @@ config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
 config_Preprocessing = config.config_NeuralPlayer.config_Preprocessing
 
 config_Preprocessing.input_size         = config_NeuralPlayer.camera_picture_shape
-config_Preprocessing.output_size        = (120, 160, 3)
+config_Preprocessing.output_size        = (80, 80)
 config_Preprocessing.stack_size         = 4
 config_Preprocessing.frame_skip         = 2  # interval in frames between the stacked frames
+config_Preprocessing.shrink_size        = (80, 80) # * This does not remove the channels and generate a (60, 60) output. Channels are preserved :input (100, 100, 3) => (60, 60, 3)
 
 
 
-
-
+agent_type = "DQN"
+if (agent_type == "DQN"):
 # -----------------------------------------------------------------
 # Agent / training config
 # -----------------------------------------------------------------
 
-config_Agent = config.config_NeuralPlayer.config_Agent
+    config_Agent = config.config_NeuralPlayer.config_Agent
 
-config_Agent.agent_name         = "random"
-config_Agent.input_size         = config_Preprocessing.output_size
-
+    config_Agent.agent_name         = "DQN"
+    config_Agent.input_size         = config_Preprocessing.output_size
+    config_Agent.action_space_size  = (7)
+    config_Agent.discount           = 0.99
+    config_Agent.lr                 = 1e-4
+    config_Agent.epsilon            = 1.0
+    config_Agent.epsilon_decay      = 0.9
+    config_Agent.epsilon_min        = 0.02
+    config_Agent.batch_size         = 64
+    config_Agent.train_start        = 100
+    config_Agent.memory_size        = 10000
 
 # -----------------------------------------------------------------
 # Agent Memory config
 # -----------------------------------------------------------------
 
-config_Memory = config.config_NeuralPlayer.config_Agent.config_Memory
+    config_Memory = config.config_NeuralPlayer.config_Agent.config_Memory
 
-config_Memory.size = 1
+    config_Memory.capacity = config_Agent.memory_size
