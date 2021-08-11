@@ -27,7 +27,7 @@ config.config_NeuralPlayer.config_Agent.config_Memory = DotDict()
 
 
 # -----------------------------------------------------------------
-# Simulator
+# Simulator (the simulator launcher and gym env creator)
 # -----------------------------------------------------------------
 # This will be passed to gym.make after the port value is added to the dict
 
@@ -45,6 +45,7 @@ config.config_Simulator.update({"exe_path": "manual",
 				})
 
 
+
 # -----------------------------------------------------------------
 # Neural Player config
 # -----------------------------------------------------------------
@@ -54,8 +55,7 @@ config_NeuralPlayer = config.config_NeuralPlayer
 config_NeuralPlayer.agent_name               = "random"
 config_NeuralPlayer.episodes                 = 100
 config_NeuralPlayer.train_frequency          = 10
-config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)
-
+config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
 
 
 # -----------------------------------------------------------------
@@ -66,6 +66,9 @@ config_Preprocessing = config.config_NeuralPlayer.config_Preprocessing
 
 config_Preprocessing.input_size         = config_NeuralPlayer.camera_picture_shape
 config_Preprocessing.output_size        = (120, 160, 3)
+config_Preprocessing.stack_size         = 4
+config_Preprocessing.frame_skip         = 2  # interval in frames between the stacked frames
+
 
 
 
