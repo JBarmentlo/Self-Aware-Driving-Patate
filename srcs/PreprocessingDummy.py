@@ -29,7 +29,7 @@ class Preprocessing():
 		Logger.info(f"Processing.\nIn shape: {state.shape}")
 		state = self.gray(state)
 		state = self.resize(state, self.config.shrink_size)
-		# state = self.stack(state)
+		state = self.stack(state)
 		Logger.debug(f"Out shape: {state.shape}")
 		return state
 
@@ -52,7 +52,7 @@ class Preprocessing():
 		else:
 			self.history[self.skip_counter].append(state)
 
-		return np.stack(self.history[self.skip_counter], axis = self.history[self.skip_counter][0].ndim)
+		return np.stack(self.history[self.skip_counter], axis = 0)
 		return np.array(self.history[self.skip_counter])
 
 

@@ -40,6 +40,7 @@ class NeuralPlayerDummy():
 			end_race = False
 			while (not end_race):
 				action = self.agent.get_action(processed_state, e)
+				print(action)
 				# steering, throttle = action[0], action[1]
 				new_state, reward, done, info = self.env.step(action)
 				new_processed_state = self.preprocessor.process(new_state)

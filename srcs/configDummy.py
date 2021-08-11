@@ -25,6 +25,17 @@ config.config_NeuralPlayer.config_Preprocessing = DotDict()
 config.config_NeuralPlayer.config_Agent.config_Memory = DotDict()
 
 
+# -----------------------------------------------------------------
+# General Info
+# -----------------------------------------------------------------
+
+config.min_steering = -3.0
+config.max_steering = 3.0
+config.min_throttle = 0.0
+config.max_throttle = 1.0
+config.action_space_boundaries = [[config.min_steering, config.max_steering]]
+
+
 
 # -----------------------------------------------------------------
 # Simulator (the simulator launcher and gym env creator)
@@ -65,10 +76,10 @@ config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
 config_Preprocessing = config.config_NeuralPlayer.config_Preprocessing
 
 config_Preprocessing.input_size         = config_NeuralPlayer.camera_picture_shape
-config_Preprocessing.output_size        = (80, 80)
 config_Preprocessing.stack_size         = 4
 config_Preprocessing.frame_skip         = 2  # interval in frames between the stacked frames
 config_Preprocessing.shrink_size        = (80, 80) # * This does not remove the channels and generate a (60, 60) output. Channels are preserved :input (100, 100, 3) => (60, 60, 3)
+config_Preprocessing.output_size        = (config_Preprocessing.stack_size, *config_Preprocessing.shrink_size) #*  C * H * W CHANNELS FIRST
 
 
 
@@ -82,7 +93,7 @@ if (agent_type == "DQN"):
 
     config_Agent.agent_name         = "DQN"
     config_Agent.input_size         = config_Preprocessing.output_size
-    config_Agent.action_space_size  = (7)
+    config_Agent.action_space_size  = (7,)
     config_Agent.discount           = 0.99
     config_Agent.lr                 = 1e-4
     config_Agent.epsilon            = 1.0
@@ -91,6 +102,7 @@ if (agent_type == "DQN"):
     config_Agent.batch_size         = 64
     config_Agent.train_start        = 100
     config_Agent.memory_size        = 10000
+    config_Agent.action_space_boundaries   = config.action_space_boundaries
 
 # -----------------------------------------------------------------
 # Agent Memory config
