@@ -1,5 +1,13 @@
 from agents.AgentDummy import DQNAgent
 from PreprocessingDummy import Preprocessing
+import torch
+import logging
+
+Logger = logging.getLogger("NeuralPlayer")
+Logger.setLevel(logging.WARN)
+stream = logging.StreamHandler()
+Logger.addHandler(stream)
+
 
 class NeuralPlayerDummy():
 	def __init__(self, config = None, env = None):
@@ -24,7 +32,18 @@ class NeuralPlayerDummy():
 		self.agent.train()
 
 
-	def _is_over_race(self, info):
+	def _is_over_race(self, info, done):
+		cte = info["cte"]
+		cte_corr = cte + self.config.cte_offset
+		if (done):
+			return True
+
+		if (abs(cte) > 100):
+			return True
+		
+		if (abs(cte_corr) > self.config.cte_limit):
+			return True
+
 		return False
 
 
@@ -37,15 +56,18 @@ class NeuralPlayerDummy():
 			state = self.env.reset()
 			processed_state = self.preprocessor.process(state)
 
-			end_race = False
-			while (not end_race):
+			done = False
+			while (not done):
 				action = self.agent.get_action(processed_state, e)
-				print(action)
+				Logger.debug(f"action: {action}")
 				# steering, throttle = action[0], action[1]
 				new_state, reward, done, info = self.env.step(action)
 				new_processed_state = self.preprocessor.process(new_state)
-				self.agent.memory.add(state, action[0], new_processed_state, reward, done)
+				done = self._is_over_race(info, done)
+				self.agent.memory.add(torch.Tensor(processed_state), torch.Tensor(action), torch.Tensor(new_processed_state), reward, done)
 				processed_state = new_processed_state
-				end_race  = self._is_over_race(info) or done
+				print("cte     :", info["cte"])
+				print("cte_corr:", info["cte"] + 2.25)
+
 			# if (e % self.config.train_frequency == 0):
 			# 	self.train_agent()

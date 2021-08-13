@@ -34,6 +34,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
+from torch.utils.data import DataLoader
 
 
 # env = gym.make('CartPole-v0').unwrapped
@@ -63,6 +64,9 @@ class  DQNAgent():
 		self.model.to(device)
 		self.target_model = DQN(config)
 		self.target_model.to(device)
+		self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
+		self.criterion = nn.MSELoss()
+
 
 
 	def steering_from_q_values(self, qs):
@@ -76,15 +80,54 @@ class  DQNAgent():
 		return out.item()
 
 
+	def update_target_model(self):
+		self.target_model.load_state_dict(self.model.state_dict())
+
+
 	def _init_memory(self, config = None):
-		self.memory = DqnMemory(self.config.config_Memory)
+		return DqnMemory(self.config.config_Memory)
+
+
+	def _update_epsilon(self):
+			if self.epsilon > self.config.epsilon_min:
+				self.epsilon -= (self.config.initial_epsilon - self.config.epsilon_min) / self.config.steps_to_eps_min
 
 
 	def get_action(self, state, episode = 0):
-		if np.random.rand() <= self.config.epsilon :
+		if np.random.rand() > self.config.epsilon :
+			ALogger.debug(f"Not Random action beign picked")
 			return [self.steering_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :]))), 0.3]
+		else:
+			ALogger.debug(f"Random action beign picked")
+			return [np.random.choice(self.config.action_space[i], 1)[0] for i in range(len(self.config.action_space_size))]
+
+
+	def train_model(self, x, y):
+		self.model.train()
+		y_hat = self.model.forward(x)
+		loss = self.criterion(y_hat, y)
+		self.optimizer.zero_grad()
+		loss.backward()
+		self.optimizer.step()
+		self.model.eval()
 
 	
+	def replay_memory(self):
+		if len(self.memory) < self.config.min_memory_size:
+			return
+		
+		batch_size = min(self.config.batch_size, len(self.memory))
+		# batch = self.memory.sample(batch_size)
+		train_dataloader = DataLoader(self.memory, batch_size=batch_size, shuffle=True)
+		batch = next(iter(train_dataloader))
+		return batch
+
+		# state, action, new_state, reward, done, old_info, new_info = zip(batch) #* wierd ?
+		# s = np.concatenate(state)
+		# ss = np.concatenate(new_state)
+		# targets = self.model.forward(s)
+
+
 	def train(self):
 		pass
 
