@@ -31,8 +31,8 @@ config.config_NeuralPlayer.config_Agent.config_Memory = DotDict()
 
 config.min_steering = -3.0
 config.max_steering = 3.0
-config.min_throttle = 0.3
-config.max_throttle = 0.3
+config.min_throttle = 1.0
+config.max_throttle = 1.0
 config.action_space_boundaries = [[config.min_steering, config.max_steering], [config.min_throttle, config.max_throttle]]
 
 

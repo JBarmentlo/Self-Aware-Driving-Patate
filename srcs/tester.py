@@ -15,13 +15,16 @@ def end():
 	simulator.env.unwrapped.close()
 	
 
-neural = NeuralPlayerDummy(config.config_NeuralPlayer, env = simulator.env)
-st = neural.env.reset()
-a = neural.agent.get_action(neural.preprocessor.process(st))
+neural = NeuralPlayerDummy(config.config_NeuralPlayer, env = simulator.env, simulator = simulator)
+agent = neural.agent
+
+# st = neural.env.reset()
+# a = neural.agent.get_action(neural.preprocessor.process(st))
+# while (len(agent.memory) <  64):
 neural.do_races(10)
 
-# batch_size = min(self.config.batch_size, len(self.memory))
+# batch_size = min(agent.config.batch_size, len(agent.memory))
 # # batch = self.memory.sample(batch_size)
-# train_dataloader = DataLoader(self.memory, batch_size=batch_size, shuffle=True)
+# train_dataloader = DataLoader(agent.memory, batch_size=batch_size, shuffle=True)
 # batch = next(iter(train_dataloader))
 

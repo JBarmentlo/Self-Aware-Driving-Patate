@@ -52,7 +52,7 @@ from torch.utils.data import DataLoader
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ALogger = logging.getLogger("DQNAgent")
-ALogger.setLevel(logging.DEBUG)
+ALogger.setLevel(logging.WARN)
 stream = logging.StreamHandler()
 ALogger.addHandler(stream)
 
@@ -95,11 +95,15 @@ class  DQNAgent():
 
 	def get_action(self, state, episode = 0):
 		if np.random.rand() > self.config.epsilon :
-			ALogger.debug(f"Not Random action beign picked")
-			return [self.steering_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :]))), 0.3]
+			ALogger.debug(f"Not Random action being picked")
+			action = [self.steering_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :]))), 0.3]
+			ALogger.debug(f"{action = }")
+			return action
 		else:
-			ALogger.debug(f"Random action beign picked")
-			return [np.random.choice(self.config.action_space[i], 1)[0] for i in range(len(self.config.action_space_size))]
+			ALogger.debug(f"Random action being picked")
+			action = [np.random.choice(self.config.action_space[i], 1)[0] for i in range(len(self.config.action_space_size))]
+			ALogger.debug(f"{action = }")
+			return action
 
 
 	def train_model(self, x, y):
