@@ -48,9 +48,6 @@ import torchvision.transforms as T
 # # if gpu is to be used
 
 
-
-
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ALogger = logging.getLogger("DQNAgent")
@@ -84,7 +81,8 @@ class  DQNAgent():
 
 
 	def get_action(self, state, episode = 0):
-		return [self.steering_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :]))), 0.3]
+		if np.random.rand() <= self.config.epsilon :
+			return [self.steering_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :]))), 0.3]
 
 	
 	def train(self):
@@ -107,7 +105,8 @@ class DQN(nn.Module):
 	def __init__(self, config):
 		super(DQN, self).__init__()
 		in_channels = [*config.input_size][0]
-		self.conv1 = nn.Conv2d(in_channels, 32, kernel_size=5, stride=2, padding = 2) # (kernal_size - 1) / 2 for same paddind
+		self.conv0 = nn.Conv2d(in_channels, 24, kernel_size=5, stride=2, padding = 2) # (kernal_size - 1) / 2 for same paddind
+		self.conv1 = nn.Conv2d(24, 32, kernel_size=5, stride=2, padding = 2) # (kernal_size - 1) / 2 for same paddind
 		self.conv2 = nn.Conv2d(32, 64, kernel_size=5, stride=2, padding = 2)
 		self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=2, padding = 1)
 		# self.conv4 = nn.Conv2d(64, 64, kernel_size=3, stride=1, padding = 2)
@@ -131,6 +130,7 @@ class DQN(nn.Module):
 	def forward(self, x):
 		Logger.debug(f"Forward x: {x.shape}")
 		x = x.to(device)
+		x = F.relu(self.conv0(x))
 		x = F.relu(self.conv1(x))
 		Logger.debug(f"conv1: {x.shape}")
 		x = F.relu(self.conv2(x))

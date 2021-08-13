@@ -44,7 +44,7 @@ class NeuralPlayerDummy():
 				# steering, throttle = action[0], action[1]
 				new_state, reward, done, info = self.env.step(action)
 				new_processed_state = self.preprocessor.process(new_state)
-				# self.agent.memory.add(blabla)
+				self.agent.memory.add(state, action[0], new_processed_state, reward, done)
 				processed_state = new_processed_state
 				end_race  = self._is_over_race(info) or done
 			# if (e % self.config.train_frequency == 0):
