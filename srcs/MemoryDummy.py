@@ -27,8 +27,9 @@ class MemoryDummy():
 
 import random
 import numpy as np
+from torch.utils.data import Dataset
 
-class DqnMemory():
+class DqnMemory(Dataset):
 	def __init__(self, config):
 		self.config = config
 		self.data = deque([], maxlen = config.capacity)
@@ -52,3 +53,6 @@ class DqnMemory():
 	
 	def __len__(self):
 		return len(self.data)
+
+	def __getitem__(self, i):
+		return self.data[i]

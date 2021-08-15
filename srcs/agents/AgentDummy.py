@@ -34,6 +34,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
+from torch.utils.data import DataLoader
 
 
 # env = gym.make('CartPole-v0').unwrapped
@@ -48,13 +49,10 @@ import torchvision.transforms as T
 # # if gpu is to be used
 
 
-
-
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ALogger = logging.getLogger("DQNAgent")
-ALogger.setLevel(logging.DEBUG)
+ALogger.setLevel(logging.WARN)
 stream = logging.StreamHandler()
 ALogger.addHandler(stream)
 
@@ -66,6 +64,9 @@ class  DQNAgent():
 		self.model.to(device)
 		self.target_model = DQN(config)
 		self.target_model.to(device)
+		self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
+		self.criterion = nn.MSELoss()
+
 
 
 	def steering_from_q_values(self, qs):
@@ -79,14 +80,58 @@ class  DQNAgent():
 		return out.item()
 
 
+	def update_target_model(self):
+		self.target_model.load_state_dict(self.model.state_dict())
+
+
 	def _init_memory(self, config = None):
-		self.memory = DqnMemory(self.config.config_Memory)
+		return DqnMemory(self.config.config_Memory)
+
+
+	def _update_epsilon(self):
+			if self.epsilon > self.config.epsilon_min:
+				self.epsilon -= (self.config.initial_epsilon - self.config.epsilon_min) / self.config.steps_to_eps_min
 
 
 	def get_action(self, state, episode = 0):
-		return [self.steering_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :]))), 0.3]
+		if np.random.rand() > self.config.epsilon :
+			ALogger.debug(f"Not Random action being picked")
+			action = [self.steering_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :]))), 0.3]
+			ALogger.debug(f"{action = }")
+			return action
+		else:
+			ALogger.debug(f"Random action being picked")
+			action = [np.random.choice(self.config.action_space[i], 1)[0] for i in range(len(self.config.action_space_size))]
+			ALogger.debug(f"{action = }")
+			return action
+
+
+	def train_model(self, x, y):
+		self.model.train()
+		y_hat = self.model.forward(x)
+		loss = self.criterion(y_hat, y)
+		self.optimizer.zero_grad()
+		loss.backward()
+		self.optimizer.step()
+		self.model.eval()
 
 	
+	def replay_memory(self):
+		if len(self.memory) < self.config.min_memory_size:
+			return
+		
+		batch_size = min(self.config.batch_size, len(self.memory))
+		# batch = self.memory.sample(batch_size)
+		train_dataloader = DataLoader(self.memory, batch_size=batch_size, shuffle=True)
+		batch = next(iter(train_dataloader))
+		return batch
+
+		# state, action, new_state, reward, done, old_info, new_info = zip(batch) #* wierd ?
+		# s = np.concatenate(state)
+		# ss = np.concatenate(new_state)
+		# targets = self.model.forward(s)
+
+
 	def train(self):
 		pass
 
@@ -107,7 +152,8 @@ class DQN(nn.Module):
 	def __init__(self, config):
 		super(DQN, self).__init__()
 		in_channels = [*config.input_size][0]
-		self.conv1 = nn.Conv2d(in_channels, 32, kernel_size=5, stride=2, padding = 2) # (kernal_size - 1) / 2 for same paddind
+		self.conv0 = nn.Conv2d(in_channels, 24, kernel_size=5, stride=2, padding = 2) # (kernal_size - 1) / 2 for same paddind
+		self.conv1 = nn.Conv2d(24, 32, kernel_size=5, stride=2, padding = 2) # (kernal_size - 1) / 2 for same paddind
 		self.conv2 = nn.Conv2d(32, 64, kernel_size=5, stride=2, padding = 2)
 		self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=2, padding = 1)
 		# self.conv4 = nn.Conv2d(64, 64, kernel_size=3, stride=1, padding = 2)
@@ -131,6 +177,7 @@ class DQN(nn.Module):
 	def forward(self, x):
 		Logger.debug(f"Forward x: {x.shape}")
 		x = x.to(device)
+		x = F.relu(self.conv0(x))
 		x = F.relu(self.conv1(x))
 		Logger.debug(f"conv1: {x.shape}")
 		x = F.relu(self.conv2(x))

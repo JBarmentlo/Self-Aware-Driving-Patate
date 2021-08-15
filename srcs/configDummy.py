@@ -31,9 +31,9 @@ config.config_NeuralPlayer.config_Agent.config_Memory = DotDict()
 
 config.min_steering = -3.0
 config.max_steering = 3.0
-config.min_throttle = 0.0
+config.min_throttle = 1.0
 config.max_throttle = 1.0
-config.action_space_boundaries = [[config.min_steering, config.max_steering]]
+config.action_space_boundaries = [[config.min_steering, config.max_steering], [config.min_throttle, config.max_throttle]]
 
 
 
@@ -67,7 +67,8 @@ config_NeuralPlayer.agent_name               = "random"
 config_NeuralPlayer.episodes                 = 100
 config_NeuralPlayer.train_frequency          = 10
 config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
-
+config_NeuralPlayer.cte_limit                = 3.2
+config_NeuralPlayer.cte_offset               = 2.25
 
 # -----------------------------------------------------------------
 # Prepocessing
@@ -93,16 +94,26 @@ if (agent_type == "DQN"):
 
     config_Agent.agent_name         = "DQN"
     config_Agent.input_size         = config_Preprocessing.output_size
-    config_Agent.action_space_size  = (7,)
+    config_Agent.action_space_size  = (7, 1)
     config_Agent.discount           = 0.99
     config_Agent.lr                 = 1e-4
-    config_Agent.epsilon            = 1.0
+    config_Agent.initial_epsilon    = 1.0
+    config_Agent.epsilon            = config_Agent.initial_epsilon
     config_Agent.epsilon_decay      = 0.9
     config_Agent.epsilon_min        = 0.02
+    config_Agent.steps_to_eps_min   = 10000
     config_Agent.batch_size         = 64
-    config_Agent.train_start        = 100
+    config_Agent.min_memory_size    = 100
     config_Agent.memory_size        = 10000
+
+
+
     config_Agent.action_space_boundaries   = config.action_space_boundaries
+    config_Agent.action_space = [None] * len(config_Agent.action_space_size)
+
+    for i, size in enumerate(config_Agent.action_space_size):
+        bounds = config.action_space_boundaries[i]
+        config_Agent.action_space[i] = np.linspace(start = bounds[0], stop = bounds[1], num = size)
 
 # -----------------------------------------------------------------
 # Agent Memory config
