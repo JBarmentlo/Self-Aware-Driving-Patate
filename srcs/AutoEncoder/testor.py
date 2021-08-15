@@ -9,6 +9,8 @@ from ContractiveAutoEncoder import ContractiveAutoEncoder
 from PoolingAutoEncoder import PoolingAutoEncoder
 
 
+PREPROCESSING = False
+
 def show_imgs(X, Y, path=None):
 	m = len(X)
 	_, axs = plt.subplots(2, m)
@@ -28,6 +30,9 @@ def visu_plot(ae, b, save=None):
 	X = b[0]
 	Y = b[0]
 	print()
+	if PREPROCESSING:
+		X = preprocessing(X)
+		Y = preprocessing(Y)
 	X = ae.predict(X)
 	show_imgs(X, Y, path=save)
 
@@ -42,6 +47,14 @@ def load(data_dir="simulator_cache"):
                                     num_workers=1,
                                     pin_memory=True, shuffle=True)
 	return train, test
+
+
+def preprocessing(data, simplify=30.):
+	# return data
+	data = torch.div(data * 255., simplify, rounding_mode="trunc") * simplify / 255
+	# data = (data // simplify).type(torch.float32) * simplify
+	return data
+
 
 if __name__ == "__main__":
 	train, test = load()
@@ -58,12 +71,15 @@ if __name__ == "__main__":
 
 	i = 0
 	m = len(train)
-	nb_epochs = 10
+	nb_epochs = 15
 	for e in range(nb_epochs):
 		print(f"Epoch {e}/{nb_epochs}")
 		for batch in train:
+			data = batch[0]
+			if PREPROCESSING:
+				data = preprocessing(data)
 			ae.loss = 0.
-			ae.train(batch[0])
+			ae.train(data)
 			i += 1
 
 	for batch in test:
