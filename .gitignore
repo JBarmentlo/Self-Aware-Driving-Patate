@@ -13,3 +13,5 @@ venv/
 srcs/.env
 .env
 *.log
+*cache
+.autoenv.zsh
