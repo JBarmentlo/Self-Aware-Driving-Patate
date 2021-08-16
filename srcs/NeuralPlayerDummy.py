@@ -64,15 +64,15 @@ class NeuralPlayerDummy():
 				if (abs(info["cte"]) > 1):
 					Logger.warn(f"Attempting to fix broken cte by driving forward a little bit. cte: {info['cte']}")
 					new_state, reward, done, info = self.env.step([0, 1])
-					time.sleep(0.2)
+					time.sleep(0.5)
 					Logger.warn(f"One step more. cte: {info['cte']}")
 				if (abs(info["cte"]) > 1):
-					new_state, reward, done, info = self.env.step([0, 1])
-					time.sleep(0.2)
+					new_state, reward, done, info = self.env.step([0.1, 1])
+					time.sleep(0.5)
 					Logger.warn(f"One step more. cte: {info['cte']}")
 				if (abs(info["cte"]) > 1):
-					new_state, reward, done, info = self.env.step([0, 1])
-					time.sleep(0.3)
+					new_state, reward, done, info = self.env.step([-0.1, 1])
+					time.sleep(1)
 					Logger.warn(f"One step more. cte: {info['cte']}")
 				if (abs(info["cte"]) > 1):
 					new_state, reward, done, info = self.env.step([0, 1])
@@ -87,20 +87,22 @@ class NeuralPlayerDummy():
 
 
 			processed_state = self.preprocessor.process(state)
-			# done = self._is_over_race(info, done)
+			done = self._is_over_race(info, done)
 			Logger.debug(f"Initial CTE: {info['cte']}")
 			done = False
 			while (not done):
 				action = self.agent.get_action(processed_state, e)
 				Logger.debug(f"action: {action}")
 				# steering, throttle = action[0], action[1]
+				old_info = info
 				new_state, reward, done, info = self.env.step(action)
 				new_processed_state = self.preprocessor.process(new_state)
-				# done = self._is_over_race(info, done)
-				self.agent.memory.add(torch.Tensor(processed_state), torch.Tensor(action), torch.Tensor(new_processed_state), reward, done)
+				done = self._is_over_race(info, done)
+				self.agent.memory.add(processed_state, action, new_processed_state, reward, done)
 				processed_state = new_processed_state
 				print("cte:", info["cte"] + 2.25)
 
+		self.agent._update_epsilon()
 			# if (e % self.config.train_frequency == 0):
 			# 	self.train_agent()
 		self.env.reset()

@@ -101,7 +101,7 @@ if (agent_type == "DQN"):
     config_Agent.epsilon            = config_Agent.initial_epsilon
     config_Agent.epsilon_decay      = 0.9
     config_Agent.epsilon_min        = 0.02
-    config_Agent.steps_to_eps_min   = 10000
+    config_Agent.steps_to_eps_min   = 1000
     config_Agent.batch_size         = 64
     config_Agent.min_memory_size    = 100
     config_Agent.memory_size        = 10000

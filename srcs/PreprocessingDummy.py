@@ -48,9 +48,9 @@ class Preprocessing():
 		if (self.history[self.skip_counter] is None):
 			self.history[self.skip_counter] = deque(maxlen = self.config.stack_size)
 			for _ in range(self.config.stack_size):
-				self.history[self.skip_counter].append(state)
+				self.history[self.skip_counter].append(state.astype(np.float32))
 		else:
-			self.history[self.skip_counter].append(state)
+			self.history[self.skip_counter].append(state.astype(np.float32))
 
 		return np.stack(self.history[self.skip_counter], axis = 0)
 		return np.array(self.history[self.skip_counter])

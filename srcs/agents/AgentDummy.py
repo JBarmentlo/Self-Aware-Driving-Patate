@@ -89,8 +89,8 @@ class  DQNAgent():
 
 
 	def _update_epsilon(self):
-			if self.epsilon > self.config.epsilon_min:
-				self.epsilon -= (self.config.initial_epsilon - self.config.epsilon_min) / self.config.steps_to_eps_min
+			if self.config.epsilon > self.config.epsilon_min:
+				self.config.epsilon -= (self.config.initial_epsilon - self.config.epsilon_min) / self.config.steps_to_eps_min
 
 
 	def get_action(self, state, episode = 0):
@@ -123,9 +123,9 @@ class  DQNAgent():
 		batch_size = min(self.config.batch_size, len(self.memory))
 		# batch = self.memory.sample(batch_size)
 		train_dataloader = DataLoader(self.memory, batch_size=batch_size, shuffle=True)
-		batch = next(iter(train_dataloader))
+		batch = next(iter(train_dataloader)) # s, a, s', r, d
 		return batch
-
+		# targets = self.model.forward(batch[0])
 		# state, action, new_state, reward, done, old_info, new_info = zip(batch) #* wierd ?
 		# s = np.concatenate(state)
 		# ss = np.concatenate(new_state)
@@ -142,7 +142,7 @@ def conv2d_size_out(size, kernel_size = 5, stride = 2):
 
 
 Logger = logging.getLogger("DQN")
-Logger.setLevel(logging.WARN)
+Logger.setLevel(logging.DEBUG)
 stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
@@ -158,7 +158,7 @@ class DQN(nn.Module):
 		self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=2, padding = 1)
 		# self.conv4 = nn.Conv2d(64, 64, kernel_size=3, stride=1, padding = 2)
 		self.flatten = nn.Flatten()
-		self.dense1 = nn.Linear(6401, 512)
+		self.dense1 = nn.Linear(1600, 512)
 		self.dense2 = nn.Linear(512, *config.action_space_size) #TODO : GET from action space config
 
 

@@ -7,9 +7,8 @@ class MemoryDummy():
 
 
 
-	def add(self, preprocessed_old_state, action, reward, 
-			preprocessed_new_state, done, old_info, new_info):
-		pass
+	def add(self, data):
+		self.data.append(data)
 
 
 	def get_memory(self):
@@ -24,6 +23,12 @@ class MemoryDummy():
 		pass
 		# might be uselesse as fuck
 
+	def __len__(self):
+		return len(self.data)
+
+	def __getitem__(self, i):
+		return self.data[i]
+		
 
 import random
 import numpy as np
@@ -36,8 +41,8 @@ class DqnMemory(Dataset):
 
 
 
-	def add(self, preprocessed_old_state, action, preprocessed_new_state, reward, done, old_info = None, new_info = None):
-		self.data.append((preprocessed_old_state, action, preprocessed_new_state, reward, done, old_info, new_info))
+	def add(self, preprocessed_old_state, action, preprocessed_new_state, reward, done):
+		self.data.append((preprocessed_old_state, action, preprocessed_new_state, reward, done))
 
 
 	def get_memory(self):

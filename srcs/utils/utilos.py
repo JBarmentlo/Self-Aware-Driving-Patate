@@ -22,7 +22,6 @@ def linear_unbin(arr, turn_bins=config.turn_bins):
 	# print("unbin", a, b)
 	return a
 
-
 def linear_bin(a, turn_bins=config.turn_bins):
 	"""
 	Convert a value to a categorical array.
@@ -42,6 +41,7 @@ def linear_bin(a, turn_bins=config.turn_bins):
 	arr[int(b)] = 1
 	# print("bin", a, arr)
 	return arr
+
 
 def is_cte_out(cte):
 	cte += cte_config.cte_offset
@@ -104,3 +104,4 @@ def init_dic_info(args, our_s3 = None): ### TODO add infos about last commit ec.
 	else:
 		upload_json_file(info_file_name, infos)
 	return (infos)
+
