@@ -53,9 +53,9 @@ if __name__ == "__main__":
 		simulator = SimulatorDummy(config.config_Simulator, args.env_name)
 		try:
 			neural = NeuralPlayerDummy(config.config_NeuralPlayer, env = simulator.env, simulator=simulator)
-			st = neural.env.reset()
-			a = neural.agent.get_action(neural.preprocessor.process(st))
-			print(a)
+			# st = neural.env.reset()
+			# a = neural.agent.get_action(neural.preprocessor.process(st))
+			# print(a)
 
 			neural.do_races(10)
 		finally:

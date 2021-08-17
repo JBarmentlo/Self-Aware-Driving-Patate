@@ -63,7 +63,7 @@ config.config_Simulator.update({"exe_path": "manual",
 
 config_NeuralPlayer = config.config_NeuralPlayer
 
-config_NeuralPlayer.agent_name               = "random"
+config_NeuralPlayer.agent_name               = "DQN"
 config_NeuralPlayer.episodes                 = 100
 config_NeuralPlayer.train_frequency          = 10
 config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
@@ -75,7 +75,6 @@ config_NeuralPlayer.cte_offset               = 2.25
 # -----------------------------------------------------------------
 
 config_Preprocessing = config.config_NeuralPlayer.config_Preprocessing
-
 config_Preprocessing.input_size         = config_NeuralPlayer.camera_picture_shape
 config_Preprocessing.stack_size         = 4
 config_Preprocessing.frame_skip         = 2  # interval in frames between the stacked frames
@@ -102,8 +101,8 @@ if (agent_type == "DQN"):
     config_Agent.epsilon_decay      = 0.9
     config_Agent.epsilon_min        = 0.02
     config_Agent.steps_to_eps_min   = 1000
-    config_Agent.batch_size         = 64
-    config_Agent.min_memory_size    = 100
+    config_Agent.batch_size         = 6
+    config_Agent.min_memory_size    = 6
     config_Agent.memory_size        = 10000
 
 
