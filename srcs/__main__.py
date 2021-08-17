@@ -1,5 +1,5 @@
 import argparse
-from HumanPlayer import HumanPlayer
+# from HumanPlayer import HumanPlayer
 from NeuralPlayer import NeuralPlayer
 
 from SimulatorDummy import SimulatorDummy
@@ -52,7 +52,7 @@ if __name__ == "__main__":
 	else:
 		simulator = SimulatorDummy(config.config_Simulator, args.env_name)
 		try:
-			neural = NeuralPlayerDummy(config.config_NeuralPlayer, env = simulator.env)
+			neural = NeuralPlayerDummy(config.config_NeuralPlayer, env = simulator.env, simulator=simulator)
 			st = neural.env.reset()
 			a = neural.agent.get_action(neural.preprocessor.process(st))
 			print(a)
