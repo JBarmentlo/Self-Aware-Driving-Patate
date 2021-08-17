@@ -3,9 +3,10 @@ from PreprocessingDummy import Preprocessing
 import torch
 import logging
 import time
+import numpy as np
 
 Logger = logging.getLogger("NeuralPlayer")
-Logger.setLevel(logging.DEBUG)
+Logger.setLevel(logging.INFO)
 stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
@@ -100,9 +101,10 @@ class NeuralPlayerDummy():
 				done = self._is_over_race(info, done)
 				self.agent.memory.add(processed_state, action, new_processed_state, reward, done)
 				processed_state = new_processed_state
-				print("cte:", info["cte"] + 2.25)
+				Logger.debug("cte:", info["cte"] + 2.25)
 
-		self.agent._update_epsilon()
+			self.agent._update_epsilon()
+			self.agent.replay_memory()
 			# if (e % self.config.train_frequency == 0):
 			# 	self.train_agent()
 		self.env.reset()

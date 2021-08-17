@@ -32,7 +32,7 @@ class Preprocessing():
 		state = self.resize(state, self.config.shrink_size)
 		state = self.stack(state)
 		Logger.debug(f"Out shape: {state.shape}")
-		return state
+		return state.astype(np.float32)
 
 
 	def resize(self, state, output_shape):

@@ -101,9 +101,13 @@ if (agent_type == "DQN"):
     config_Agent.epsilon_decay      = 0.9
     config_Agent.epsilon_min        = 0.02
     config_Agent.steps_to_eps_min   = 1000
-    config_Agent.batch_size         = 6
-    config_Agent.min_memory_size    = 6
-    config_Agent.memory_size        = 10000
+    config_Agent.batch_size         = 64
+    config_Agent.min_memory_size    = 64
+    config_Agent.memory_size        = 100
+    config_Agent.load_model         = True
+    config_Agent.model_path         = "./ddqntorch.state"
+    config_Agent.target_model_update_frequency = 10
+    config_Agent.action_space_boundaries =  config.action_space_boundaries
 
 
 
