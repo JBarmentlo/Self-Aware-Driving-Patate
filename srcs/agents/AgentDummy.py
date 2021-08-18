@@ -35,7 +35,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
 from torch.utils.data import DataLoader
-
+import utils
 
 # env = gym.make('CartPole-v0').unwrapped
 
@@ -61,13 +61,24 @@ class  DQNAgent():
 		self.config = config
 		self.memory = self._init_memory(config.config_Memory)
 		self.model = DQN(config)
+		if (self.config.load_model):
+			self._load_model(self.config.model_path)
 		self.model.to(device)
 		self.target_model = DQN(config)
 		self.target_model.to(device)
+		self.target_model.load_state_dict(self.model.state_dict())
 		self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
 		self.criterion = nn.MSELoss()
+		self.update_target_model_counter = 0
 
 
+	def _load_model(self, path):
+		try:
+			if (path is not None):
+				self.model.load_state_dict(torch.load(path))
+				self.model.eval()
+		except Exception as e:
+			ALogger.error(f"You tried loading a model from path: {path} and this error occured: {e}")
 
 	def steering_from_q_values(self, qs):
 		ALogger.debug(f"Getting steering from qs: {qs}")
@@ -80,7 +91,7 @@ class  DQNAgent():
 		return out.item()
 
 
-	def update_target_model(self):
+	def _update_target_model(self):
 		self.target_model.load_state_dict(self.model.state_dict())
 
 
@@ -89,14 +100,17 @@ class  DQNAgent():
 
 
 	def _update_epsilon(self):
-			if self.epsilon > self.config.epsilon_min:
-				self.epsilon -= (self.config.initial_epsilon - self.config.epsilon_min) / self.config.steps_to_eps_min
+			if self.config.epsilon > self.config.epsilon_min:
+				self.config.epsilon -= (self.config.initial_epsilon - self.config.epsilon_min) / self.config.steps_to_eps_min
+				ALogger.info(f"Updating agent epsilon to {self.config.epsilon}")
+
 
 
 	def get_action(self, state, episode = 0):
+		# TODO: UPDATE THIS FOR UNFIXED THROTTLE
 		if np.random.rand() > self.config.epsilon :
 			ALogger.debug(f"Not Random action being picked")
-			action = [self.steering_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :]))), 0.3]
+			action = [self.steering_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :]))), 1.0]
 			ALogger.debug(f"{action = }")
 			return action
 		else:
@@ -120,16 +134,40 @@ class  DQNAgent():
 		if len(self.memory) < self.config.min_memory_size:
 			return
 		
+		self.update_target_model_counter += 1
+		self.optimizer.zero_grad()
+
 		batch_size = min(self.config.batch_size, len(self.memory))
 		# batch = self.memory.sample(batch_size)
 		train_dataloader = DataLoader(self.memory, batch_size=batch_size, shuffle=True)
-		batch = next(iter(train_dataloader))
-		return batch
+		batch = next(iter(train_dataloader)) # s, a, s', r, d
+		s = batch[0].to(torch.float32)
+		ss = batch[2].to(torch.float32)
+		a = batch[1]
+		for i in range(len(a)):
+			a[i] = a[i].to(torch.float32)
+		r = batch[3].to(torch.float32)
+		d = batch[4]
+		d = ~d
+		d = d.to(torch.int64)
+		qs = self.model.forward(s).cpu()
+		qss = self.target_model.forward(ss).cpu()
+		qss_max, _  = torch.max(qss, dim = 1)
+		action_space_size = [*self.config.action_space_size]
+		a_bin = utils.val_to_bin(a[0], self.config.action_space_boundaries[0], action_space_size[0]).to(torch.int64)
+		a2_bin = utils.val_to_bin(a[1], self.config.action_space_boundaries[1], action_space_size[1]).to(torch.int64)
+		bin = a_bin * (a2_bin + 1)
+		# y.scatter(bin)
+		hot = torch.nn.functional.one_hot(bin, action_space_size[1] * action_space_size[0])
+		targets = qs.clone()
+		targets = targets.detach()
+		targets = hot * (r.view(batch_size, -1) + self.config.lr * (qss_max.view(batch_size, -1) * d.view(batch_size, -1))) - hot * qs + qs
 
-		# state, action, new_state, reward, done, old_info, new_info = zip(batch) #* wierd ?
-		# s = np.concatenate(state)
-		# ss = np.concatenate(new_state)
-		# targets = self.model.forward(s)
+		error = self.criterion(qs, targets).to(torch.float32)
+		error.backward()
+		self.optimizer.step()
+		if (self.update_target_model_counter % self.config.target_model_update_frequency == 0):
+			self._update_target_model
 
 
 	def train(self):
@@ -142,7 +180,7 @@ def conv2d_size_out(size, kernel_size = 5, stride = 2):
 
 
 Logger = logging.getLogger("DQN")
-Logger.setLevel(logging.WARN)
+Logger.setLevel(logging.INFO)
 stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
@@ -158,9 +196,11 @@ class DQN(nn.Module):
 		self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=2, padding = 1)
 		# self.conv4 = nn.Conv2d(64, 64, kernel_size=3, stride=1, padding = 2)
 		self.flatten = nn.Flatten()
-		self.dense1 = nn.Linear(6401, 512)
-		self.dense2 = nn.Linear(512, *config.action_space_size) #TODO : GET from action space config
-
+		self.dense1 = nn.Linear(1600, 512)
+		output_size = 1
+		for s in config.action_space:
+			output_size *= s
+		self.dense2 = nn.Linear(512, *config.action_space_size)
 
 
 		# Number of Linear input connections depends on output of conv2d layers

@@ -6,6 +6,7 @@ import gym
 import uuid
 # import gym_donkeycar ## Keep this module 
 import sys
+import time
 
 
 class SimulatorDummy:
@@ -20,12 +21,11 @@ class SimulatorDummy:
 
 	def start_simulator(self):
 		self.client.request_simulator()
+		time.sleep(3)
 		self.port = self.client.sim_port
 		self.config.port = self.port
 		# Dirty fix for Exception from gym.make()
 		# Exception: Could not connect to server. Is it running? If you specified 'remote', then you must start it manually.
-		import time
-		time.sleep(2)
 		# Details: gym.make() do not wait enough time for the simulator to start
 		self.env = gym.make(self.env_name, conf=self.config)
 

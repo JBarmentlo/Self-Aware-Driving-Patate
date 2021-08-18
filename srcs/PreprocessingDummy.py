@@ -17,6 +17,7 @@ class PreprocessingDummy():
 	def process(self, state):
 		return state
 
+	
 
 class Preprocessing():
 	def __init__(self, config):
@@ -39,6 +40,11 @@ class Preprocessing():
 		"""
 		state = np.moveaxis(state, -1, 0)
 		state = np.expand_dims(state, 0)
+		# Copy protects against the following Warning. 
+		# Depending on performance losses we could ignore it
+		state = np.copy(state)
+		# 	UserWarning: The given NumPy array is not writeable, and PyTorch does not support non-writeable tensors. This means you can write to the underlying (supposedly non-writeable) NumPy array using the tensor. You may want to copy the array to protect its data or make it writeable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at  /pytorch/torch/csrc/utils/tensor_numpy.cpp:180.)
+  		# 	state = torch.from_numpy(state).type(torch.float32) / 255.
 		state = torch.from_numpy(state).type(torch.float32) / 255.
 		return state
 
@@ -86,9 +92,9 @@ class Preprocessing():
 		if (self.history[self.skip_counter] is None):
 			self.history[self.skip_counter] = deque(maxlen = self.config.stack_size)
 			for _ in range(self.config.stack_size):
-				self.history[self.skip_counter].append(state)
+				self.history[self.skip_counter].append(state.astype(np.float32))
 		else:
-			self.history[self.skip_counter].append(state)
+			self.history[self.skip_counter].append(state.astype(np.float32))
 
 		return np.stack(self.history[self.skip_counter], axis = 0)
 		return np.array(self.history[self.skip_counter])
