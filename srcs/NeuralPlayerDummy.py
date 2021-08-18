@@ -27,7 +27,8 @@ class NeuralPlayerDummy():
 
 
 	def _init_agent(self, config_Agent):
-		self.agent = DQNAgent(config = config_Agent)
+		self.agent = DQNAgent(config=config_Agent)
+		# self.agent = DQNAgent(config=config_Agent)
 
 
 	def _train_agent(self):

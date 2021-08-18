@@ -51,12 +51,16 @@ if __name__ == "__main__":
 		human = HumanPlayer(args)
 	else:
 		simulator = SimulatorDummy(config.config_Simulator, args.env_name)
+		print("Simulator opened !")
 		try:
-			neural = NeuralPlayerDummy(config.config_NeuralPlayer, env = simulator.env)
+			neural = NeuralPlayerDummy(config.config_NeuralPlayer, simulator.env, simulator)
+			print("Neuarl initied !")
 			st = neural.env.reset()
+			print("Trying action !")
 			a = neural.agent.get_action(neural.preprocessor.process(st))
-			print(a)
+			print(f"Action is {a}")
 
+			print(f"Let's race !")
 			neural.do_races(10)
 		finally:
 			simulator.client.kill_sim()

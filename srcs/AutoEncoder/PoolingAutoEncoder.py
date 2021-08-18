@@ -1,6 +1,45 @@
+from numpy.core.numeric import indices
 import torch
 from torch import nn
 from torch import optim
+
+
+class InMatrixLayer(nn.Module):
+	def __init__(self, in_channels=3, out_channels=6, conv_kernel=5, pool_kernel=2):
+		super(InMatrixLayer, self).__init__()
+		self.in_channels = in_channels
+		self.out_channels = out_channels
+		self.conv_kernel = conv_kernel
+		self.pool_kernel = pool_kernel
+		self.build()
+
+	def build(self):
+		self.Conv2d = nn.Conv2d(self.in_channels,
+								self.out_channels,
+								kernel_size=self.conv_kernel)
+		self.ReLU = nn.ReLU(True)
+		self.MaxPool = nn.MaxPool2d(self.pool_kernel, return_indices=True)
+
+	def forward(self, x):
+		x = self.Conv2d(x)
+		x = self.ReLU(x)
+		shape = x.shape
+		x, indices = self.MaxPool(x)
+		return x, (shape, indices)
+
+	def output_shape(self, input_shape: tuple) -> tuple:
+		"""[summary]
+		For a given shape, compute the outputted shape produced by the network
+
+		Args:
+			input_shape (tuple):
+			input shape should be of len 3.  
+
+		Returns:
+			torch.Tensor
+		"""
+
+		pass
 
 
 class AutoEncoderModel(nn.Module):
@@ -74,19 +113,20 @@ class AutoEncoderModel(nn.Module):
 
 
 class PoolingAutoEncoder():
-	def __init__(self, input_shape, bottleneck_shape, learning_rate=1e-3) -> None:
+	def __init__(self, config) -> None:
+		self.config = config
+		self.model_path = f"{self.config.model_dir}{self.config.name}"
 		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 		self.model = AutoEncoderModel().to(self.device)
-		self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
+		self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
 		self.criterion = nn.MSELoss()
 		self.loss = 0.
 
 	def train(self, batch):
+		# print(batch.shape)
 		batch = batch.to(self.device)
 		self.optimizer.zero_grad()
 		outputs = self.model(batch)
-		# print(f"{batch.shape = }")
-		# print(f"{outputs.shape = }")
 
 		loss = self.criterion(outputs, batch)
 		loss.backward()
@@ -105,3 +145,10 @@ class PoolingAutoEncoder():
 			X = X.to(self.device)
 			X, _ = self.model.encoder(X)
 			return X
+
+	def load(self):
+		self.model.load_state_dict(torch.load(self.model_path))
+		self.model.eval()
+
+	def save(self):
+		torch.save(self.model.state_dict(), self.model_path)

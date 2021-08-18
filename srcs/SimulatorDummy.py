@@ -22,6 +22,11 @@ class SimulatorDummy:
 		self.client.request_simulator()
 		self.port = self.client.sim_port
 		self.config.port = self.port
+		# Dirty fix for Exception from gym.make()
+		# Exception: Could not connect to server. Is it running? If you specified 'remote', then you must start it manually.
+		import time
+		time.sleep(2)
+		# Details: gym.make() do not wait enough time for the simulator to start
 		self.env = gym.make(self.env_name, conf=self.config)
 
 

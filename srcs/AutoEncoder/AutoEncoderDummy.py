@@ -36,9 +36,6 @@ class UndercompleteAutoEncoder():
 		batch = batch.to(self.device)
 		self.optimizer.zero_grad()
 		outputs = self.model(batch)
-		# print(f"{batch.shape = }")
-		# print(f"{outputs.shape = }")
-
 		loss = self.criterion(outputs, batch)
 		loss.backward()
 		self.optimizer.step()

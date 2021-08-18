@@ -14,15 +14,19 @@ class DotDict(dict):
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
 
-# TODO: Ask for automated fin if os.environ["SIM_PATH"] doasnt exist (needed by server)
+# TODO: Ask for automated find if os.environ["SIM_PATH"] doasnt exist (needed by server)
 
 config = DotDict()
 
 config.config_Simulator = DotDict()
+
 config.config_NeuralPlayer = DotDict()
+
 config.config_NeuralPlayer.config_Agent = DotDict()
-config.config_NeuralPlayer.config_Preprocessing = DotDict()
 config.config_NeuralPlayer.config_Agent.config_Memory = DotDict()
+
+config.config_NeuralPlayer.config_Preprocessing = DotDict()
+config.config_NeuralPlayer.config_Preprocessing.config_AutoEncoder = DotDict()
 
 
 # -----------------------------------------------------------------
@@ -81,6 +85,30 @@ config_Preprocessing.stack_size         = 4
 config_Preprocessing.frame_skip         = 2  # interval in frames between the stacked frames
 config_Preprocessing.shrink_size        = (80, 80) # * This does not remove the channels and generate a (60, 60) output. Channels are preserved :input (100, 100, 3) => (60, 60, 3)
 config_Preprocessing.output_size        = (config_Preprocessing.stack_size, *config_Preprocessing.shrink_size) #*  C * H * W CHANNELS FIRST
+config_Preprocessing.load_AutoEncoder	= True
+
+
+# -----------------------------------------------------------------
+# AutoEncoder
+# -----------------------------------------------------------------
+
+config_AutoEncoder = config.config_NeuralPlayer.config_Preprocessing.config_AutoEncoder
+
+
+# Cache
+config_AutoEncoder.model_dir			= "model_cache/autoencoder/"
+config_AutoEncoder.train_dir			= "simulator_cache/"
+config_AutoEncoder.test_dir				= "simulator_cache/"
+config_AutoEncoder.name					= "Le_BG_du_13"
+
+# Shapes
+config_AutoEncoder.input_shape			= config_Preprocessing.output_size
+config_AutoEncoder.output_shape			= 128
+
+# Hyper Parameters
+config_AutoEncoder.epochs				= 15
+config_AutoEncoder.batch_size			= 64
+config_AutoEncoder.lr					= 1e-3
 
 
 
