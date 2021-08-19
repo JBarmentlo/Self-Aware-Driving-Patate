@@ -20,7 +20,7 @@ class NeuralPlayerDummy():
 		self.simulator = simulator
 		self._init_agent(config.config_Agent)
 		self._init_preprocessor(config.config_Preprocessing)
-
+		self.scores = []
 
 
 	def _init_preprocessor(self, config_Preprocessing):
@@ -28,7 +28,8 @@ class NeuralPlayerDummy():
 
 
 	def _init_agent(self, config_Agent):
-		self.agent = DQNAgent(config = config_Agent)
+		self.agent = DQNAgent(config=config_Agent)
+		# self.agent = DQNAgent(config=config_Agent)
 
 
 	def _train_agent(self):
@@ -53,6 +54,8 @@ class NeuralPlayerDummy():
 	def get_action(self, state):
 		return self.agent.get_action(self.preprocessor.process(state))
 
+	def add_score(self, iteration):
+		self.scores.append(iteration)
 
 	def do_races(self, episodes):
 		Logger.info(f"Doing {episodes} races.")
@@ -92,6 +95,8 @@ class NeuralPlayerDummy():
 			done = self._is_over_race(info, done)
 			Logger.debug(f"Initial CTE: {info['cte']}")
 			done = False
+			
+			iteration = 0
 			while (not done):
 				action = self.agent.get_action(processed_state, e)
 				Logger.debug(f"action: {action}")
@@ -102,7 +107,9 @@ class NeuralPlayerDummy():
 				self.agent.memory.add(processed_state, action, new_processed_state, reward, done)
 				processed_state = new_processed_state
 				Logger.debug("cte:", info["cte"] + 2.25)
+				iteration += 1
 
+			self.add_score(iteration)
 			self.agent._update_epsilon()
 			self.agent.replay_memory()
 			# if (e % self.config.train_frequency == 0):
