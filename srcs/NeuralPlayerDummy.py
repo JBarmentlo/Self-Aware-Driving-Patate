@@ -6,7 +6,7 @@ import time
 import numpy as np
 
 Logger = logging.getLogger("NeuralPlayer")
-Logger.setLevel(logging.INFO)
+Logger.setLevel(logging.DEBUG)
 stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
@@ -54,7 +54,8 @@ class NeuralPlayerDummy():
 		return self.agent.get_action(self.preprocessor.process(state))
 
 
-	def do_races(self, episodes = None):
+	def do_races(self, episodes):
+		Logger.info(f"Doing {episodes} races.")
 		for e in range(1, episodes + 1):
 			cte = 100
 
@@ -94,7 +95,6 @@ class NeuralPlayerDummy():
 			while (not done):
 				action = self.agent.get_action(processed_state, e)
 				Logger.debug(f"action: {action}")
-				# steering, throttle = action[0], action[1]
 				old_info = info
 				new_state, reward, done, info = self.env.step(action)
 				new_processed_state = self.preprocessor.process(new_state)

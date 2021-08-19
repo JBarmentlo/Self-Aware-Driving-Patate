@@ -21,7 +21,6 @@ class SimulatorDummy:
 
 	def start_simulator(self):
 		self.client.request_simulator()
-		time.sleep(20)
 		self.port = self.client.sim_port
 		self.config.port = self.port
 		self.env = gym.make(self.env_name, conf=self.config)

@@ -29,9 +29,9 @@ config.config_NeuralPlayer.config_Agent.config_Memory = DotDict()
 # General Info
 # -----------------------------------------------------------------
 
-config.min_steering = -3.0
-config.max_steering = 3.0
-config.min_throttle = 1.0
+config.min_steering = -5.0
+config.max_steering = 5.0
+config.min_throttle = 0.0
 config.max_throttle = 1.0
 config.action_space_boundaries = [[config.min_steering, config.max_steering], [config.min_throttle, config.max_throttle]]
 
@@ -93,7 +93,7 @@ if (agent_type == "DQN"):
 
     config_Agent.agent_name         = "DQN"
     config_Agent.input_size         = config_Preprocessing.output_size
-    config_Agent.action_space_size  = (7, 1)
+    config_Agent.action_space_size  = (11, 3)
     config_Agent.discount           = 0.99
     config_Agent.lr                 = 1e-4
     config_Agent.initial_epsilon    = 1.0
@@ -101,10 +101,10 @@ if (agent_type == "DQN"):
     config_Agent.epsilon_decay      = 0.9
     config_Agent.epsilon_min        = 0.02
     config_Agent.steps_to_eps_min   = 1000
-    config_Agent.batch_size         = 64
+    config_Agent.batch_size         = 6
     config_Agent.min_memory_size    = 64
     config_Agent.memory_size        = 100
-    config_Agent.load_model         = True
+    config_Agent.load_model         = False
     config_Agent.model_path         = "./ddqntorch.state"
     config_Agent.target_model_update_frequency = 10
     config_Agent.action_space_boundaries =  config.action_space_boundaries
@@ -112,11 +112,22 @@ if (agent_type == "DQN"):
 
 
     config_Agent.action_space_boundaries   = config.action_space_boundaries
-    config_Agent.action_space = [None] * len(config_Agent.action_space_size)
-
+    action_space_length = 1
+    
+    tmp = []
     for i, size in enumerate(config_Agent.action_space_size):
         bounds = config.action_space_boundaries[i]
-        config_Agent.action_space[i] = np.linspace(start = bounds[0], stop = bounds[1], num = size)
+        tmp.append(np.linspace(start = bounds[0], stop = bounds[1], num = size))
+    
+    print("tmp", tmp)
+    config_Agent.action_space = []
+    for j in range(config_Agent.action_space_size[1]):
+        for i in range(config_Agent.action_space_size[0]):
+            config_Agent.action_space.append([tmp[0][i], tmp[1][j]])
+    print("config_Agent.action_space", config_Agent.action_space)
+    
+
+            
 
 # -----------------------------------------------------------------
 # Agent Memory config

@@ -52,7 +52,7 @@ import utils
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ALogger = logging.getLogger("DQNAgent")
-ALogger.setLevel(logging.WARN)
+ALogger.setLevel(logging.DEBUG)
 stream = logging.StreamHandler()
 ALogger.addHandler(stream)
 
@@ -73,12 +73,14 @@ class  DQNAgent():
 
 
 	def _load_model(self, path):
+		ALogger.info(f"Loading model from {path}")
 		try:
 			if (path is not None):
 				self.model.load_state_dict(torch.load(path))
 				self.model.eval()
 		except Exception as e:
 			ALogger.error(f"You tried loading a model from path: {path} and this error occured: {e}")
+
 
 	def steering_from_q_values(self, qs):
 		ALogger.debug(f"Getting steering from qs: {qs}")
@@ -131,6 +133,7 @@ class  DQNAgent():
 
 	
 	def replay_memory(self):
+		ALogger.info(f"Replay from memory")
 		if len(self.memory) < self.config.min_memory_size:
 			return
 		
@@ -150,6 +153,7 @@ class  DQNAgent():
 		d = batch[4]
 		d = ~d
 		d = d.to(torch.int64)
+		ALogger.debug(f"{s.size() = } {ss.size() = } {a[0].size() = } {a[1].size() = } {r.size() = }")
 		qs = self.model.forward(s).cpu()
 		qss = self.target_model.forward(ss).cpu()
 		qss_max, _  = torch.max(qss, dim = 1)
@@ -157,11 +161,14 @@ class  DQNAgent():
 		a_bin = utils.val_to_bin(a[0], self.config.action_space_boundaries[0], action_space_size[0]).to(torch.int64)
 		a2_bin = utils.val_to_bin(a[1], self.config.action_space_boundaries[1], action_space_size[1]).to(torch.int64)
 		bin = a_bin * (a2_bin + 1)
+		ALogger.debug(f"{a[0] = } {a_bin = } \n{a[1] = } {a2_bin = } \n{bin =}")
 		# y.scatter(bin)
 		hot = torch.nn.functional.one_hot(bin, action_space_size[1] * action_space_size[0])
+		ALogger.debug(f"{hot = }")
 		targets = qs.clone()
 		targets = targets.detach()
 		targets = hot * (r.view(batch_size, -1) + self.config.lr * (qss_max.view(batch_size, -1) * d.view(batch_size, -1))) - hot * qs + qs
+		ALogger.debug(f"{qs = } {targets = }")
 
 		error = self.criterion(qs, targets).to(torch.float32)
 		error.backward()
@@ -198,7 +205,7 @@ class DQN(nn.Module):
 		self.flatten = nn.Flatten()
 		self.dense1 = nn.Linear(1600, 512)
 		output_size = 1
-		for s in config.action_space:
+		for s in config.action_space_size:
 			output_size *= s
 		self.dense2 = nn.Linear(512, *config.action_space_size)
 
