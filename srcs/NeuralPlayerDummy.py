@@ -103,7 +103,6 @@ class NeuralPlayerDummy():
 			while (not done):
 
 				action = self.agent.get_action(processed_state, e)
-				action = [0.0, 1.0]
 				Logger.debug(f"action: {action}")
 				old_info = info
 				new_state, reward, done, info = self.env.step(action)

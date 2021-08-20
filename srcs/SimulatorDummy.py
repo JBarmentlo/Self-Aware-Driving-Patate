@@ -26,7 +26,13 @@ class SimulatorDummy:
 		# Dirty fix for Exception from gym.make()
 		# Exception: Could not connect to server. Is it running? If you specified 'remote', then you must start it manually.
 		# Details: gym.make() do not wait enough time for the simulator to start
-		self.env = gym.make(self.env_name, conf=self.config)
+		# time.sleep(3)
+		try:
+			self.env = gym.make(self.env_name, conf=self.config)
+		except:
+			time.sleep(2)
+			self.env = gym.make(self.env_name, conf=self.config)
+			
 
 
 	def kill_simulator(self):
