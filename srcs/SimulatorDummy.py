@@ -4,7 +4,7 @@ from simlaunch3000 import Client
 
 import gym
 import uuid
-# import gym_donkeycar ## Keep this module 
+import gym_donkeycar ## Keep this module 
 import sys
 import time
 

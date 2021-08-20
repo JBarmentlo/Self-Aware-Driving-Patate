@@ -1,5 +1,5 @@
 import numpy as np
-from utils_get_abs_path import get_path_to_cache
+from utils import get_path_to_cache
 import uuid
 
 class DotDict(dict):
@@ -134,7 +134,7 @@ if (agent_type == "DQN"):
     config_Agent.epsilon_min        = 0.02
     config_Agent.steps_to_eps_min   = 1000
     config_Agent.batch_size         = 6
-    config_Agent.min_memory_size    = 64
+    config_Agent.min_memory_size    = 6
     config_Agent.memory_size        = 100
     config_Agent.load_model         = False
     config_Agent.model_path         = "./ddqntorch.state"

@@ -1,6 +1,4 @@
 import argparse
-# from HumanPlayer import HumanPlayer
-from NeuralPlayer import NeuralPlayer
 
 from SimulatorDummy import SimulatorDummy
 from NeuralPlayerDummy import NeuralPlayerDummy

@@ -22,6 +22,7 @@ class AgentDummy():
 import math
 import random
 import numpy as np
+import random
 # import matplotlib
 # import matplotlib.pyplot as plt
 from collections import namedtuple, deque
@@ -82,15 +83,14 @@ class  DQNAgent():
 			ALogger.error(f"You tried loading a model from path: {path} and this error occured: {e}")
 
 
-	def steering_from_q_values(self, qs):
+	def action_from_q_values(self, qs):
 		ALogger.debug(f"Getting steering from qs: {qs}")
 		bounds = self.config.action_space_boundaries[0]
 		# np.array(qs.cpu())
 		l = len(qs[0])
 		idx = torch.argmax(qs[0])
-		ALogger.debug(f"{idx = } {bounds[0] = }  {bounds[1] = } {l = }")
-		out = (idx / l) * (bounds[1] - bounds[0]) + bounds[0]
-		return out.item()
+		action = self.config.action_space[idx]
+		return action
 
 
 	def _update_target_model(self):
@@ -112,12 +112,12 @@ class  DQNAgent():
 		# TODO: UPDATE THIS FOR UNFIXED THROTTLE
 		if np.random.rand() > self.config.epsilon :
 			ALogger.debug(f"Not Random action being picked")
-			action = [self.steering_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :]))), 1.0]
+			action = [self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :]))), 1.0]
 			ALogger.debug(f"{action = }")
 			return action
 		else:
 			ALogger.debug(f"Random action being picked")
-			action = [np.random.choice(self.config.action_space[i], 1)[0] for i in range(len(self.config.action_space_size))]
+			action = random.choice(self.config.action_space)
 			ALogger.debug(f"{action = }")
 			return action
 
