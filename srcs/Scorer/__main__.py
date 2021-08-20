@@ -203,16 +203,16 @@ class Line():
 		# ax.plot(*t.l2, color=cm(1.*(c + 1)/NUM_COLORS), label="tan2")
 		# ax.scatter(t.xp, t.yp, color=cm(1.*(c + 2)/NUM_COLORS), s=10, label="P")
 		ax.scatter(t.a, t.b, color=cm(1.*(c)/NUM_COLORS), s=10, label="o0")
-		# ax.scatter(t.c, t.d, color=cm(1.*(c + 4)/NUM_COLORS), s=10, label="o1")
 		min_x = min([t.c0.x, t.c1.x])
 		max_x = max([t.c0.x, t.c1.x])
 		xs = np.linspace(min_x, max_x, 10)
-		ccc = 'k' if c % 2 else 'w'
+		ccc = 'k' if c % 2 else 'y'
 		ax.plot(xs, t.line_1(xs), color=ccc, label="line1")
 		ax.plot(xs, t.line_1(xs)+1, color='k', label="line1")
 		ax.plot(xs, t.line_1(xs)-1, color='k', label="line1")
 		ax.plot(xs, t.line_2(xs), color=ccc, label="line2")
 
+		ax.scatter(t.c, t.d, color="red", s=10, label="o1")
 
 	def plot_circles(self):
 		print(len(self.p))
@@ -256,12 +256,14 @@ if __name__ == "__main__":
 	f = "two.json"
 	path = f"srcs/Scorer/datas/{f}"
 
-	data = load(path)
 	
 	# data = Line()
 	# data.add(Point(0, 0, 0, 1))
 	# data.add(Point(3, -1, 0, 2))
-	# data.add(Point(-4, -2, 0, 3))
+	# data.add(Point(5, 2, 0, -1))
 	# data.add(Point(3, 4, 0, 1))
+
+
+	data = load(path)
 
 	data.plot_circles()
