@@ -1,7 +1,7 @@
 import logging
 
 Logger = logging.getLogger("RewardOpti")
-Logger.setLevel(logging.DEBUG)
+Logger.setLevel(logging.ERROR)
 stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
@@ -30,7 +30,6 @@ class RewardOpti:
     def sticks_and_carrots(self, action, infos, done):
         ### TODO: other infos that could be use: infos["pos"], infos["gyro"], infos["lidar"], infos["car"]
         self.reward = 0
-        Logger.debug(f"done: {done}, infos['hit'] = {infos['hit']}")
         if done or self.goes_backward(action): #or infos["hit"] != None #TODO maybe diferentiate the sticks
             self.reward = self.config.reward_stick
             Logger.debug(f"reward stick: {self.reward}")

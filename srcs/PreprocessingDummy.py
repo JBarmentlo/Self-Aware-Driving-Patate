@@ -24,7 +24,7 @@ class Preprocessing():
 		self.config  		= config
 		self.history 		= [None for _ in range(config.frame_skip)]
 		self.skip_counter 	= -1
-		self.AutoEncoder = self._init_AutoEncoder()
+		# self.AutoEncoder = self._init_AutoEncoder()
 
 	def _init_AutoEncoder(self):
 		ae = PoolingAutoEncoder(self.config.config_AutoEncoder)
@@ -50,11 +50,11 @@ class Preprocessing():
 
 	def process(self, state):
 		Logger.info(f"Processing.\nIn shape: {state.shape}")
-		# state = self.gray(state)
-		# state = self.resize(state, self.config.shrink_size)
-		# state = self.stack(state)
-		state = self._autoencoder_prepare(state)
-		state = self.AutoEncoder.encode(state)
+		state = self.gray(state)
+		state = self.resize(state, self.config.shrink_size)
+		state = self.stack(state)
+		# state = self._autoencoder_prepare(state)
+		# state = self.AutoEncoder.encode(state)
 		Logger.debug(f"Out shape: {state.shape}")
 		return state
 
