@@ -90,15 +90,20 @@ class NeuralPlayerDummy():
 					self.simulator.restart_simulator()
 					self.env = self.simulator.env
 
-
+			# state = self.env.reset()
+			# new_state, reward, done, info = self.env.step([0, 1])
 			processed_state = self.preprocessor.process(state)
 			done = self._is_over_race(info, done)
 			Logger.debug(f"Initial CTE: {info['cte']}")
 			done = False
 			
+
+
 			iteration = 0
 			while (not done):
+
 				action = self.agent.get_action(processed_state, e)
+				action = [0.0, 1.0]
 				Logger.debug(f"action: {action}")
 				old_info = info
 				new_state, reward, done, info = self.env.step(action)
@@ -106,7 +111,8 @@ class NeuralPlayerDummy():
 				done = self._is_over_race(info, done)
 				self.agent.memory.add(processed_state, action, new_processed_state, reward, done)
 				processed_state = new_processed_state
-				Logger.debug("cte:", info["cte"] + 2.25)
+				Logger.debug(f"cte: {info['cte'] + 2.25}")
+				# print("info:", info)
 				iteration += 1
 
 			self.add_score(iteration)

@@ -84,7 +84,7 @@ config_Preprocessing.stack_size         = 4
 config_Preprocessing.frame_skip         = 2  # interval in frames between the stacked frames
 config_Preprocessing.shrink_size        = (80, 80) # * This does not remove the channels and generate a (60, 60) output. Channels are preserved :input (100, 100, 3) => (60, 60, 3)
 config_Preprocessing.output_size        = (config_Preprocessing.stack_size, *config_Preprocessing.shrink_size) #*  C * H * W CHANNELS FIRST
-config_Preprocessing.load_AutoEncoder	= False
+config_Preprocessing.load_AutoEncoder	= True
 
 
 # -----------------------------------------------------------------
