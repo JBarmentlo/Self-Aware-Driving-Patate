@@ -118,7 +118,7 @@ class NeuralPlayerDummy():
 
 			self.add_score(iteration)
 			self.agent._update_epsilon()
-			# ! self.agent.replay_memory()
+			self.agent.replay_memory()
 			# if (e % self.config.train_frequency == 0):
 			# 	self.train_agent()
 		self.env.reset()
