@@ -1,4 +1,11 @@
 import torch
+import logging
+
+
+Logger = logging.getLogger("bin_unbin")
+Logger.setLevel(logging.ERROR)
+stream = logging.StreamHandler()
+Logger.addHandler(stream)
 
 def bin_to_val(bin, bounds, slices):
 	if (slices == 1):
@@ -19,6 +26,7 @@ def bin_to_val_torch(bin, bounds, slices):
 def val_to_idx(val, values):
 	### TODO : temporary function before fixing val to bin
 	for idx, value in enumerate(values):
+		Logger.debug(f"{val=}, {value=}")
 		if value == val:
 			return (idx)
 	return (-1)

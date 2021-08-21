@@ -111,8 +111,8 @@ class  DQNAgent():
 	def get_action(self, state, episode = 0):
 		# TODO: UPDATE THIS FOR UNFIXED THROTTLE
 		if np.random.rand() > self.config.epsilon :
-			ALogger.debug(f"Not Random action being picked")
-			action = [self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :]))), 1.0]
+			ALogger.debug(f"++++ Not Random action being picked")
+			action = self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :])))
 			ALogger.debug(f"{action = }")
 			return action
 		else:
@@ -154,7 +154,8 @@ class  DQNAgent():
 		processed_states, new_processed_states = torch.tensor(processed_states), torch.tensor(new_processed_states)
 
 		qs_b = self.model.forward(processed_states)
-		qss_b = self.target_model.forward(new_processed_states)
+		#! check target mmodel qss_b = self.target_model.forward(new_processed_states)
+		qss_b = self.model.forward(new_processed_states)
 		qss_max_b, _ = torch.max(qss_b, dim = 1)
 
 		for i, (action, reward, done) in enumerate(zip(actions, rewards, dones)):
