@@ -6,6 +6,8 @@ from configDummy import config
 from torch.utils.data import DataLoader
 import torch
 import utils
+import numpy as np
+from utils import val_to_bin
 
 config_NeuralPlayer = config.config_NeuralPlayer
 config_Agent = config_NeuralPlayer.config_Agent
@@ -24,13 +26,42 @@ agent = neural.agent
 while (len(agent.memory) <  config_Agent.batch_size):
 	neural.do_races(1)
 
+agent.update_target_model_counter += 1
+agent.optimizer.zero_grad()
 
-# agent.update_target_model_counter += 1
-# agent.optimizer.zero_grad()
+batch_size = min(agent.config.batch_size, len(agent.memory))
+batch = agent.memory.sample(batch_size)
+targets = []
+processed_states, actions, new_processed_states, rewards, dones =  batch[0], batch[1], batch[2], batch[3], batch[4]
+dones = ~dones
+dones = dones.to(torch.int64)
 
-# batch_size = min(agent.config.batch_size, len(agent.memory))
-# # batch = agent.memory.sample(batch_size)
+qs_b = agent.model.forward(processed_states)
+qss_b = agent.model.forward(new_processed_states)
+qss_max_b, _ = torch.max(qss_b, dim = 1)
+
+i = 0
+for action, reward, done in zip(actions, rewards, dones):
+	qs = qs_b[i]
+	qss = qss_b[i]
+	qss_max = qss_max_b[i]
+	done = dones[i]
+	target = qs.clone()
+	target.detach()
+	a_idx = val_to_idx(action)
+	target[a_idx] = reward + (done * config.discount * qss_max) 
+	targets.append(target)
+	i += 1
+
+error = agent.criterion(qs_b, targets)
+error.backward()
+agent.optimizer.step()
+
+
+
+
 # train_dataloader = DataLoader(agent.memory, batch_size=batch_size, shuffle=True)
+
 # batch = next(iter(train_dataloader)) # s, a, s', r, d
 # s = batch[0].to(torch.float32)
 # ss = batch[2].to(torch.float32)

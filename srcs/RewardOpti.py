@@ -1,7 +1,7 @@
 import logging
 
 Logger = logging.getLogger("RewardOpti")
-Logger.setLevel(logging.ERROR)
+Logger.setLevel(logging.DEBUG)
 stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
@@ -24,7 +24,7 @@ class RewardOpti:
         Logger.debug(f"reward speed: {speed} * {self.config.speed_coef} = [{speed * self.config.speed_coef}]")
     
     def goes_backward(self, action):
-        if action[0] < 0:
+        if action[1] < 0:
             return (True)
     
     def sticks_and_carrots(self, action, infos, done):
@@ -32,7 +32,7 @@ class RewardOpti:
         self.reward = 0
         if done or self.goes_backward(action): #or infos["hit"] != None #TODO maybe diferentiate the sticks
             self.reward = self.config.reward_stick
-            Logger.debug(f"reward stick: {self.reward}")
+            Logger.debug(f"----- reward stick: {self.reward}")
             return (self.reward)
         self.close_to_center(infos["cte"])
         self.go_fast(infos["speed"])

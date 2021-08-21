@@ -115,10 +115,10 @@ class NeuralPlayerDummy():
 				processed_state = new_processed_state
 				Logger.debug(f"cte:{infos['cte'] + 2.25}")
 				iteration += 1
-
+			
 			self.add_score(iteration)
 			self.agent._update_epsilon()
-			self.agent.replay_memory()
+			# ! self.agent.replay_memory()
 			# if (e % self.config.train_frequency == 0):
 			# 	self.train_agent()
 		self.env.reset()
