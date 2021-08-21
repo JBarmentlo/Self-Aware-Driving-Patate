@@ -36,7 +36,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
 from torch.utils.data import DataLoader
-import utils
+from utils import val_to_idx
 
 # env = gym.make('CartPole-v0').unwrapped
 
@@ -104,7 +104,7 @@ class  DQNAgent():
 	def _update_epsilon(self):
 			if self.config.epsilon > self.config.epsilon_min:
 				self.config.epsilon -= (self.config.initial_epsilon - self.config.epsilon_min) / self.config.steps_to_eps_min
-				ALogger.info(f"Updating agent epsilon to {self.config.epsilon}")
+				ALogger.info(f"Updating self epsilon to {self.config.epsilon}")
 
 
 
@@ -139,40 +139,39 @@ class  DQNAgent():
 		
 		self.update_target_model_counter += 1
 		self.optimizer.zero_grad()
+		targets = []
 
 		batch_size = min(self.config.batch_size, len(self.memory))
-		# batch = self.memory.sample(batch_size)
-		train_dataloader = DataLoader(self.memory, batch_size=batch_size, shuffle=True)
-		batch = next(iter(train_dataloader)) # s, a, s', r, d
-		s = batch[0].to(torch.float32)
-		ss = batch[2].to(torch.float32)
-		a = batch[1]
-		for i in range(len(a)):
-			a[i] = a[i].to(torch.float32)
-		r = batch[3].to(torch.float32)
-		d = batch[4]
-		d = ~d
-		d = d.to(torch.int64)
-		ALogger.debug(f"{s.size() = } {ss.size() = } {a[0].size() = } {a[1].size() = } {r.size() = }")
-		qs = self.model.forward(s).cpu()
-		qss = self.target_model.forward(ss).cpu()
-		qss_max, _  = torch.max(qss, dim = 1)
-		action_space_size = [*self.config.action_space_size]
-		a_bin = utils.val_to_bin(a[0], self.config.action_space_boundaries[0], action_space_size[0]).to(torch.int64)
-		a2_bin = utils.val_to_bin(a[1], self.config.action_space_boundaries[1], action_space_size[1]).to(torch.int64)
-		bin = a_bin * (a2_bin + 1)
-		ALogger.debug(f"{a[0] = } {a_bin = } \n{a[1] = } {a2_bin = } \n{bin =}")
-		# y.scatter(bin)
-		hot = torch.nn.functional.one_hot(bin, action_space_size[1] * action_space_size[0])
-		ALogger.debug(f"{hot = }")
-		targets = qs.clone()
-		targets = targets.detach()
-		targets = hot * (r.view(batch_size, -1) + self.config.lr * (qss_max.view(batch_size, -1) * d.view(batch_size, -1))) - hot * qs + qs
-		ALogger.debug(f"{qs = } {targets = }")
+		batch = self.memory.sample(batch_size)
 
-		error = self.criterion(qs, targets).to(torch.float32)
+		processed_states = [batch[x][0] for x in range(batch_size)]
+		actions = [batch[x][1] for x in range(batch_size)]
+		new_processed_states = [batch[x][2] for x in range(batch_size)]
+		rewards = [batch[x][3] for x in range(batch_size)]
+		dones = [batch[x][4] for x in range(batch_size)]
+
+		dones = [abs(int(x) - 1) for x in dones]
+		processed_states, new_processed_states = torch.tensor(processed_states), torch.tensor(new_processed_states)
+
+		qs_b = self.model.forward(processed_states)
+		qss_b = self.target_model.forward(new_processed_states)
+		qss_max_b, _ = torch.max(qss_b, dim = 1)
+
+		for i, (action, reward, done) in enumerate(zip(actions, rewards, dones)):
+			qs = qs_b[i]
+			qss = qss_b[i]
+			qss_max = qss_max_b[i]
+			target = qs.clone()
+			target = target.detach()
+			a_idx = val_to_idx(action, self.config.action_space)
+			target[a_idx] = reward + (done * self.config.discount * qss_max) 
+			targets.append(target)
+
+		targets = torch.stack(targets)
+		error = self.criterion(qs_b, targets)
 		error.backward()
 		self.optimizer.step()
+
 		if (self.update_target_model_counter % self.config.target_model_update_frequency == 0):
 			self._update_target_model
 
@@ -207,7 +206,7 @@ class DQN(nn.Module):
 		output_size = 1
 		for s in config.action_space_size:
 			output_size *= s
-		self.dense2 = nn.Linear(512, *config.action_space_size)
+		self.dense2 = nn.Linear(512, output_size)
 
 
 		# Number of Linear input connections depends on output of conv2d layers

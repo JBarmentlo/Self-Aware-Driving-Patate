@@ -96,7 +96,7 @@ class NeuralPlayerDummy():
 					self.env = self.simulator.env
 
 			# state = self.env.reset()
-			# new_state, reward, done, info = self.env.step([0, 1])
+			# new_state, reward, done, infos = self.env.step([0, 1])
 			processed_state = self.preprocessor.process(state)
 			done = self._is_over_race(infos, done)
 			Logger.debug(f"Initial CTE: {infos['cte']}")
@@ -118,7 +118,7 @@ class NeuralPlayerDummy():
 			
 			self.add_score(iteration)
 			self.agent._update_epsilon()
-			# ! self.agent.replay_memory()
+			self.agent.replay_memory()
 			# if (e % self.config.train_frequency == 0):
 			# 	self.train_agent()
 		self.env.reset()

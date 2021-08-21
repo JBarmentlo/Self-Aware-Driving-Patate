@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 import torch
 import utils
 import numpy as np
-from utils import val_to_bin
+from utils import val_to_idx
 
 config_NeuralPlayer = config.config_NeuralPlayer
 config_Agent = config_NeuralPlayer.config_Agent
@@ -28,34 +28,41 @@ while (len(agent.memory) <  config_Agent.batch_size):
 
 agent.update_target_model_counter += 1
 agent.optimizer.zero_grad()
+targets = []
 
 batch_size = min(agent.config.batch_size, len(agent.memory))
 batch = agent.memory.sample(batch_size)
-targets = []
-processed_states, actions, new_processed_states, rewards, dones =  batch[0], batch[1], batch[2], batch[3], batch[4]
-dones = ~dones
-dones = dones.to(torch.int64)
+
+processed_states = [batch[x][0] for x in range(batch_size)]
+actions = [batch[x][1] for x in range(batch_size)]
+new_processed_states = [batch[x][2] for x in range(batch_size)]
+rewards = [batch[x][3] for x in range(batch_size)]
+dones = [batch[x][4] for x in range(batch_size)]
+
+dones = [abs(int(x) - 1) for x in dones]
+processed_states, new_processed_states = torch.tensor(processed_states), torch.tensor(new_processed_states)
 
 qs_b = agent.model.forward(processed_states)
-qss_b = agent.model.forward(new_processed_states)
+qss_b = agent.target_model.forward(new_processed_states)
 qss_max_b, _ = torch.max(qss_b, dim = 1)
 
-i = 0
-for action, reward, done in zip(actions, rewards, dones):
+for i, (action, reward, done) in enumerate(zip(actions, rewards, dones)):
 	qs = qs_b[i]
 	qss = qss_b[i]
 	qss_max = qss_max_b[i]
-	done = dones[i]
 	target = qs.clone()
-	target.detach()
-	a_idx = val_to_idx(action)
-	target[a_idx] = reward + (done * config.discount * qss_max) 
+	target = target.detach()
+	a_idx = val_to_idx(action, config_Agent.action_space)
+	target[a_idx] = reward + (done * config_Agent.discount * qss_max) 
 	targets.append(target)
-	i += 1
 
+targets = torch.stack(targets)
 error = agent.criterion(qs_b, targets)
 error.backward()
 agent.optimizer.step()
+
+if (agent.update_target_model_counter % agent.config.target_model_update_frequency == 0):
+	agent._update_target_model
 
 
 

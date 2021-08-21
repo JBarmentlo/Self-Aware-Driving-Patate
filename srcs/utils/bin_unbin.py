@@ -16,6 +16,14 @@ def bin_to_val_torch(bin, bounds, slices):
 	return out.item()
 
 
+def val_to_idx(val, values):
+	### TODO : temporary function before fixing val to bin
+	for idx, value in enumerate(values):
+		if value == val:
+			return (idx)
+	return (-1)
+
+
 def val_to_bin(val, bounds, slices):
 	if (slices == 1):
 		out = torch.zeros(val.size(), dtype = torch.int64)
