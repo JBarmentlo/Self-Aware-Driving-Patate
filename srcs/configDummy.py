@@ -128,7 +128,7 @@ if (agent_type == "DQN"):
     config_Agent.action_space_size  = (11, 3)
     config_Agent.discount           = 0.99
     config_Agent.lr                 = 1e-4
-    config_Agent.initial_epsilon    = 1.0
+    config_Agent.initial_epsilon    = 0.5
     config_Agent.epsilon            = config_Agent.initial_epsilon
     config_Agent.epsilon_decay      = 0.9
     config_Agent.epsilon_min        = 0.02
