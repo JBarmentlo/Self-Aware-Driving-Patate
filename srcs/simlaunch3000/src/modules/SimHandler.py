@@ -4,6 +4,8 @@ import logging
 
 SimHandlerLogger = logging.getLogger("SimHandler ")
 SimHandlerLogger.setLevel(logging.DEBUG)
+stream = logging.StreamHandler()
+SimHandlerLogger.addHandler(stream)
 
 
 class SimHandler():
@@ -31,6 +33,26 @@ class SimHandler():
             SimHandlerLogger.error(f"The SimHandler has declared it could start a new sim but the PortHandler has no ports left")
         if (port in self.sims.keys()):
             SimHandlerLogger.error(f"A new Sim instance is being created but a Sim instance with the same port exists in self.sims")
+
+
+    def get_sim(self):
+        print("Finding sim")
+        print("sims", self.sims)
+        for port in self.sims.keys():
+            print(port, self.sims[port].is_in_use)
+            if (self.sims[port].is_in_use == False):
+                return port
+        else:
+            return self.start_new_sim()
+
+    
+    
+    def release_sim(self, port):
+        try:
+            print("releasing sim: ", port)
+            self.sims[port].is_in_use = False
+        except:
+            print("you have tried realeasing an unexisting sim")
 
 
     def start_new_sim(self):
@@ -96,7 +118,7 @@ class SimHandler():
             if (not sim.is_alive()):
                 dead_sims.append(port)
         for port in dead_sims:
-            SimHandlerLogger.error("Dead sim processes (not killed by us): ", dead_sims)
+            SimHandlerLogger.error(f"Dead sim processes (not killed by us):  {dead_sims}")
             self.sims.pop(port)
 
 

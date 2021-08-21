@@ -27,6 +27,7 @@ class Sim():
         self.last_ping_time = time.time()
         self.time_till_timeout = time_till_timeout
         self.process = self.start_sim_proc()
+        self.is_in_use = True
 
 
 

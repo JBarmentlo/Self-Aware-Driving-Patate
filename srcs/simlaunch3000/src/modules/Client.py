@@ -34,14 +34,12 @@ class  Client():
             self.sim_port = None
             return received
 
-            
 
-
-
-
-    def ping_sim(self):
+    def ping_sim(self, port = None):
+        if port is None:
+            port = self.sim_port
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            msg = {"pass": os.environ["PS"], "req": net_config.ping_request, "port" : self.sim_port} # a real dict.
+            msg = {"pass": os.environ["PS"], "req": net_config.ping_request, "port" : port} # a real dict.
             data = json.dumps(msg)
             try:
                 # Connect to server and send data
@@ -57,9 +55,11 @@ class  Client():
             pass
 
 
-    def kill_sim(self):
+    def release_sim(self, port = None):
+        if port is None:
+            port = self.sim_port
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            msg = {"pass": os.environ["PS"], "req": net_config.kill_request, "port" : self.sim_port} # a real dict.
+            msg = {"pass": os.environ["PS"], "req": net_config.stop_using_sim_request, "port" : port} # a real dict.
             data = json.dumps(msg)
             try:
                 # Connect to server and send data
@@ -74,26 +74,22 @@ class  Client():
         except:
             pass
 
-# with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-#     # s.sendall(int.to_bytes(9099, byteorder='little', length=1024))
-#     m = {"port": 2020, "name": "abc"} # a real dict.
 
-
-#     data = json.dumps(m)
-#     # Create a socket (SOCK_STREAM means a TCP socket)
-#     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-#     try:
-#         # Connect to server and send data
-#         sock.connect((HOST, PORT))
-#         sock.sendall(bytes(data,encoding="utf-8"))
-
-
-#         # Receive data from the server and shut down
-#         received = sock.recv(1024)
-#         received = received.decode("utf-8")
-
-#     finally:
-#         data = s.recv(1024)
-
-# print('Received', repr(data))
+    def kill_sim(self, port = None):
+        if port is None:
+            port = self.sim_port
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            msg = {"pass": os.environ["PS"], "req": net_config.kill_request, "port" : port} # a real dict.
+            data = json.dumps(msg)
+            try:
+                # Connect to server and send data
+                sock.connect((HOST, PORT))
+                sock.sendall(bytes(data,encoding="utf-8"))
+                received = sock.recv(1024)
+                received = received.decode("utf-8")
+            except:
+                pass
+        try:
+            print('Received', received)
+        except:
+            pass

@@ -71,7 +71,7 @@ class Server():
             return {}
 
         if (data["req"] == net_config.start_sim_request):
-            sim_port = self.simhandler.start_new_sim()
+            sim_port = self.simhandler.get_sim()
             return {"sim_port" : sim_port}
 
         if (data["req"] == net_config.ping_request):
@@ -81,6 +81,10 @@ class Server():
         if (data["req"] == net_config.kill_request):
             self.simhandler.kill_sim(data["port"])
             return {"killed_sim" : data["port"]}
+
+        if (data["req"] == net_config.stop_using_sim_request):
+            self.simhandler.release_sim(data["port"])
+            return {"released_sim" : data["port"]}
 
         ServerLogger.error(f"Unhandled message: {data}")
         print("NOTHING sim")
