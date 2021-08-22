@@ -53,7 +53,7 @@ from utils import val_to_idx
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ALogger = logging.getLogger("DQNAgent")
-ALogger.setLevel(logging.DEBUG)
+ALogger.setLevel(logging.INFO)
 stream = logging.StreamHandler()
 ALogger.addHandler(stream)
 
@@ -111,7 +111,7 @@ class  DQNAgent():
 	def get_action(self, state, episode = 0):
 		# TODO: UPDATE THIS FOR UNFIXED THROTTLE
 		if np.random.rand() > self.config.epsilon :
-			ALogger.debug(f"++++ Not Random action being picked")
+			ALogger.debug(f"Not Random action being picked")
 			action = self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :])))
 			ALogger.debug(f"{action = }")
 			return action
@@ -132,11 +132,15 @@ class  DQNAgent():
 		self.model.eval()
 
 	
+	def save_modelo(self, path = "./dedequene.modelo"):
+		torch.save(self.model.state_dict(), path)
+
+
 	def replay_memory(self):
-		ALogger.info(f"Replay from memory")
 		if len(self.memory) < self.config.min_memory_size:
 			return
 		
+		ALogger.info(f"Replay from memory {len(self.memory)}")
 		self.update_target_model_counter += 1
 		self.optimizer.zero_grad()
 		targets = []
@@ -155,7 +159,7 @@ class  DQNAgent():
 
 		qs_b = self.model.forward(processed_states)
 		#! check target mmodel qss_b = self.target_model.forward(new_processed_states)
-		qss_b = self.model.forward(new_processed_states)
+		qss_b = self.target_model.forward(new_processed_states)
 		qss_max_b, _ = torch.max(qss_b, dim = 1)
 
 		for i, (action, reward, done) in enumerate(zip(actions, rewards, dones)):
@@ -174,7 +178,7 @@ class  DQNAgent():
 		self.optimizer.step()
 
 		if (self.update_target_model_counter % self.config.target_model_update_frequency == 0):
-			self._update_target_model
+			self._update_target_model()
 
 
 	def train(self):

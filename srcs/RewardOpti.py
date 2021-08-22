@@ -1,7 +1,7 @@
 import logging
 
 Logger = logging.getLogger("RewardOpti")
-Logger.setLevel(logging.DEBUG)
+Logger.setLevel(logging.INFO)
 stream = logging.StreamHandler()
 Logger.addHandler(stream)
 

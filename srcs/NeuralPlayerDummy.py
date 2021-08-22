@@ -7,7 +7,7 @@ import time
 import numpy as np
 
 Logger = logging.getLogger("NeuralPlayer")
-Logger.setLevel(logging.DEBUG)
+Logger.setLevel(logging.INFO)
 stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
@@ -64,6 +64,7 @@ class NeuralPlayerDummy():
 	def do_races(self, episodes):
 		Logger.info(f"Doing {episodes} races.")
 		for e in range(1, episodes + 1):
+			Logger.info(f"\nepisode {e}/{episodes}")
 			self.RO.new_race_init(e)
 			cte = 100
 
@@ -119,7 +120,12 @@ class NeuralPlayerDummy():
 			self.add_score(iteration)
 			self.agent._update_epsilon()
 			self.agent.replay_memory()
+			self.agent.replay_memory()
+			self.agent.replay_memory()
+
 			# if (e % self.config.train_frequency == 0):
 			# 	self.train_agent()
+			if (e % 100 == 0):
+				self.agent.save_modelo(f"./dedequene.modelo.{e}")
 		self.env.reset()
 		return
