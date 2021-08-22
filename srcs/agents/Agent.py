@@ -1,7 +1,7 @@
-from MemoryDummy import DqnMemory
+from Memory import DqnMemory
 import numpy as np
 
-class AgentDummy():
+class Agent():
 	def __init__(self, config):
 		self.config = config
 		self.memory = self._init_memory(config.config_Memory)

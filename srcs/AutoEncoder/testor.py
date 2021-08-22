@@ -1,4 +1,4 @@
-from AutoEncoderDummy import UndercompleteAutoEncoder
+from AutoEncoder import UndercompleteAutoEncoder
 from ContractiveAutoEncoder import ContractiveAutoEncoder
 from PoolingAutoEncoder import PoolingAutoEncoder
 from PokAEmonTrainer import AutoEncoderTrainer

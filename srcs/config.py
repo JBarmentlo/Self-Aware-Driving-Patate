@@ -143,7 +143,7 @@ if (agent_type == "DQN"):
     config_Agent.load_model         = True
     config_Agent.model_to_load_path = "/workspaces/Self-Aware-Driving-Patate/model_cache/modelo/dedequene.modelo.2598"
     config_Agent.model_to_save_path = f"/workspaces/Self-Aware-Driving-Patate/model_cache/modelo/{config_Agent.agent_name}_{date}." ### TODO : improve path
-    config_Agent.saving_frequency = 1
+    config_Agent.saving_frequency = 100
     config_Agent.target_model_update_frequency = 15
     config_Agent.action_space_boundaries =  config.action_space_boundaries
 

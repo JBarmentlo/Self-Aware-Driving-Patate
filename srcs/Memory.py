@@ -1,6 +1,6 @@
 from collections import deque
 
-class MemoryDummy():
+class Memory():
 	def __init__(self, config):
 		self.config = config
 		self.data = deque([], maxlen = config.capacity)

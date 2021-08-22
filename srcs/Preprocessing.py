@@ -10,7 +10,7 @@ Logger.setLevel(logging.WARNING)
 stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
-class PreprocessingDummy():
+class Preprocessing():
 	def __init__(self, config):
 		self.config  = config
 	

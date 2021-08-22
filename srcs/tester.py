@@ -1,8 +1,8 @@
 import argparse
 
-from SimulatorDummy import SimulatorDummy
-from NeuralPlayerDummy import NeuralPlayerDummy
-from configDummy import config
+from Simulator import Simulator
+from NeuralPlayer import NeuralPlayer
+from config import config
 from torch.utils.data import DataLoader
 import torch
 import utils
@@ -13,13 +13,13 @@ config_NeuralPlayer = config.config_NeuralPlayer
 config_Agent = config_NeuralPlayer.config_Agent
 
 
-simulator = SimulatorDummy(config.config_Simulator,"donkey-generated-roads-v0")
+simulator = Simulator(config.config_Simulator,"donkey-generated-roads-v0")
 def end():
 	simulator.client.kill_sim()
 	simulator.env.unwrapped.close()
 	
 
-neural = NeuralPlayerDummy(config.config_NeuralPlayer, env = simulator.env, simulator = simulator)
+neural = NeuralPlayer(config.config_NeuralPlayer, env = simulator.env, simulator = simulator)
 agent = neural.agent
 
 

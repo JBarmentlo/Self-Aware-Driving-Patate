@@ -9,7 +9,7 @@ import sys
 import time
 
 
-class SimulatorDummy:
+class Simulator:
 	def __init__(self, config, env_name):
 		exe_path = "manual"
 		self.client = Client()

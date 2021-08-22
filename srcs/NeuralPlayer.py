@@ -1,6 +1,6 @@
 from RewardOpti import RewardOpti
-from agents.AgentDummy import DQNAgent
-from PreprocessingDummy import Preprocessing
+from agents.Agent import DQNAgent
+from Preprocessing import Preprocessing
 import torch
 import logging
 import time
@@ -12,7 +12,7 @@ stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
 
-class NeuralPlayerDummy():
+class NeuralPlayer():
 	def __init__(self, config, env, simulator):
 		self.config = config
 		self.env = env
