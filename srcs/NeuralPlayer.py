@@ -1,10 +1,12 @@
-from RewardOpti import RewardOpti
-from agents.Agent import DQNAgent
-from Preprocessing import Preprocessing
 import torch
 import logging
 import time
 import numpy as np
+
+from RewardOpti import RewardOpti
+from agents.Agent import DQNAgent
+from Preprocessing import Preprocessing
+import utils
 
 Logger = logging.getLogger("NeuralPlayer")
 Logger.setLevel(logging.INFO)
@@ -58,50 +60,24 @@ class NeuralPlayer():
 	def get_action(self, state):
 		return self.agent.get_action(self.preprocessor.process(state))
 
+
 	def add_score(self, iteration):
 		self.scores.append(iteration)
+
 
 	def do_races(self, episodes):
 		Logger.info(f"Doing {episodes} races.")
 		for e in range(1, episodes + 1):
 			Logger.info(f"\nepisode {e}/{episodes}")
 			self.RO.new_race_init(e)
-			cte = 100
+			
+			self.simulator = utils.fix_cte(self.simulator)
+			self.env = self.simulator.env
 
-			while(abs(cte) > 1):
-				state = self.env.reset()
-				new_state, reward, done, infos = self.env.step([0, 1])
-
-				if (abs(infos["cte"]) > 1):
-					Logger.warn(f"Attempting to fix broken cte by driving forward a little bit. cte: {infos['cte']}")
-					new_state, reward, done, infos = self.env.step([0, 1])
-					time.sleep(0.5)
-					Logger.warn(f"One step more. cte: {infos['cte']}")
-				if (abs(infos["cte"]) > 1):
-					new_state, reward, done, infos = self.env.step([0.1, 1])
-					time.sleep(0.5)
-					Logger.warn(f"One step more. cte: {infos['cte']}")
-				if (abs(infos["cte"]) > 1):
-					new_state, reward, done, infos = self.env.step([-0.1, 1])
-					time.sleep(1)
-					Logger.warn(f"One step more. cte: {infos['cte']}")
-				if (abs(infos["cte"]) > 1):
-					new_state, reward, done, infos = self.env.step([0, 1])
-					time.sleep(0)
-					Logger.warn(f"One step more. cte: {infos['cte']}")
-				
-				cte = infos["cte"]
-				if (abs(cte) > 1):
-					Logger.warning(f"restarting sim because cte is fucked {cte}")
-					self.simulator.restart_simulator()
-					self.env = self.simulator.env
-
-			# state = self.env.reset()
-			# new_state, reward, done, infos = self.env.step([0, 1])
+			state, reward, done, infos = self.env.step([0, 0])
 			processed_state = self.preprocessor.process(state)
 			done = self._is_over_race(infos, done)
 			Logger.debug(f"Initial CTE: {infos['cte']}")
-			done = False
 			iteration = 0
 			while (not done):
 
@@ -119,12 +95,11 @@ class NeuralPlayer():
 			
 			self.add_score(iteration)
 			self.agent._update_epsilon()
-			self.agent.replay_memory()
-			self.agent.replay_memory()
-			self.agent.replay_memory()
+			if (e % self.config.replay_memory_freq == 0):
+				for _ in range(self.config.replay_memory_batches):
+					self.agent.replay_memory()
 
-			# if (e % self.config.train_frequency == 0):
-			# 	self.train_agent()
+
 			if (e % self.agent.config.saving_frequency == 0):
 				self.agent.save_modelo(f"{self.agent.config.model_to_save_path}{e}")
 		self.env.reset()

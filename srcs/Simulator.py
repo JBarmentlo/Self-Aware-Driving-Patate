@@ -1,4 +1,3 @@
-import signal
 import sys
 from simlaunch3000 import Client
 
@@ -30,7 +29,7 @@ class Simulator:
 		try:
 			self.env = gym.make(self.env_name, conf=self.config)
 		except:
-			time.sleep(2)
+			time.sleep(4)
 			self.env = gym.make(self.env_name, conf=self.config)
 			
 
@@ -43,15 +42,3 @@ class Simulator:
 	def restart_simulator(self):
 		self.kill_simulator()
 		self.start_simulator()
-
-		
-	def signal_handler(self, signal, frame):
-		print("catching ctrl+c")
-		# self.env.unwrapped.close()
-		self.kill_simulator()
-		sys.exit(0)
-
-	# signal.signal(signal.SIGINT, signal_handler)
-	# signal.signal(signal.SIGTERM, signal_handler)
-	# signal.signal(signal.SIGABRT, signal_handler)
-	

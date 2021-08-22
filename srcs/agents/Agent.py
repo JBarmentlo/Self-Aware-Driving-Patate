@@ -23,11 +23,7 @@ import math
 import random
 import numpy as np
 import random
-# import matplotlib
-# import matplotlib.pyplot as plt
 from collections import namedtuple, deque
-# from itertools import count
-# from PIL import Image
 import logging
 
 import torch
@@ -38,16 +34,6 @@ import torchvision.transforms as T
 from torch.utils.data import DataLoader
 from utils import val_to_idx
 
-# env = gym.make('CartPole-v0').unwrapped
-
-# # set up matplotlib
-# is_ipython = 'inline' in matplotlib.get_backend()
-# if is_ipython:
-#     from IPython import display
-
-# plt.ion()
-
-# # if gpu is to be used
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -90,7 +76,6 @@ class  DQNAgent():
 	def action_from_q_values(self, qs):
 		ALogger.debug(f"Getting steering from qs: {qs}")
 		bounds = self.config.action_space_boundaries[0]
-		# np.array(qs.cpu())
 		l = len(qs[0])
 		idx = torch.argmax(qs[0])
 		action = self.config.action_space[idx]
@@ -113,7 +98,6 @@ class  DQNAgent():
 
 
 	def get_action(self, state, episode = 0):
-		# TODO: UPDATE THIS FOR UNFIXED THROTTLE
 		if np.random.rand() > self.config.epsilon :
 			ALogger.debug(f"Not Random action being picked")
 			action = self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :])))
@@ -127,6 +111,7 @@ class  DQNAgent():
 
 
 	def train_model(self, x, y):
+		#TODO: make this exist
 		self.model.train()
 		y_hat = self.model.forward(x)
 		loss = self.criterion(y_hat, y)
@@ -139,6 +124,7 @@ class  DQNAgent():
 
 
 	def replay_memory(self):
+		#TODO : batches and batch_size as args
 		if len(self.memory) < self.config.min_memory_size:
 			return
 		

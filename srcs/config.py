@@ -79,7 +79,11 @@ config_NeuralPlayer.cte_limit                = 4.0 # 3.2 is the white line
 config_NeuralPlayer.cte_offset               = 2.25
 config_NeuralPlayer.cte_coef                 = 1000 # cte goes from -3.2 to 3.2 on the road
 config_NeuralPlayer.speed_coef               = 200 # speed goes aprox from 0 to 10
-config_NeuralPlayer.reward_stick             = -1000 
+config_NeuralPlayer.reward_stick             = -1000
+config_NeuralPlayer.replay_memory_freq       = 1
+config_NeuralPlayer.replay_memory_batches    = 3
+
+
 
 
 # -----------------------------------------------------------------
