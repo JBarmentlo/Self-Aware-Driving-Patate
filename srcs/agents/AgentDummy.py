@@ -63,7 +63,7 @@ class  DQNAgent():
 		self.memory = self._init_memory(config.config_Memory)
 		self.model = DQN(config)
 		if (self.config.load_model):
-			self._load_model(self.config.model_path)
+			self._load_model(self.config.model_to_load_path)
 		self.model.to(device)
 		self.target_model = DQN(config)
 		self.target_model.to(device)
@@ -73,10 +73,14 @@ class  DQNAgent():
 		self.update_target_model_counter = 0
 
 
+	def save_modelo(self, path = "./dedequene.modelo"):
+		torch.save(self.model.state_dict(), path)
+
+
 	def _load_model(self, path):
-		ALogger.info(f"Loading model from {path}")
 		try:
 			if (path is not None):
+				ALogger.info(f"Loading model from {path}")
 				self.model.load_state_dict(torch.load(path))
 				self.model.eval()
 		except Exception as e:
@@ -132,8 +136,6 @@ class  DQNAgent():
 		self.model.eval()
 
 	
-	def save_modelo(self, path = "./dedequene.modelo"):
-		torch.save(self.model.state_dict(), path)
 
 
 	def replay_memory(self):
@@ -158,7 +160,6 @@ class  DQNAgent():
 		processed_states, new_processed_states = torch.tensor(processed_states), torch.tensor(new_processed_states)
 
 		qs_b = self.model.forward(processed_states)
-		#! check target mmodel qss_b = self.target_model.forward(new_processed_states)
 		qss_b = self.target_model.forward(new_processed_states)
 		qss_max_b, _ = torch.max(qss_b, dim = 1)
 

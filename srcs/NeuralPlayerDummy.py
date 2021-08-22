@@ -125,7 +125,7 @@ class NeuralPlayerDummy():
 
 			# if (e % self.config.train_frequency == 0):
 			# 	self.train_agent()
-			if (e % 100 == 0):
-				self.agent.save_modelo(f"./dedequene.modelo.{e}")
+			if (e % self.agent.config.saving_frequency == 0):
+				self.agent.save_modelo(f"{self.agent.config.model_to_save_path}{e}")
 		self.env.reset()
 		return

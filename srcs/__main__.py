@@ -51,7 +51,7 @@ if __name__ == "__main__":
         simulator = SimulatorDummy(config.config_Simulator, args.env_name)
         try:
             neural = NeuralPlayerDummy(config.config_NeuralPlayer, env = simulator.env, simulator=simulator)
-            neural.do_races(10000)
+            neural.do_races(neural.config.episodes)
         finally:
             simulator.client.release_sim()
             # simulator.env.unwrapped.close()

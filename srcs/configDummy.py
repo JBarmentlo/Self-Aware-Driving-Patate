@@ -1,6 +1,10 @@
 import numpy as np
 from utils import get_path_to_cache
 import uuid
+from datetime import datetime
+
+date = f"{datetime.now().day}_{datetime.now().month}.{datetime.now().hour}_{datetime.now().minute}"
+
 
 class DotDict(dict):
     """
@@ -68,7 +72,7 @@ config.config_Simulator.update({"exe_path": "manual",
 config_NeuralPlayer = config.config_NeuralPlayer
 
 config_NeuralPlayer.agent_name               = "DQN"
-config_NeuralPlayer.episodes                 = 100
+config_NeuralPlayer.episodes                 = 10
 config_NeuralPlayer.train_frequency          = 10
 config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
 config_NeuralPlayer.cte_limit                = 4.0 # 3.2 is the white line
@@ -123,7 +127,7 @@ if (agent_type == "DQN"):
 
     config_Agent = config.config_NeuralPlayer.config_Agent
 
-    config_Agent.agent_name         = "DQN"
+    config_Agent.agent_name         = "DDQN"
     config_Agent.input_size         = config_Preprocessing.output_size
     config_Agent.action_space_size  = (11, 3)
     config_Agent.discount           = 0.99
@@ -136,8 +140,10 @@ if (agent_type == "DQN"):
     config_Agent.batch_size         = 128
     config_Agent.min_memory_size    = 256
     config_Agent.memory_size        = 10000
-    config_Agent.load_model         = False
-    config_Agent.model_path         = "./ddqntorch.state"
+    config_Agent.load_model         = True
+    config_Agent.model_to_load_path = "/workspaces/Self-Aware-Driving-Patate/model_cache/modelo/dedequene.modelo.2598"
+    config_Agent.model_to_save_path = f"/workspaces/Self-Aware-Driving-Patate/model_cache/modelo/{config_Agent.agent_name}_{date}." ### TODO : improve path
+    config_Agent.saving_frequency = 1
     config_Agent.target_model_update_frequency = 15
     config_Agent.action_space_boundaries =  config.action_space_boundaries
 
