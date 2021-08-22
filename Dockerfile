@@ -1,4 +1,5 @@
 FROM nvidia/cuda:10.2-cudnn7-runtime-ubuntu18.04
+# From nvidia/cuda:11.1.1-cudnn8-runtime-ubuntu18.04
 
 WORKDIR /App
 
@@ -24,11 +25,12 @@ RUN git clone https://github.com/autorope/donkeycar \
 RUN pip install git+https://github.com/tawnkramer/gym-donkeycar
 
 # our project setup/install
-COPY patata_req.txt patata_req.txt
-RUN pip install -r patata_req.txt
+
 RUN git clone https://github.com/JBarmentlo/Self-Aware-Driving-Patate.git \
 	&& cd Self-Aware-Driving-Patate \
 	&& git checkout Docker
+
+RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
 
 WORKDIR /App/Self-Aware-Driving-Patate
 

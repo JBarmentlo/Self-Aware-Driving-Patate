@@ -27,9 +27,7 @@
 		"--network",
 		"host",
 		"--gpus",
-		"all",
-		// "ubuntu",
-		// "nvidia-smi"
+		"all"
 	],
 
 	// Uncomment to use the Docker CLI from inside the container. See https://aka.ms/vscode-remote/samples/docker-from-docker.

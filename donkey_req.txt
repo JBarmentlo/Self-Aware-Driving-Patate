@@ -17,9 +17,6 @@ paho-mqtt
 PrettyTable
 pyfiglet
 mypy
-torchvision
-torchaudio
-pytorch-lightning
 numpy
 psutil
 kivy==2.0.0
@@ -31,3 +28,5 @@ opencv-python-headless
 sklearn
 augmentor
 altair
+boto3
+inputs
