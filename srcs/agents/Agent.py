@@ -1,5 +1,5 @@
 from Memory import DqnMemory
-import numpy as np
+from S3 import S3
 
 class Agent():
 	def __init__(self, config):
@@ -48,6 +48,7 @@ class  DQNAgent():
 		self.config = config
 		self.memory = self._init_memory(config.config_Memory)
 		self.model = DQN(config)
+		self.S3 = self._init_S3(config.config_S3)
 		if (self.config.load_model):
 			self._load_model(self.config.model_to_load_path)
 		self.model.to(device)
@@ -60,12 +61,18 @@ class  DQNAgent():
 
 
 	def save_modelo(self, path = "./dedequene.modelo"):
+		### TODO : in the future, maybe save more than just weights
 		torch.save(self.model.state_dict(), path)
+		if self.config_S3.upload == True:
+			self.S3.upload_file(path, self.config_S3.s3_folder + path.split("/")[-1])
 
 
 	def _load_model(self, path):
 		try:
 			if (path is not None):
+				if self.config_S3.download == True:
+					self.S3.download_file(self.config_S3.s3_path, self.config_S3.local_path)
+					path = self.config_S3.local_path
 				ALogger.info(f"Loading model from {path}")
 				self.model.load_state_dict(torch.load(path))
 				self.model.eval()
@@ -88,6 +95,14 @@ class  DQNAgent():
 
 	def _init_memory(self, config = None):
 		return DqnMemory(self.config.config_Memory)
+
+	def _init_S3(self, config = None):
+		self.config_S3 = config
+		self.S3 = None
+		if self.config_S3.download or self.config_S3.upload:
+			self.S3 = S3(self.config_S3)
+		return self.S3
+		
 
 
 	def _update_epsilon(self):
