@@ -2,6 +2,7 @@ import argparse
 
 from Simulator import Simulator
 from NeuralPlayer import NeuralPlayer
+from HumanPlayer import HumanPlayer
 
 from config import config
 
@@ -44,14 +45,14 @@ def parse_arguments():
 
 if __name__ == "__main__":
     args = parse_arguments()
-
-    if args.supervised:
-        human = HumanPlayer(args)
-    else:
-        simulator = Simulator(config.config_Simulator, args.env_name)
-        try:
+    simulator = Simulator(config.config_Simulator, args.env_name)
+    try:
+        if args.supervised:
+            human = HumanPlayer(config.config_NeuralPlayer, env = simulator.env, simulator=simulator)
+            human.do_races()
+        else:
             neural = NeuralPlayer(config.config_NeuralPlayer, env = simulator.env, simulator=simulator)
             neural.do_races(neural.config.episodes)
-        finally:
-            simulator.client.release_sim()
-            # simulator.env.unwrapped.close()
+    finally:
+        simulator.client.release_sim()
+        # simulator.env.unwrapped.close()

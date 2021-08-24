@@ -4,6 +4,7 @@ import time
 import numpy as np
 
 from RewardOpti import RewardOpti
+from Database import Database
 from agents.Agent import DQNAgent
 from Preprocessing import Preprocessing
 import utils
@@ -25,6 +26,7 @@ class NeuralPlayer():
 		self._init_preprocessor(config.config_Preprocessing)
 		self._init_reward_optimizer(self.config)
 		self.scores = []
+		self.DB = Database(config.config_Database)
 
 
 	def _init_preprocessor(self, config_Preprocessing):
@@ -40,6 +42,13 @@ class NeuralPlayer():
 
 	def _train_agent(self):
 		self.agent.train()
+
+
+	def train_agent_from_DB(self):
+		pass
+		# db_data = self.DB.make_processed_memory()
+		# self.agent.memory.add(db_data)
+		# self.agent.replay_memory()
 
 
 	def _is_over_race(self, infos, done):
@@ -83,8 +92,8 @@ class NeuralPlayer():
 
 				action = self.agent.get_action(processed_state, e)
 				Logger.debug(f"action: {action}")
-				old_infos = infos
 				new_state, reward, done, infos = self.env.step(action)
+				self.DB.add_point([state, action, new_state, reward, done, infos])
 				new_processed_state = self.preprocessor.process(new_state)
 				done = self._is_over_race(infos, done)
 				reward = self.RO.sticks_and_carrots(action, infos, done)

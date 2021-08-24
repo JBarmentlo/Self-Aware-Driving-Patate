@@ -35,17 +35,17 @@ agent = neural.agent
 while (len(agent.memory) <  config_Agent.batch_size):
 	neural.do_races(1)
 
-simulator.client.release_sim()
+# simulator.client.release_sim()
 
 ALogger.info(f"Replay from memory {len(agent.memory)}")
+agent.update_target_model_counter += 1
+agent.optimizer.zero_grad()
+targets = []
 
 dataloader = DataLoader(agent.memory, batch_size=4,
                         shuffle=False, num_workers=1)
 
 for i, single_batch in enumerate(dataloader):
-	agent.update_target_model_counter += 1
-	agent.optimizer.zero_grad()
-	targets = []
 	processed_states, actions, new_processed_states, rewards, dones = single_batch
 	dones = ~dones
 
@@ -54,10 +54,13 @@ for i, single_batch in enumerate(dataloader):
 	qss_max_b, _ = torch.max(qss_b, dim = 1)
 
 	for i, (action, reward, done) in enumerate(zip(actions, rewards, dones)):
-		target = qs_b[i].clone()
+		qs = qs_b[i]
+		qss = qss_b[i]
+		qss_max = qss_max_b[i]
+		target = qs.clone()
 		target = target.detach()
 		a_idx = val_to_idx(action, agent.config.action_space)
-		target[a_idx] = reward + (done * agent.config.discount * qss_max_b[i]) 
+		target[a_idx] = reward + (done * agent.config.discount * qss_max) 
 		targets.append(target)
 
 	targets = torch.stack(targets)

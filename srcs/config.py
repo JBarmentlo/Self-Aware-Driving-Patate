@@ -30,6 +30,7 @@ config.config_NeuralPlayer.config_Agent = DotDict()
 config.config_NeuralPlayer.config_Agent.config_Memory = DotDict()
 config.config_NeuralPlayer.config_Agent.config_S3 = DotDict()
 
+config.config_NeuralPlayer.config_Database = DotDict()
 
 config.config_NeuralPlayer.config_Preprocessing = DotDict()
 config.config_NeuralPlayer.config_Preprocessing.config_AutoEncoder = DotDict()
@@ -74,6 +75,7 @@ config.config_Simulator.update({"exe_path": "manual",
 config_NeuralPlayer = config.config_NeuralPlayer
 
 config_NeuralPlayer.agent_name               = "DQN"
+config_NeuralPlayer.save_database            = True
 config_NeuralPlayer.episodes                 = 10
 config_NeuralPlayer.train_frequency          = 10
 config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
@@ -181,6 +183,20 @@ if (agent_type == "DQN"):
     config_Memory = config.config_NeuralPlayer.config_Agent.config_Memory
 
     config_Memory.capacity = config_Agent.memory_size
+
+
+
+# -----------------------------------------------------------------
+# Player Database config
+# -----------------------------------------------------------------
+
+    config_Database = config.config_NeuralPlayer.config_Database
+
+    config_Database.max_datapoints      = 10
+    config_Database.s3                  = False
+    config_Database.local_path          = "/workspaces/Self-Aware-Driving-Patate/simulator_cache/ddqn_track/ddqn_{config_Agent.agent_name}_{date}."
+
+
 
 
 # -----------------------------------------------------------------
