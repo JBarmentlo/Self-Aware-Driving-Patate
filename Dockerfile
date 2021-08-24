@@ -30,8 +30,8 @@ RUN git clone https://github.com/JBarmentlo/Self-Aware-Driving-Patate.git \
 	&& cd Self-Aware-Driving-Patate \
 	&& git checkout Docker
 
-RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
-
+# RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip3 install torch==1.9.0 torchvision
 WORKDIR /App/Self-Aware-Driving-Patate
 
 ENTRYPOINT /bin/zsh 

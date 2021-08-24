@@ -11,7 +11,7 @@ venv/
 *.vscode
 *-workspace
 srcs/.env
-.env
+.envrc
 *.log
 *cache
 .autoenv.zsh

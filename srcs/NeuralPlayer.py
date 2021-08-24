@@ -88,6 +88,7 @@ class NeuralPlayer():
 				new_processed_state = self.preprocessor.process(new_state)
 				done = self._is_over_race(infos, done)
 				reward = self.RO.sticks_and_carrots(action, infos, done)
+				[action, reward] = utils.to_numpy_32([action, reward])
 				self.agent.memory.add(processed_state, action, new_processed_state, reward, done)
 				processed_state = new_processed_state
 				Logger.debug(f"cte:{infos['cte'] + 2.25}")
@@ -98,9 +99,10 @@ class NeuralPlayer():
 			if (e % self.config.replay_memory_freq == 0):
 				for _ in range(self.config.replay_memory_batches):
 					self.agent.replay_memory()
+					pass
 
 
-			if (e % self.agent.config.saving_frequency == 0):
+			if (self.agent.config.saving_frequency != 0 and e % self.agent.config.saving_frequency == 0):
 				self.agent.save_modelo(f"{self.agent.config.model_to_save_path}{e}")
 		self.env.reset()
 		return

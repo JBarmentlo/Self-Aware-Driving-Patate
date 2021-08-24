@@ -28,6 +28,8 @@ config.config_NeuralPlayer = DotDict()
 
 config.config_NeuralPlayer.config_Agent = DotDict()
 config.config_NeuralPlayer.config_Agent.config_Memory = DotDict()
+config.config_NeuralPlayer.config_Agent.config_S3 = DotDict()
+
 
 config.config_NeuralPlayer.config_Preprocessing = DotDict()
 config.config_NeuralPlayer.config_Preprocessing.config_AutoEncoder = DotDict()
@@ -142,10 +144,11 @@ if (agent_type == "DQN"):
     config_Agent.epsilon_min        = 0.02
     config_Agent.steps_to_eps_min   = 5000
     config_Agent.batch_size         = 128
+    config_Agent.batches_number     = 10
     config_Agent.min_memory_size    = 256
     config_Agent.memory_size        = 10000
-    config_Agent.load_model         = True
-    config_Agent.model_to_load_path = "/workspaces/Self-Aware-Driving-Patate/model_cache/modelo/dedequene.modelo.2598"
+    config_Agent.load_model         = False
+    config_Agent.model_to_load_path = "/workspaces/Self-Aware-Driving-Patate/model_cache/modelo/dedequene.modelo.2500"
     config_Agent.model_to_save_path = f"/workspaces/Self-Aware-Driving-Patate/model_cache/modelo/{config_Agent.agent_name}_{date}." ### TODO : improve path
     config_Agent.saving_frequency = 100
     config_Agent.target_model_update_frequency = 15
@@ -178,3 +181,17 @@ if (agent_type == "DQN"):
     config_Memory = config.config_NeuralPlayer.config_Agent.config_Memory
 
     config_Memory.capacity = config_Agent.memory_size
+
+
+# -----------------------------------------------------------------
+# S3 config
+# -----------------------------------------------------------------
+
+    config_S3 = config.config_NeuralPlayer.config_Agent.config_S3
+
+    config_S3.bucket_name = 'deyopotato'
+    config_S3.upload = False ### True if you want to upload your models locally and on s3
+    config_S3.download = False ### True if you need to download a model file from s3
+    config_S3.s3_path = 'model_cache/dedequene.modelo.1100' ### s3 file path inside deyopotato 
+    config_S3.s3_folder = 'model_cache/'
+    config_S3.local_path = '/workspaces/Self-Aware-Driving-Patate/model_cache/modelo/from_s3_modelo'

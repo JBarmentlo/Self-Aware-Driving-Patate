@@ -1,5 +1,5 @@
 from Memory import DqnMemory
-import numpy as np
+from S3 import S3
 
 class Agent():
 	def __init__(self, config):
@@ -48,6 +48,7 @@ class  DQNAgent():
 		self.config = config
 		self.memory = self._init_memory(config.config_Memory)
 		self.model = DQN(config)
+		self.S3 = self._init_S3(config.config_S3)
 		if (self.config.load_model):
 			self._load_model(self.config.model_to_load_path)
 		self.model.to(device)
@@ -60,12 +61,18 @@ class  DQNAgent():
 
 
 	def save_modelo(self, path = "./dedequene.modelo"):
+		### TODO : in the future, maybe save more than just weights
 		torch.save(self.model.state_dict(), path)
+		if self.config_S3.upload == True:
+			self.S3.upload_file(path, self.config_S3.s3_folder + path.split("/")[-1])
 
 
 	def _load_model(self, path):
 		try:
 			if (path is not None):
+				if self.config_S3.download == True:
+					self.S3.download_file(self.config_S3.s3_path, self.config_S3.local_path)
+					path = self.config_S3.local_path
 				ALogger.info(f"Loading model from {path}")
 				self.model.load_state_dict(torch.load(path))
 				self.model.eval()
@@ -88,6 +95,14 @@ class  DQNAgent():
 
 	def _init_memory(self, config = None):
 		return DqnMemory(self.config.config_Memory)
+
+	def _init_S3(self, config = None):
+		self.config_S3 = config
+		self.S3 = None
+		if self.config_S3.download or self.config_S3.upload:
+			self.S3 = S3(self.config_S3)
+		return self.S3
+		
 
 
 	def _update_epsilon(self):
@@ -127,46 +142,39 @@ class  DQNAgent():
 		#TODO : batches and batch_size as args
 		if len(self.memory) < self.config.min_memory_size:
 			return
-		
 		ALogger.info(f"Replay from memory {len(self.memory)}")
-		self.update_target_model_counter += 1
-		self.optimizer.zero_grad()
-		targets = []
+		
+		dataloader = DataLoader(self.memory, batch_size=4,
+                        shuffle=False, num_workers=1)
 
-		batch_size = min(self.config.batch_size, len(self.memory))
-		batch = self.memory.sample(batch_size)
+		for i, single_batch in enumerate(dataloader):
+			if i > self.config.batches_number:
+				return
+			self.update_target_model_counter += 1
+			self.optimizer.zero_grad()
+			targets = []
+			processed_states, actions, new_processed_states, rewards, dones = single_batch
+			dones = ~dones
 
-		processed_states = [batch[x][0] for x in range(batch_size)]
-		actions = [batch[x][1] for x in range(batch_size)]
-		new_processed_states = [batch[x][2] for x in range(batch_size)]
-		rewards = [batch[x][3] for x in range(batch_size)]
-		dones = [batch[x][4] for x in range(batch_size)]
+			qs_b = self.model.forward(processed_states)
+			qss_b = self.target_model.forward(new_processed_states)
+			qss_max_b, _ = torch.max(qss_b, dim = 1)
 
-		dones = [abs(int(x) - 1) for x in dones]
-		processed_states, new_processed_states = torch.tensor(processed_states), torch.tensor(new_processed_states)
+			for i, (action, reward, done) in enumerate(zip(actions, rewards, dones)):
+				target = qs_b[i].clone()
+				target = target.detach()
+				a_idx = val_to_idx(action, self.config.action_space)
+				target[a_idx] = reward + (done * self.config.discount * qss_max_b[i]) 
+				targets.append(target)
 
-		qs_b = self.model.forward(processed_states)
-		qss_b = self.target_model.forward(new_processed_states)
-		qss_max_b, _ = torch.max(qss_b, dim = 1)
+			targets = torch.stack(targets)
+			error = self.criterion(qs_b, targets)
+			error.backward()
+			self.optimizer.step()
 
-		for i, (action, reward, done) in enumerate(zip(actions, rewards, dones)):
-			qs = qs_b[i]
-			qss = qss_b[i]
-			qss_max = qss_max_b[i]
-			target = qs.clone()
-			target = target.detach()
-			a_idx = val_to_idx(action, self.config.action_space)
-			target[a_idx] = reward + (done * self.config.discount * qss_max) 
-			targets.append(target)
-
-		targets = torch.stack(targets)
-		error = self.criterion(qs_b, targets)
-		error.backward()
-		self.optimizer.step()
-
-		if (self.update_target_model_counter % self.config.target_model_update_frequency == 0):
-			self._update_target_model()
-
+			if (self.update_target_model_counter % self.config.target_model_update_frequency == 0):
+				self._update_target_model()
+			
 
 	def train(self):
 		pass
