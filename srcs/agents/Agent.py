@@ -142,45 +142,36 @@ class  DQNAgent():
 		#TODO : batches and batch_size as args
 		if len(self.memory) < self.config.min_memory_size:
 			return
-		
 		ALogger.info(f"Replay from memory {len(self.memory)}")
-		self.update_target_model_counter += 1
-		self.optimizer.zero_grad()
-		targets = []
+		
+		dataloader = DataLoader(agent.memory, batch_size=4,
+                        shuffle=False, num_workers=1)
 
-		batch_size = min(self.config.batch_size, len(self.memory))
-		batch = self.memory.sample(batch_size)
+		for i, single_batch in enumerate(dataloader):
+			agent.update_target_model_counter += 1
+			agent.optimizer.zero_grad()
+			targets = []
+			processed_states, actions, new_processed_states, rewards, dones = single_batch
+			dones = ~dones
 
-		processed_states = [batch[x][0] for x in range(batch_size)]
-		actions = [batch[x][1] for x in range(batch_size)]
-		new_processed_states = [batch[x][2] for x in range(batch_size)]
-		rewards = [batch[x][3] for x in range(batch_size)]
-		dones = [batch[x][4] for x in range(batch_size)]
+			qs_b = agent.model.forward(processed_states)
+			qss_b = agent.target_model.forward(new_processed_states)
+			qss_max_b, _ = torch.max(qss_b, dim = 1)
 
-		dones = [abs(int(x) - 1) for x in dones]
-		processed_states, new_processed_states = torch.tensor(processed_states), torch.tensor(new_processed_states)
+			for i, (action, reward, done) in enumerate(zip(actions, rewards, dones)):
+				target = qs_b[i].clone()
+				target = target.detach()
+				a_idx = val_to_idx(action, agent.config.action_space)
+				target[a_idx] = reward + (done * agent.config.discount * qss_max_b[i]) 
+				targets.append(target)
 
-		qs_b = self.model.forward(processed_states)
-		qss_b = self.target_model.forward(new_processed_states)
-		qss_max_b, _ = torch.max(qss_b, dim = 1)
+			targets = torch.stack(targets)
+			error = agent.criterion(qs_b, targets)
+			error.backward()
+			agent.optimizer.step()
 
-		for i, (action, reward, done) in enumerate(zip(actions, rewards, dones)):
-			qs = qs_b[i]
-			qss = qss_b[i]
-			qss_max = qss_max_b[i]
-			target = qs.clone()
-			target = target.detach()
-			a_idx = val_to_idx(action, self.config.action_space)
-			target[a_idx] = reward + (done * self.config.discount * qss_max) 
-			targets.append(target)
-
-		targets = torch.stack(targets)
-		error = self.criterion(qs_b, targets)
-		error.backward()
-		self.optimizer.step()
-
-		if (self.update_target_model_counter % self.config.target_model_update_frequency == 0):
-			self._update_target_model()
+			if (self.update_target_model_counter % self.config.target_model_update_frequency == 0):
+				self._update_target_model()
 
 
 	def train(self):
