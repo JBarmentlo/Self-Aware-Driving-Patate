@@ -144,6 +144,7 @@ if (agent_type == "DQN"):
     config_Agent.epsilon_min        = 0.02
     config_Agent.steps_to_eps_min   = 5000
     config_Agent.batch_size         = 128
+    config_Agent.batches_number     = 10
     config_Agent.min_memory_size    = 256
     config_Agent.memory_size        = 10000
     config_Agent.load_model         = False

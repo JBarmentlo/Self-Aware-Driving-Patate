@@ -98,7 +98,7 @@ class NeuralPlayer():
 			self.agent._update_epsilon()
 			if (e % self.config.replay_memory_freq == 0):
 				for _ in range(self.config.replay_memory_batches):
-					# self.agent.replay_memory()
+					self.agent.replay_memory()
 					pass
 
 
