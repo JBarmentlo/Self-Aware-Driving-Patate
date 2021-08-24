@@ -1,18 +1,30 @@
 from Circle import Circle
 
 
-class TangentsExtern():
+class Tangents():
 	# http://www.ambrsoft.com/TrigoCalc/Circles2/Circles2Tangent_.htm
 
 	def __init__(self, ca: Circle, cb: Circle) -> None:
-		if ca.r > cb.r:
+		self.ca = ca
+		self.cb = cb
+
+		if abs(ca.r) >= abs(cb.r):
+			self.inverted_circles = False
 			self.c0 = ca
 			self.c1 = cb
 		else:
+			self.inverted_circles = True
 			self.c1 = ca
 			self.c0 = cb
+
 		self.r0 = abs(self.c0.r)
 		self.r1 = abs(self.c1.r)
+
+		is_diff_sign = self.c0.r * self.c1.r
+		if is_diff_sign >= 0:
+			self.is_across_road = False
+		else:
+			self.is_across_road = True
 
 	def circle_dist(self):
 		a = self.c0.x
@@ -26,7 +38,8 @@ class TangentsExtern():
 		self.c = c
 		self.d = d
 
-	def tangent_lines_intersection(self):
+	def extern_tangents_intersection(self):
+		e = 1e-20
 		a = self.c0.x
 		b = self.c0.y
 		r0 = self.r0
@@ -36,8 +49,27 @@ class TangentsExtern():
 
 		print(f"xp = ({c = } * {r0 = } - {a = } * {r1 = }) / ({r0 = } - {r1 = })")
 
-		xp = (c * r0 - a * r1) / (r0 - r1)
-		yp = (d * r0 - b * r1) / (r0 - r1)
+		xp = (c * r0 - a * r1) / (r0 - r1 + e)
+		yp = (d * r0 - b * r1) / (r0 - r1 + e)
+
+		self.xp = xp
+		self.yp = yp
+		print(f"{xp = }")
+		print(f"{yp = }")
+
+	def intern_tangents_intersection(self):
+		e = 1e-20
+		a = self.c0.x
+		b = self.c0.y
+		r0 = self.r0
+		d = self.c1.y
+		c = self.c1.x
+		r1 = self.r1
+
+		print(f"xp = ({c = } * {r0 = } - {a = } * {r1 = }) / ({r0 = } - {r1 = })")
+
+		xp = (c * r0 + a * r1) / (r0 + r1 + e)
+		yp = (d * r0 + b * r1) / (r0 + r1 + e)
 
 		self.xp = xp
 		self.yp = yp
@@ -92,8 +124,7 @@ class TangentsExtern():
 		down = (xp - c)**2 + (yp - d)**2
 
 		print(f"xt = {r1=}**2 * ({xp=} - {c=})")
-		print(
-			f"xt = {r1=} * ({yp=} - {d=}) * (({xp=} - {c=})**2 + ({yp=} - {d=})**2 - {r1=}**2)**(1/2)")
+		print(f"xt = {r1=} * ({yp=} - {d=}) * (({xp=} - {c=})**2 + ({yp=} - {d=})**2 - {r1=}**2)**(1/2)")
 		print(f"xt = ({xp=} - {c=})**2 + ({yp=} - {d=})**2")
 
 		xt3 = ((l_up + r_up) / down) + c
@@ -124,13 +155,22 @@ class TangentsExtern():
 		self.circle_dist()
 		r0 = self.r0
 		r1 = self.r1
-		if self.D >= abs(r0 - r1):
-			return True
+		if self.is_across_road:
+			# Intern Tangents
+			if self.D >= r0 + r1:
+				return True
+		else:
+			# Extern Tangents
+			if self.D >= abs(r0 - r1):
+				return True
 		return False
 
 
 	def do(self):
-		self.tangent_lines_intersection()
+		if self.is_across_road:
+			self.intern_tangents_intersection()
+		else:
+			self.extern_tangents_intersection()
 		self.tangents_points_r0()
 		self.tangents_points_r1()
 
@@ -139,7 +179,7 @@ class TangentsExtern():
 
 		self.l1 = line_1
 		self.l2 = line_2
-
+		self.points()
 
 	def line_1(self, x):
 		yt1 = self.yt1
@@ -160,3 +200,49 @@ class TangentsExtern():
 		y = ((x - xt3)/(xp - xt3))*(yp - yt3)+yt3
 		return y
 
+	def points(self):
+		e = 1e-20
+		x0 = self.ca.x
+		y0 = self.ca.y
+
+		x1 = self.cb.x
+		y1 = self.cb.y
+
+		(xt1,yt1), (xt3, yt3) = self.l1
+
+		x_transform = lambda x: (x - x0) / (x1 + e)
+		y_transform = lambda y: (y - y0) / (y1 + e)
+
+		if self.inverted_circles:
+			n_xt = x_transform(xt3)
+			n_yt = y_transform(yt3)
+		else:
+			n_xt = x_transform(xt1)
+			n_yt = y_transform(yt1)
+
+		if n_xt >= n_yt:
+			self.road = self.l1
+			# if self.inverted_circles:
+			# 	self.road = self.l1
+			# else:
+			# 	self.road = self.l2
+		else:
+			self.road = self.l2
+			# if self.inverted_circles:
+			# 	self.road = self.l2
+			# else:
+			# 	self.road = self.l1
+			# xa = self.xt2
+			# ya = self.yt2
+			# xb = self.xt4
+			# yb = self.yt4
+
+		# n_yt3 = y_transform(yt3)
+		# n_xt3 = x_transform(yt3)
+
+		# if n_xt3 < n_yt3:
+		# else:
+		# 	xb = self.xt4
+		# 	yb = self.yt4
+
+		# self.road = (xa,ya), (xb,yb)
