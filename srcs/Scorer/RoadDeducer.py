@@ -1,0 +1,78 @@
+import matplotlib.pyplot as plt
+import numpy as np
+from TangentsExtern import TangentsExtern
+
+class RoadDeducer():
+	def __init__(self) -> None:
+		self.p = []
+		self.x = []
+		self.y = []
+		self.z = []
+		self.r = []
+
+	def add(self, circle):
+		self.p.append(circle)
+		self.x.append(circle.x)
+		self.y.append(circle.y)
+		self.z.append(circle.z)
+		self.r.append(circle.r)
+
+	def plot_plot(self):
+		plt.plot(self.x, label="x")
+		plt.plot(self.y, label="y")
+		plt.plot(self.z, label="z")
+		plt.plot(self.r, label="r")
+		plt.legend(loc="upper left")
+		plt.show()
+
+	def get_tangents(self, start, ax):
+		a = self.p[start]
+		for i in range(start + 1, len(self.p)):
+			b = self.p[i]
+
+			t = TangentsExtern(a, b)
+			if t.valid():
+				t.do()
+				self.plot_tangents(ax, start, t)
+				return
+
+	def plot_tangents(self, ax, c, t):
+		NUM_COLORS = 30
+		cm = plt.get_cmap('gist_rainbow')
+		ax.plot(*t.l1, color="b", label="tan1")
+		ax.plot(*t.l2, color="b", label="tan2")
+		ax.scatter(t.xp, t.yp, color=cm(1.*(c + 2)/NUM_COLORS), s=10, label="P")
+		ax.scatter(t.a, t.b, color=cm(1.*(c)/NUM_COLORS), s=10, label="o0")
+		min_x = min([t.c0.x, t.c1.x])
+		max_x = max([t.c0.x, t.c1.x])
+		xs = np.linspace(min_x, max_x, 10)
+		ccc = 'k' if c % 2 else 'y'
+		ax.plot(xs, t.line_1(xs), color=ccc, label="line1")
+		ax.plot(xs, t.line_1(xs)+1, color='k', label="line1")
+		ax.plot(xs, t.line_1(xs)-1, color='k', label="line1")
+		ax.plot(xs, t.line_2(xs), color=ccc, label="line2")
+
+		ax.scatter(t.c, t.d, color="red", s=10, label="o1")
+
+	def plot_circles(self):
+		print(len(self.p))
+		NUM_COLORS = 30
+		cm = plt.get_cmap('gist_rainbow')
+		fig, ax = plt.subplots()
+
+		circles = []
+		for i, p in enumerate(self.p):
+			c = plt.Circle((p.x, p.y), p.r, color=cm(
+				1.*i/NUM_COLORS), fill=False, label=f"c{i}")
+			circles.append(c)
+
+			self.get_tangents(i, ax)
+
+		for c in circles:
+			ax.add_patch(c)
+
+		ax.set_xlim((-10, 100))
+		ax.set_ylim((-10, 100))
+
+		# plt.legend(loc="upper left")
+		plt.show()

@@ -13,3 +13,4 @@ venv/
 srcs/.env
 .env
 *.log
+simulator_cache
