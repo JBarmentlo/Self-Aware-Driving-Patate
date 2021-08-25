@@ -111,7 +111,7 @@ class NeuralPlayer():
 
 
 			if (self.agent.config.saving_frequency != 0 and e % self.agent.config.saving_frequency == 0):
-				self.agent.save_modelo(f"{self.agent.config.model_to_save_path}{e}")
+				self.agent.save_modelo(str(e))
 		self.agent.DB.upload()
 		self.env.reset()
 		return

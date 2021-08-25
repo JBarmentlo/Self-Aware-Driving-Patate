@@ -66,5 +66,5 @@ Where we run the simulator:
 
 ```sh
 cd srcs/simlaunch3000
-export PS="wesh" ; export SIM_PATH="/home/ezalos/Downloads/DonkeySimLinux/donkey_sim.x86_64" ; python3.8 test_server.py
+export PS="wesh" ; export SIM_PATH="/Users/deyaberger/projects/DonkeySimMac/donkey_sim.app/Contents/MacOS/donkey_sim" ; python3.8 test_server.py
 ```
