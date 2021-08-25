@@ -26,7 +26,6 @@ class NeuralPlayer():
 		self._init_preprocessor(config.config_Preprocessing)
 		self._init_reward_optimizer(self.config)
 		self.scores = []
-		self.DB = Database(config.config_Database)
 
 
 	def _init_preprocessor(self, config_Preprocessing):
@@ -93,7 +92,7 @@ class NeuralPlayer():
 				action = self.agent.get_action(processed_state, e)
 				Logger.debug(f"action: {action}")
 				new_state, reward, done, infos = self.env.step(action)
-				self.DB.add_point([state, action, new_state, reward, done, infos])
+				self.agent.DB.add_point([state, action, new_state, reward, done, infos])
 				new_processed_state = self.preprocessor.process(new_state)
 				done = self._is_over_race(infos, done)
 				reward = self.RO.sticks_and_carrots(action, infos, done)
@@ -113,5 +112,6 @@ class NeuralPlayer():
 
 			if (self.agent.config.saving_frequency != 0 and e % self.agent.config.saving_frequency == 0):
 				self.agent.save_modelo(f"{self.agent.config.model_to_save_path}{e}")
+		self.agent.DB.upload()
 		self.env.reset()
 		return

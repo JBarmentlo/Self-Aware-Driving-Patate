@@ -1,5 +1,7 @@
 from Memory import DqnMemory
 from S3 import S3
+from Database import Database
+
 
 class Agent():
 	def __init__(self, config):
@@ -58,21 +60,22 @@ class  DQNAgent():
 		self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
 		self.criterion = nn.MSELoss()
 		self.update_target_model_counter = 0
+		self.DB = Database(config.config_Database, self.S3)
 
 
 	def save_modelo(self, path = "./dedequene.modelo"):
 		### TODO : in the future, maybe save more than just weights
 		torch.save(self.model.state_dict(), path)
 		if self.config_S3.upload == True:
-			self.S3.upload_file(path, self.config_S3.s3_folder + path.split("/")[-1])
+			self.S3.upload_file(path, self.config_S3.s3_model_folder + path.split("/")[-1])
 
 
 	def _load_model(self, path):
 		try:
 			if (path is not None):
 				if self.config_S3.download == True:
-					self.S3.download_file(self.config_S3.s3_path, self.config_S3.local_path)
-					path = self.config_S3.local_path
+					self.S3.download_file(self.config_S3.s3_model_path, self.config_S3.local_model_path)
+					path = self.config_S3.local_model_path
 				ALogger.info(f"Loading model from {path}")
 				self.model.load_state_dict(torch.load(path))
 				self.model.eval()
