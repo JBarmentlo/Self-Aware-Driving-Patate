@@ -31,7 +31,7 @@ class RoadDeducer():
 		a = self.p[start]
 		for i in range(start + 1, len(self.p)):
 			b = self.p[i]
-
+			print(f"Ca {start} & Cb {i}")
 			t = Tangents(a, b)
 			if t.valid():
 				t.do()
@@ -50,7 +50,11 @@ class RoadDeducer():
 		# ax.plot(*t.l1, color="salmon", label="tan1")
 		# ax.plot(*t.l2, color="firebrick", label="tan2")
 
-		ax.scatter(t.xp, t.yp, color="purple", s=10, label="P")
+		# ax.scatter(t.xp, t.yp, color="purple", s=10, label="P")
+		(x1, y1), (x2, y2) = t.road
+		ccc = 'k' if c % 2 else 'y'
+		ax.plot((x1, x2), (y1, y2), color="red", label="line2", linewidth=3)
+
 
 		ax.scatter(t.a, t.b, color="skyblue", s=10, label="o1")
 		ax.scatter(t.c, t.d, color="royalblue", s=10, label="o2")
@@ -58,12 +62,19 @@ class RoadDeducer():
 		min_x = min([t.c0.x, t.c1.x])
 		max_x = max([t.c0.x, t.c1.x])
 
-		ccc = 'k' if c % 2 else 'y'
-		(x1, y1), (x2, y2) = t.road
-		ax.plot((x1, x2), (y1, y2), color=ccc, label="line2")
 
-		ax.scatter((xa1, xa2), (ya1, ya2), color="salmon", label="tan1")
-		ax.scatter((xb1, xb2), (yb1, yb2), color="firebrick", label="tan2")
+		ccc = 'lightgreen' if c % 2 else 'lightblue'
+		ax.plot((xa1, xa2), (ya1, ya2), color=ccc, label="tan1", linewidth=2)
+		ccc = 'darkgreen' if c % 2 else 'darkblue'
+		ax.plot((xb1, xb2), (yb1, yb2), color=ccc, label="tan2", linewidth=2)
+
+		ccc = 'violet' if c % 2 else 'lightcoral'
+		ax.scatter(xa1, ya1, color=ccc, label="tan1")
+		ax.scatter(xb1, yb1, color=ccc, label="tan2")
+		ccc = 'purple' if c % 2 else 'firebrick'
+		ax.scatter(xa2, ya2, color=ccc, label="tan1")
+		ax.scatter(xb2, yb2, color=ccc, label="tan2")
+
 
 	def plot_circles(self):
 		print(len(self.p))
@@ -82,8 +93,8 @@ class RoadDeducer():
 		for c in circles:
 			ax.add_patch(c)
 
-		ax.set_xlim((-10, 50))
-		ax.set_ylim((-10, 50))
+		ax.set_xlim((-5, 15))
+		ax.set_ylim((-5, 15))
 
 		# plt.legend(loc="upper left")
 		plt.show()

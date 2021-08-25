@@ -8,7 +8,7 @@ class Tangents():
 		self.ca = ca
 		self.cb = cb
 
-		if abs(ca.r) >= abs(cb.r):
+		if abs(ca.r) >= abs(cb.r) or True:
 			self.inverted_circles = False
 			self.c0 = ca
 			self.c1 = cb
@@ -25,6 +25,13 @@ class Tangents():
 			self.is_across_road = False
 		else:
 			self.is_across_road = True
+
+		self.is_at_right = self.ca.r < 0
+
+		print(f"{self.inverted_circles = }")
+		print(f"{self.is_across_road = }")
+		print(f"{self.is_at_right = }")
+		print(f"\t\t{self.inverted_circles}{self.is_across_road}{self.is_at_right}")
 
 	def circle_dist(self):
 		a = self.c0.x
@@ -47,15 +54,15 @@ class Tangents():
 		c = self.c1.x
 		r1 = self.r1
 
-		print(f"xp = ({c = } * {r0 = } - {a = } * {r1 = }) / ({r0 = } - {r1 = })")
+		# print(f"xp = ({c = } * {r0 = } - {a = } * {r1 = }) / ({r0 = } - {r1 = })")
 
 		xp = (c * r0 - a * r1) / (r0 - r1 + e)
 		yp = (d * r0 - b * r1) / (r0 - r1 + e)
 
 		self.xp = xp
 		self.yp = yp
-		print(f"{xp = }")
-		print(f"{yp = }")
+		# print(f"{xp = }")
+		# print(f"{yp = }")
 
 	def intern_tangents_intersection(self):
 		e = 1e-20
@@ -66,15 +73,15 @@ class Tangents():
 		c = self.c1.x
 		r1 = self.r1
 
-		print(f"xp = ({c = } * {r0 = } - {a = } * {r1 = }) / ({r0 = } - {r1 = })")
+		# print(f"xp = ({c = } * {r0 = } - {a = } * {r1 = }) / ({r0 = } - {r1 = })")
 
 		xp = (c * r0 + a * r1) / (r0 + r1 + e)
 		yp = (d * r0 + b * r1) / (r0 + r1 + e)
 
 		self.xp = xp
 		self.yp = yp
-		print(f"{xp = }")
-		print(f"{yp = }")
+		# print(f"{xp = }")
+		# print(f"{yp = }")
 
 	def tangents_points_r0(self):
 		e = 1e-20
@@ -103,13 +110,13 @@ class Tangents():
 		self.yt1 = yt1
 		self.yt2 = yt2
 
-		print(f"{xt1 = } {yt1 = }")
-		print(f"{xt2 = } {yt2 = }")
+		# print(f"{xt1 = } {yt1 = }")
+		# print(f"{xt2 = } {yt2 = }")
 
 		s1 = ((b - yt1) * (yp - yt1)) / ((xt1 - a) * (xt1 - xp) + e)
 		s2 = ((b - yt2) * (yp - yt2)) / ((xt1 - a) * (xt1 - xp) + e)
 
-		print(f"{s1 = } {s2 = }")
+		# print(f"{s1 = } {s2 = }")
 
 	def tangents_points_r1(self):
 		e = 1e-20
@@ -123,9 +130,9 @@ class Tangents():
 		r_up = r1 * (yp - d) * ((xp - c)**2 + (yp - d)**2 - r1**2)**(1/2)
 		down = (xp - c)**2 + (yp - d)**2
 
-		print(f"xt = {r1=}**2 * ({xp=} - {c=})")
-		print(f"xt = {r1=} * ({yp=} - {d=}) * (({xp=} - {c=})**2 + ({yp=} - {d=})**2 - {r1=}**2)**(1/2)")
-		print(f"xt = ({xp=} - {c=})**2 + ({yp=} - {d=})**2")
+		# print(f"xt = {r1=}**2 * ({xp=} - {c=})")
+		# print(f"xt = {r1=} * ({yp=} - {d=}) * (({xp=} - {c=})**2 + ({yp=} - {d=})**2 - {r1=}**2)**(1/2)")
+		# print(f"xt = ({xp=} - {c=})**2 + ({yp=} - {d=})**2")
 
 		xt3 = ((l_up + r_up) / down) + c
 		xt4 = ((l_up - r_up) / down) + c
@@ -137,13 +144,13 @@ class Tangents():
 		yt3 = ((l_up - r_up) / down) + d
 		yt4 = ((l_up + r_up) / down) + d
 
-		print(f"{xt3 = } {yt3 = }")
-		print(f"{xt4 = } {yt4 = }")
+		# print(f"{xt3 = } {yt3 = }")
+		# print(f"{xt4 = } {yt4 = }")
 
 		s3 = ((d - yt3) * (yp * yt3)) / ((xt3 - c) * (xt3 - xp) + e)
 		s4 = ((d - yt4) * (yp * yt4)) / ((xt3 - c) * (xt3 - xp) + e)
 
-		print(f"{s3 = } {s4 = }")
+		# print(f"{s3 = } {s4 = }")
 
 		self.xt3 = xt3
 		self.xt4 = xt4
@@ -208,30 +215,69 @@ class Tangents():
 		x1 = self.cb.x
 		y1 = self.cb.y
 
+		print(f"{x0 = }, {y0 = }")
+		print(f"{x1 = }, {y1 = }")
 		(xt1,yt1), (xt3, yt3) = self.l1
 
 		x_transform = lambda x: (x - x0) / (x1 + e)
 		y_transform = lambda y: (y - y0) / (y1 + e)
 
-		if self.inverted_circles:
-			n_xt = x_transform(xt3)
-			n_yt = y_transform(yt3)
-		else:
-			n_xt = x_transform(xt1)
-			n_yt = y_transform(yt1)
+		# if self.inverted_circles:
+		# 	n_xt = x_transform(xt3)
+		# 	n_yt = y_transform(yt3)
+		# else:
+		# xt1 = 2
+		# yt1 = 13
+		print(f"{xt1 = } & {yt1 = }")
+		n_xt = x_transform(xt1)
+		n_yt = y_transform(yt1)
+		print(f"{n_xt = } & {n_yt = }")
 
-		if n_xt >= n_yt:
-			self.road = self.l1
-			# if self.inverted_circles:
-			# 	self.road = self.l1
-			# else:
-			# 	self.road = self.l2
-		else:
+		d = lambda x, y: (x - x0) * (y1 - y0) - (y - y0) * (x1 - x0)
+
+		if d(xt1, yt1) >= 0:
+			print("Invert")
+			l = self.l1
+			self.l1 = self.l2
+			self.l2 = l
+
+
+
+		if not self.is_at_right:
 			self.road = self.l2
-			# if self.inverted_circles:
-			# 	self.road = self.l2
-			# else:
-			# 	self.road = self.l1
+			self.fn_road = self.line_2
+		else:
+			self.road = self.l1
+			self.fn_road = self.line_1
+		# 	if n_xt >= n_yt:
+		# 		if self.inverted_circles:
+		# 			self.road = self.l2
+		# 		else:
+		# 			self.road = self.l1
+		# 		# if self.ca.r > 0:
+		# 		# 	self.road = self.l1
+		# 		# else:
+		# 		# 	self.road = self.l2
+		# 	else:
+		# 		if self.inverted_circles:
+		# 			self.road = self.l1
+		# 		else:
+		# 			self.road = self.l2
+		# 		# if self.ca.r > 0:
+		# 		# 	self.road = self.l1
+		# 		# else:
+		# 		# 	self.road = self.l2
+		# else:
+		# 	if n_xt >= n_yt:
+		# 		if self.inverted_circles:
+		# 			self.road = self.l1
+		# 		else:
+		# 			self.road = self.l2
+		# 	else:
+		# 		if self.inverted_circles:
+		# 			self.road = self.l2
+		# 		else:
+		# 			self.road = self.l1
 			# xa = self.xt2
 			# ya = self.yt2
 			# xb = self.xt4
