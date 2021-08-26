@@ -65,17 +65,18 @@ class  DQNAgent():
         self.DB = Database(config.config_Database, self.S3)
 
 
-    def save_modelo(self, info):
+    def save_modelo(self, file_name):
         ### TODO : in the future, maybe save more than just weights
-        model_name = f"{self.config.model_to_save_name}{info}"
+        s3_name = f"{self.config.config_S3.model_folder}{file_name}"
+        local_name = f"{self.config.local_model_folder}{file_name}"
         if self.config.S3_connection == True:
             buffer = io.BytesIO()
             torch.save(self.model.state_dict(), buffer)
-            self.S3.upload_bytes(buffer, f"{self.config_s3.model_folder}{model_name}")
-            print(f"saving modelo on S3 in :{self.config_s3.model_folder}{model_name}")
+            buffer.seek(0) # ! Reset read pointer. DOT NOT FORGET THIS, else all uploaded files will be empty!
+            self.S3.upload_bytes(buffer, f"{s3_name}")
         else:
-              print(f"saving modelo locally in :{self.config.local_model_folder}{model_name}")
-              torch.save(self.model.state_dict(), self.config.local_model_folder + model_name)
+              torch.save(self.model.state_dict(), local_name)
+              ALogger.info(f"Saving modelo locally in :{local_name}")
 
 
     def _load_model(self, path):

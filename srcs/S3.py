@@ -52,7 +52,8 @@ class S3:
 
     def upload_bytes(self, bytes_object, s3_path):
         try:
-            self.resource.Object(self.config.bucket_name, s3_path).put(Body=bytes_object)
+            self.client.upload_fileobj(bytes_object, self.config.bucket_name, s3_path)
+            Logger.info(f"Object successfully uploaded to S3 in {s3_path}")
         except Exception as e:
             Logger.error(f"Could not upload python_object to S3:\n{e}")
     
