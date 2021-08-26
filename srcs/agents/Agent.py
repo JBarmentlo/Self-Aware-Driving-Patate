@@ -54,7 +54,7 @@ class  DQNAgent():
         self.model = DQN(config)
         self._init_S3(config.config_S3)
         if (self.config.load_model):
-            self._load_model(self.config.model_to_load_path)
+            self._load_model(self.config.model_to_load)
         self.model.to(device)
         self.target_model = DQN(config)
         self.target_model.to(device)
@@ -80,12 +80,13 @@ class  DQNAgent():
 
     def _load_model(self, path):
         try:
+            input = path
             if self.config.S3_connection == True:
                 bytes_obj = self.S3.get_bytes(path)
-                path = io.BytesIO(bytes_obj)
-            self.model.load_state_dict(torch.load(path, map_location=torch.device('cpu'))) ##! to be changed, just for deya
+                input = io.BytesIO(bytes_obj)
+            self.model.load_state_dict(torch.load(input, map_location=torch.device('cpu'))) ##! to be changed, just for deya
             self.model.eval()
-            ALogger.info(f"Loading model from loacl path: {path}")
+            ALogger.info(f"Loading model from path: {path}")
         except Exception as e:
             ALogger.error(f"You tried loading a model from path: {path} and this error occured: {e}")
 

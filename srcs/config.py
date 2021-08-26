@@ -148,8 +148,9 @@ if (agent_type == "DQN"):
     config_Agent.batches_number     = 10
     config_Agent.min_memory_size    = 256
     config_Agent.memory_size        = 10000
-    config_Agent.load_model         = False
-    config_Agent.model_to_load      = f"model_cache/DDQN_23_8.17_1.1"
+    config_Agent.load_model         = True
+    # config_Agent.model_to_load      = f"model_cache/dedequene.modelo.2500"
+    config_Agent.model_to_load      = f"/Users/deyaberger/projects/patata/model_cache/local_dedequene.modelo.2500"
     config_Agent.S3_connection      = False
     config_Agent.local_model_folder = "model_cache/"
     config_Agent.local_sim_folder   = "simulator_cache/"
