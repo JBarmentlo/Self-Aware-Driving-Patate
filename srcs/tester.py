@@ -9,12 +9,12 @@ from S3 import S3
 
 from config import config
 
-config_S3 = config.config_NeuralPlayer.config_Agent.config_S3
+config_S3 = config.config_NeuralPlayer.config_Agent.config_Datasets.config_S3
 config_Agent = config.config_NeuralPlayer.config_Agent
 
-neural = NeuralPlayer(config.config_NeuralPlayer, None, None)
-agent = neural.agent
+env_name = "donkey-generated-roads-v0"
+simulator = Simulator(config.config_Simulator, env_name)
 
-# config_Agent.S3_connection = True
-name = "model_cache/dedequene.modelo.2500"
-name2= "model_cache/weshwesh2500"
+
+neural = NeuralPlayer(config.config_NeuralPlayer, env = simulator.env, simulator=simulator)
+neural.do_races(10)

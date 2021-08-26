@@ -1,33 +1,7 @@
 import io
-
-from Memory import DqnMemory
-from S3 import S3
-from Database import Database
-
-
-class Agent():
-    def __init__(self, config):
-        self.config = config
-        self.memory = self._init_memory(config.config_Memory)
-    
-
-    def _init_memory(self, config = None):
-        pass
-
-
-    def get_action(self, state, episode = 0):
-        return (np.random.random((2)) - [0.5, 0]) * [6, 1]
-
-    
-    def train(self):
-        pass
-
-
-import math
 import random
 import numpy as np
 import random
-from collections import namedtuple, deque
 import logging
 
 import torch
@@ -37,6 +11,10 @@ import torch.nn.functional as F
 import torchvision.transforms as T
 from torch.utils.data import DataLoader
 from utils import val_to_idx
+
+from Memory import DqnMemory
+from S3 import S3
+from SimCache import SimCache
 
 
 
@@ -50,11 +28,12 @@ ALogger.addHandler(stream)
 class  DQNAgent():
     def __init__(self, config):
         self.config = config
+        self.conf_data, self.conf_s3 = config.config_Datasets, config.config_Datasets.config_S3
         self.memory = self._init_memory(config.config_Memory)
         self.model = DQN(config)
-        self._init_S3(config.config_S3)
-        if (self.config.load_model):
-            self._load_model(self.config.model_to_load)
+        self._init_S3(self.conf_s3)
+        if (self.conf_data.load_model):
+            self._load_model(self.conf_data.model_to_load)
         self.model.to(device)
         self.target_model = DQN(config)
         self.target_model.to(device)
@@ -62,34 +41,34 @@ class  DQNAgent():
         self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
         self.criterion = nn.MSELoss()
         self.update_target_model_counter = 0
-        self.DB = Database(config.config_Database, self.S3)
+        self.SimCache = SimCache(self.conf_data, self.S3)
 
 
     def save_modelo(self, file_name):
         ### TODO : in the future, maybe save more than just weights
-        s3_name = f"{self.config.config_S3.model_folder}{file_name}"
-        local_name = f"{self.config.local_model_folder}{file_name}"
-        if self.config.S3_connection == True:
+        s3_name = f"{self.conf_s3.model_folder}{file_name}"
+        local_name = f"{self.conf_data.local_model_folder}{file_name}"
+        if self.conf_data.S3_connection == True:
             buffer = io.BytesIO()
             torch.save(self.model.state_dict(), buffer)
             buffer.seek(0) # ! Reset read pointer. DOT NOT FORGET THIS, else all uploaded files will be empty!
             self.S3.upload_bytes(buffer, f"{s3_name}")
         else:
               torch.save(self.model.state_dict(), local_name)
-              ALogger.info(f"Saving modelo locally in :{local_name}")
+              ALogger.info(f"Modelo Saved locally in :{local_name}")
 
 
-    def _load_model(self, path):
+    def _load_model(self, file_name):
         try:
-            input = path
-            if self.config.S3_connection == True:
-                bytes_obj = self.S3.get_bytes(path)
+            input = self.conf_data.local_model_folder + file_name
+            if self.conf_data.S3_connection == True:
+                bytes_obj = self.S3.get_bytes(self.conf_s3.model_folder + file_name)
                 input = io.BytesIO(bytes_obj)
             self.model.load_state_dict(torch.load(input, map_location=torch.device('cpu'))) ##! to be changed, just for deya
             self.model.eval()
-            ALogger.info(f"Loading model from path: {path}")
+            ALogger.info(f"Loaded model from file: {file_name}")
         except Exception as e:
-            ALogger.error(f"You tried loading a model from path: {path} and this error occured: {e}")
+            ALogger.error(f"You tried loading a model from file: {file_name} and this error occured: {e}")
 
 
     def action_from_q_values(self, qs):
@@ -108,17 +87,22 @@ class  DQNAgent():
     def _init_memory(self, config = None):
         return DqnMemory(self.config.config_Memory)
 
-    def _init_S3(self, config = None):
+    def _init_S3(self, config):
         self.S3 = None
-        if self.config.S3_connection == True:
+        if self.conf_data.S3_connection == True:
             self.S3 = S3(config)
+    
+    def add_simcache_point(self, datapoint):
+        if self.conf_data.save_SimCache == True:
+            if self.SimCache.datapoints_counter + 1 > self.conf_data.size_SimCache:
+                self.SimCache.upload()
+            self.SimCache.add_point(datapoint)
 
 
     def _update_epsilon(self):
         if self.config.epsilon > self.config.epsilon_min:
             self.config.epsilon -= (self.config.initial_epsilon - self.config.epsilon_min) / self.config.steps_to_eps_min
             ALogger.info(f"Updating self epsilon to {self.config.epsilon}")
-
 
 
     def get_action(self, state, episode = 0):
@@ -145,7 +129,6 @@ class  DQNAgent():
         self.model.eval()
 
     
-
 
     def replay_memory(self):
         #TODO : batches and batch_size as args
