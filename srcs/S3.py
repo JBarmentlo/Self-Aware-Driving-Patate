@@ -54,8 +54,10 @@ class S3:
         try:
             self.client.upload_fileobj(bytes_object, self.config.bucket_name, s3_path)
             Logger.info(f"Object successfully uploaded to S3 in {s3_path}")
+            return True
         except Exception as e:
             Logger.error(f"Could not upload python_object to S3:\n{e}")
+            return False
     
     
     def get_bytes(self, s3_path):
@@ -66,6 +68,17 @@ class S3:
         except Exception as e:
             Logger.error(f"Could not get python_object from S3:\n{e}")
             return None
+        
+    
+    def get_folder_files(self, prefix):
+        list_files = []
+        bucket = self.resource.Bucket(self.config.bucket_name)
+        for object_summary in bucket.objects.filter(Prefix=prefix):
+            split_path = object_summary.key.split("/")
+            if len(split_path) > 1 and split_path[-1] != "":
+                file_name = split_path[-1]
+                list_files.append(file_name)
+        return (list_files)
 
 
     

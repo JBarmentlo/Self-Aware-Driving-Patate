@@ -144,10 +144,10 @@ if (agent_type == "DQN"):
     config_Agent.epsilon_decay      = 0.9
     config_Agent.epsilon_min        = 0.02
     config_Agent.steps_to_eps_min   = 5000
-    config_Agent.batch_size         = 128
+    config_Agent.batch_size         = 2
     config_Agent.batches_number     = 10
-    config_Agent.min_memory_size    = 256
-    config_Agent.memory_size        = 10000
+    config_Agent.min_memory_size    = 25
+    config_Agent.memory_size        = 100
     
     config_Agent.target_model_update_frequency = 15
     config_Agent.action_space_boundaries =  config.action_space_boundaries
@@ -190,14 +190,14 @@ if (agent_type == "DQN"):
     
     config_Datasets.load_model         = False
     config_Datasets.model_to_load      = f"dedequene.modelo.2500" # define here S3 or local file_name
-    config_Datasets.sim_to_load        = "simulator_cache/"
+    config_Datasets.sim_to_load        = "DDQN_sim_27_8.16_13.1"
     config_Datasets.sim_from_folder    = True
     
 
-    config_Datasets.S3_connection      = False
+    config_Datasets.S3_connection      = True
     config_Datasets.local_model_folder = "model_cache/"
     config_Datasets.model_to_save_name = f"{config_Agent.agent_name}_weights_{date}."
-    config_Datasets.saving_frequency   = 10
+    config_Datasets.saving_frequency   = 0
 
     config_Datasets.save_SimCache      = True
     config_Datasets.local_sim_folder   = "simulator_cache/"
@@ -216,5 +216,5 @@ if (agent_type == "DQN"):
 
     config_S3.bucket_name = 'deyopotato'
     config_S3.model_folder = 'model_cache/'
-    config_S3.similator_folder = 'simulator_cache/'
+    config_S3.simulator_folder = 'simulator_cache/'
     config_S3.config_folder = 'config_cache/'
