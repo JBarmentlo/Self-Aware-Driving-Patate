@@ -43,12 +43,26 @@ class NeuralPlayer():
         self.agent.train()
 
 
-    def train_agent_from_DB(self):
-        pass
-        # db_data = self.DB.make_processed_memory()
-        # self.agent.memory.add(db_data)
-        # self.agent.replay_memory()
+    def train_agent_from_SimCache(self):
+        Logger.info(f"Training agent from SimCache database")
+        final_file = False
+        files_nb = 0
+        while final_file == False:
+            final_file = self.agent.SimCache.load()
+            for datapoint in self.agent.SimCache.data:
+                state, action, new_state, reward, done, infos = datapoint
+                done = self._is_over_race(infos, done)
+                reward = self.RO.sticks_and_carrots(action, infos, done)
+                processed_state, new_processed_state = self.preprocessor.process(state), self.preprocessor.process(new_state)
+                self.agent.memory.add(processed_state, action, new_processed_state, reward, done)
 
+            files_nb += 1
+            for _ in range(self.config.replay_memory_batches):
+                self.agent.replay_memory()
+            
+            if (self.agent.conf_data.saving_frequency != 0):
+                self.agent.save_modelo(f"{self.agent.conf_data.model_to_save_name}_simcache_{files_nb}")
+            
 
     def _is_over_race(self, infos, done):
         cte = infos["cte"]
@@ -111,7 +125,7 @@ class NeuralPlayer():
 
 
             if (self.agent.conf_data.saving_frequency != 0 and
-                (e % self.agent.conf_data.saving_frequency == 0 or e == self.episodes)):
+                (e % self.agent.conf_data.saving_frequency == 0 or e == self.config.episodes)):
                 self.agent.save_modelo(f"{self.agent.conf_data.model_to_save_name}{e}")
         
         self.agent.SimCache.upload()
