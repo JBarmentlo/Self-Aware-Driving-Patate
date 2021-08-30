@@ -13,13 +13,13 @@ config_S3 = config.config_NeuralPlayer.config_Agent.config_Datasets.config_S3
 config_Agent = config.config_NeuralPlayer.config_Agent
 
 env_name = "donkey-generated-roads-v0"
-# simulator = Simulator(config.config_Simulator, env_name) 
+simulator = Simulator(config.config_Simulator, env_name) 
 
 
-neural = NeuralPlayer(config.config_NeuralPlayer, None, None)
-# neural = NeuralPlayer(config.config_NeuralPlayer, env = simulator.env, simulator=simulator)
+# neural = NeuralPlayer(config.config_NeuralPlayer, None, None)
+neural = NeuralPlayer(config.config_NeuralPlayer, env = simulator.env, simulator=simulator)
 agent = neural.agent
-# agent.SimCache.load("simulator_cache/" + path)
-
+while(len(agent.memory) < config_Agent.min_memory_size):
+    neural.do_races(1)
 
 

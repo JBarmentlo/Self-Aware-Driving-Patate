@@ -48,18 +48,19 @@ class NeuralPlayer():
         simcache = self.agent.SimCache
         while simcache.loading_counter < simcache.nb_files_to_load:
             path = simcache.folder + simcache.list_files[simcache.loading_counter]
-            Logger.info(f"Training agent from data in file: {path}")
             self.agent.SimCache.load(path)
             
             for datapoint in self.agent.SimCache.data:
                 state, action, new_state, reward, done, infos = datapoint
                 done = self._is_over_race(infos, done)
                 reward = self.RO.sticks_and_carrots(action, infos, done)
+                [action, reward] = utils.to_numpy_32([action, reward])
                 processed_state, new_processed_state = self.preprocessor.process(state), self.preprocessor.process(new_state)
                 self.agent.memory.add(processed_state, action, new_processed_state, reward, done)
 
-            for _ in range(self.config.replay_memory_batches):
-                self.agent.replay_memory()
+            if (len(self.agent.memory) >= self.agent.config.memory_size):
+                for _ in range(self.config.replay_memory_batches):
+                    self.agent.replay_memory()
             
             if (self.agent.conf_data.saving_frequency != 0):
                 self.agent.save_modelo(f"{self.agent.conf_data.model_to_save_name}_simcache_{simcache.loading_counter}")

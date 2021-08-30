@@ -137,7 +137,7 @@ class  DQNAgent():
         ALogger.info(f"Replay from memory {len(self.memory)}")
         
         dataloader = DataLoader(self.memory, batch_size=self.config.batch_size,
-                        shuffle=True, num_workers=1)
+                        shuffle=True, num_workers=self.config.num_workers)
 
         for i, single_batch in enumerate(dataloader):
             if i > self.config.batches_number:

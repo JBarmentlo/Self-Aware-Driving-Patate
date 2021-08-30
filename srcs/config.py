@@ -75,7 +75,7 @@ config.config_Simulator.update({"exe_path": "manual",
 config_NeuralPlayer = config.config_NeuralPlayer
 
 config_NeuralPlayer.agent_name               = "DQN"
-config_NeuralPlayer.episodes                 = 10
+config_NeuralPlayer.episodes                 = 21
 config_NeuralPlayer.train_frequency          = 10
 config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
 config_NeuralPlayer.cte_limit                = 4.0 # 3.2 is the white line
@@ -146,8 +146,9 @@ if (agent_type == "DQN"):
     config_Agent.steps_to_eps_min   = 5000
     config_Agent.batch_size         = 2
     config_Agent.batches_number     = 10
-    config_Agent.min_memory_size    = 25
-    config_Agent.memory_size        = 100
+    config_Agent.min_memory_size    = 258
+    config_Agent.memory_size        = 1000
+    config_Agent.num_workers        = 0 # set it to 0 if your computer can't handle multiprocessing
     
     config_Agent.target_model_update_frequency = 15
     config_Agent.action_space_boundaries =  config.action_space_boundaries
@@ -188,21 +189,21 @@ if (agent_type == "DQN"):
 
     config_Datasets = config.config_NeuralPlayer.config_Agent.config_Datasets
     
-    config_Datasets.load_model         = False
-    config_Datasets.model_to_load      = f"dedequene.modelo.2500" # define here S3 or local file_name
-    config_Datasets.sim_to_load        = "DDQN_sim_27_8.16_13.1"
+    config_Datasets.S3_connection      = False
+    config_Datasets.load_model         = True
+    config_Datasets.model_to_load      = "dedequene.modelo.1100"
+    config_Datasets.sim_to_load        = "DDQN_sim_30_8.17_45.2"
     config_Datasets.sim_from_folder    = True
     
 
-    config_Datasets.S3_connection      = True
     config_Datasets.local_model_folder = "model_cache/"
     config_Datasets.model_to_save_name = f"{config_Agent.agent_name}_weights_{date}."
-    config_Datasets.saving_frequency   = 0
+    config_Datasets.saving_frequency   = 3
 
-    config_Datasets.save_SimCache      = True
+    config_Datasets.save_SimCache      = False
     config_Datasets.local_sim_folder   = "simulator_cache/"
     config_Datasets.sim_infos_name     = f"{config_Agent.agent_name}_sim_{date}."
-    config_Datasets.size_SimCache      = 300
+    config_Datasets.size_SimCache      = 1000
     
     config_Datasets.config_name        = f"{config_Agent.agent_name}_config_{date}."
 

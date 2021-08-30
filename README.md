@@ -100,8 +100,9 @@ config_Datasets.saving_frequency
 (equals to 0 if you want to turn off the saving)</br>
 you won't need to change anything in config, just make sure that the following variables suits you:</br>
 ```config_Datasets.model_to_save_name```
-```config_Datasets.local_model_folder```
-```config_S3.model_folder``` </br></br>
+```config_Datasets.local_model_folder``` (folder must be at the root of the project)
+```config_S3.model_folder``` (path after bucket_name)
+</br></br>
 
 ## 2) Simulator Cache:
 It is all the infos that are returned by the function "simulator.env.step(action)", aka: ```state, action, new_state, reward, done, infos```</br></br>
@@ -114,8 +115,8 @@ config_Datasets.size_SimCache = 300
 300 is the number of datapoints contained in one simcache file. The higher the number, the heavier the file.</br>
 Make sure the path variables are correct so that it saves in the right path:
 ```config_Datasets.sim_infos_name```
-```config_Datasets.local_sim_folder``` for local saving
-```config_S3.simulator_folder``` for S3 saving</br></br>
+```config_Datasets.local_sim_folder``` for local saving (must be in the root of the project)
+```config_S3.simulator_folder``` for S3 saving (path after the bucket name)</br></br>
 ### 2b) Loading datapoints:
 If you want to use simcache in your training instead of the simulator itself, please look at the function "train_agent_from_SimCache" in NeuralPlayer</br>
 You can either pick on file or an entire folder (S3 or locally)
