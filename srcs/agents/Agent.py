@@ -140,8 +140,6 @@ class  DQNAgent():
                         shuffle=True, num_workers=self.config.num_workers)
 
         for i, single_batch in enumerate(dataloader):
-            if i > self.config.batches_number:
-                return
             self.update_target_model_counter += 1
             self.optimizer.zero_grad()
             targets = []
