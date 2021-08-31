@@ -96,6 +96,7 @@ class  DQNAgent():
 	def _init_memory(self, config = None):
 		return DqnMemory(self.config.config_Memory)
 
+
 	def _init_S3(self, config = None):
 		self.config_S3 = config
 		self.S3 = None

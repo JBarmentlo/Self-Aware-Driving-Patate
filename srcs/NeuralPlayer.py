@@ -93,6 +93,7 @@ class NeuralPlayer():
 				processed_state = new_processed_state
 				Logger.debug(f"cte:{infos['cte'] + 2.25}")
 				iteration += 1
+				
 			
 			self.add_score(iteration)
 			self.agent._update_epsilon()
