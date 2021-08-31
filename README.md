@@ -66,5 +66,74 @@ Where we run the simulator:
 
 ```sh
 cd srcs/simlaunch3000
-export PS="wesh" ; export SIM_PATH="/home/ezalos/Downloads/DonkeySimLinux/donkey_sim.x86_64" ; python3.8 test_server.py
+export PS="wesh" ; export SIM_PATH="/Users/deyaberger/projects/DonkeySimMac/donkey_sim.app/Contents/MacOS/donkey_sim" ; python3.8 test_server.py
 ```
+
+# Data
+Two elements can be saved locally or on S3:</br>
+To save and load everything from S3, please activate this variable in config:
+```
+config_Datasets.S3_connection = True
+```
+</br>
+
+## 1 - Model Weights:
+</br>
+
+### 1a) Loading a model:
+function "_load_model" in Agent class.
+```
+config_Datasets.load_model = True
+config_Datasets.model_to_load = <the_model_name>
+```
+<the_model_name> is just the file name, in S3 or locally.
+The complete path depends on:</br> ```config_Datasets.local_model_folder``` if it is local</br>
+```config_S3.model_folder``` if it is with S3
+Once those 2 folders names are correct, you won't have to change them all the time</br></br>
+
+### 1b) Saving a model:
+function "save_modelo" in Agent class.
+Please change accordingly the following config variable:</br>
+```
+config_Datasets.saving_frequency
+```
+(equals to 0 if you want to turn off the saving)</br>
+you won't need to change anything in config, just make sure that the following variables suits you:</br>
+```config_Datasets.model_to_save_name```
+```config_Datasets.local_model_folder``` (folder must be at the root of the project)
+```config_S3.model_folder``` (path after bucket_name)
+</br></br>
+
+## 2) Simulator Cache:
+It is all the infos that are returned by the function "simulator.env.step(action)", aka: ```state, action, new_state, reward, done, infos```</br></br>
+### 2a) Saving datapoints:
+Function "add_simcache_point" in Agent class
+You can change the following variable to your conveniance:
+```
+config_Datasets.size_SimCache = 300
+```
+300 is the number of datapoints contained in one simcache file. The higher the number, the heavier the file.</br>
+Make sure the path variables are correct so that it saves in the right path:
+```config_Datasets.sim_infos_name```
+```config_Datasets.local_sim_folder``` for local saving (must be in the root of the project)
+```config_S3.simulator_folder``` for S3 saving (path after the bucket name)</br></br>
+### 2b) Loading datapoints:
+If you want to use simcache in your training instead of the simulator itself, please look at the function "train_agent_from_SimCache" in NeuralPlayer</br>
+You can either pick on file or an entire folder (S3 or locally)
+If it is just one file, then do the following:</br>
+```
+config_Datasets.sim_from_folder = False
+config_Datasets.sim_to_load = <your_file_name>
+```
+If you want to pick all files from one folder:</br>
+```
+config_Datasets.sim_from_folder = True
+config_Datasets.local_sim_folder = <your_folder>
+```
+or with S3:
+```
+config_Datasets.sim_from_folder = True
+config_S3.simulator_folder = <S3_folder>
+```
+
+
