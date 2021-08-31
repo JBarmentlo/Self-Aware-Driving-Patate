@@ -4,9 +4,9 @@ from torch import nn
 from torch import optim
 
 
-class InMatrixLayer(nn.Module):
+class EncodeLayer(nn.Module):
 	def __init__(self, in_channels=3, out_channels=6, conv_kernel=5, pool_kernel=2):
-		super(InMatrixLayer, self).__init__()
+		super(EncodeLayer, self).__init__()
 		self.in_channels = in_channels
 		self.out_channels = out_channels
 		self.conv_kernel = conv_kernel
@@ -17,6 +17,44 @@ class InMatrixLayer(nn.Module):
 		self.Conv2d = nn.Conv2d(self.in_channels,
 								self.out_channels,
 								kernel_size=self.conv_kernel)
+		self.ReLU = nn.ReLU(True)
+		self.MaxPool = nn.MaxPool2d(self.pool_kernel, return_indices=True)
+
+	def forward(self, x):
+		x = self.Conv2d(x)
+		x = self.ReLU(x)
+		shape = x.shape
+		x, indices = self.MaxPool(x)
+		return x, (shape, indices)
+
+	def output_shape(self, input_shape: tuple) -> tuple:
+		"""[summary]
+		For a given shape, compute the outputted shape produced by the network
+
+		Args:
+			input_shape (tuple):
+			input shape should be of len 3.  
+
+		Returns:
+			torch.Tensor
+		"""
+
+		pass
+
+
+class DecodeLayer(nn.Module):
+	def __init__(self, in_channels=3, out_channels=6, conv_kernel=5, pool_kernel=2):
+		super(DecodeLayer, self).__init__()
+		self.in_channels = in_channels
+		self.out_channels = out_channels
+		self.conv_kernel = conv_kernel
+		self.pool_kernel = pool_kernel
+		self.build()
+
+	def build(self):
+		self.Conv2d = nn.Conv2d(self.in_channels,
+							self.out_channels,
+							kernel_size=self.conv_kernel)
 		self.ReLU = nn.ReLU(True)
 		self.MaxPool = nn.MaxPool2d(self.pool_kernel, return_indices=True)
 

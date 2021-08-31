@@ -1,7 +1,8 @@
-from AutoEncoder import UndercompleteAutoEncoder
+from AutoEncoderDummy import UndercompleteAutoEncoder
 from ContractiveAutoEncoder import ContractiveAutoEncoder
 from PoolingAutoEncoder import PoolingAutoEncoder
 from PokAEmonTrainer import AutoEncoderTrainer
+from Nice import NiceAutoEncoder
 
 class DotDict(dict):
 	"""
@@ -32,14 +33,16 @@ config_AutoEncoder.lr					= 1e-3
 
 
 if __name__ == "__main__":
-	# type_ = "uae"
-	type_ = "pae"
+	type_ = "nae"
+	# type_ = "pae"
 	# type_ = "cae"
 	if type_ == "uae":
-		ae = UndercompleteAutoEncoder(1, 10, learning_rate=1e-3)
+		ae = UndercompleteAutoEncoder(config_AutoEncoder)
 	elif type_ == "cae":
 		ae = ContractiveAutoEncoder(1, 10, learning_rate=1e-3)
 	elif type_ == "pae":
 		ae = PoolingAutoEncoder(config_AutoEncoder)
+	elif type_ == "nae":
+		ae = NiceAutoEncoder(config_AutoEncoder)
 
 	AutoEncoderTrainer(ae, config_AutoEncoder, plot=True)

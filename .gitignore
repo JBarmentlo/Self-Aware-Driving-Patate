@@ -15,3 +15,5 @@ srcs/.env
 *.log
 *cache
 .autoenv.zsh
+.env
+simulator_cache
