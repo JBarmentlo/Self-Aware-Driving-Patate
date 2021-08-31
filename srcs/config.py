@@ -75,7 +75,7 @@ config.config_Simulator.update({"exe_path": "manual",
 config_NeuralPlayer = config.config_NeuralPlayer
 
 config_NeuralPlayer.agent_name               = "DQN"
-config_NeuralPlayer.episodes                 = 21
+config_NeuralPlayer.episodes                 = 10
 config_NeuralPlayer.train_frequency          = 10
 config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
 config_NeuralPlayer.cte_limit                = 4.0 # 3.2 is the white line
@@ -189,7 +189,7 @@ if (agent_type == "DQN"):
 
     config_Datasets = config.config_NeuralPlayer.config_Agent.config_Datasets
     
-    config_Datasets.S3_connection      = False
+    config_Datasets.S3_connection      = True
     config_Datasets.load_model         = True
     config_Datasets.model_to_load      = "dedequene.modelo.1100"
     config_Datasets.sim_to_load        = "DDQN_sim_30_8.17_45.2"
@@ -200,13 +200,13 @@ if (agent_type == "DQN"):
     config_Datasets.model_to_save_name = f"{config_Agent.agent_name}_weights_{date}."
     config_Datasets.saving_frequency   = 3
 
-    config_Datasets.save_SimCache      = False
+    config_Datasets.save_SimCache      = True
     config_Datasets.local_sim_folder   = "simulator_cache/"
     config_Datasets.sim_infos_name     = f"{config_Agent.agent_name}_sim_{date}."
     config_Datasets.size_SimCache      = 1000
     
-    config_Datasets.config_name        = f"{config_Agent.agent_name}_config_{date}."
-
+    config_Datasets.config_extension   = "config.json"
+    
 
 
 # -----------------------------------------------------------------
@@ -218,4 +218,3 @@ if (agent_type == "DQN"):
     config_S3.bucket_name = 'deyopotato'
     config_S3.model_folder = 'model_cache/'
     config_S3.simulator_folder = 'simulator_cache/'
-    config_S3.config_folder = 'config_cache/'

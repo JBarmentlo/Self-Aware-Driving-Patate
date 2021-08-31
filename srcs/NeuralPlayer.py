@@ -2,9 +2,10 @@ import torch
 import logging
 import time
 import numpy as np
+import json
+import io
 
 from RewardOpti import RewardOpti
-# from Database import Database
 from agents.Agent import DQNAgent
 from Preprocessing import Preprocessing
 import utils
@@ -26,6 +27,7 @@ class NeuralPlayer():
         self._init_preprocessor(config.config_Preprocessing)
         self._init_reward_optimizer(self.config)
         self.scores = []
+        self._save_config()
 
 
     def _init_preprocessor(self, config_Preprocessing):
@@ -41,6 +43,26 @@ class NeuralPlayer():
 
     def _train_agent(self):
         self.agent.train()
+    
+    
+    def _save_config(self):
+        if self.agent.conf_data.saving_frequency > 0:
+            config_dictionnary = {}
+            for info in self.config:
+                config_dictionnary[info] = self.config[info]
+            file_name = f"{self.agent.conf_data.model_to_save_name}{self.agent.conf_data.config_extension}"
+            if self.agent.conf_data.S3_connection == True:
+                conf_path = f"{self.agent.S3.config.model_folder}{file_name}"
+                json_obj = json.dumps(config_dictionnary).encode('UTF-8')
+                bytes_obj = io.BytesIO(json_obj)
+                bytes_obj.seek(0)
+                self.agent.S3.upload_bytes(bytes_obj, conf_path)
+            else:
+                conf_path = f"{self.agent.conf_data.local_model_folder}{file_name}"
+                with open(conf_path, "w") as f:
+                    json.dump(config_dictionnary, f)
+                
+            
 
 
     def train_agent_from_SimCache(self):
@@ -63,7 +85,7 @@ class NeuralPlayer():
                     self.agent.replay_memory()
             
             if (self.agent.conf_data.saving_frequency != 0):
-                self.agent.save_modelo(f"{self.agent.conf_data.model_to_save_name}_simcache_{simcache.loading_counter}")
+                self.agent.save_modelo(f"{self.agent.conf_data.model_to_save_name}_simcache_{simcache.loading_counter}", self.config)
             
 
     def _is_over_race(self, infos, done):
