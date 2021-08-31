@@ -19,35 +19,14 @@ class EncodeLayer(nn.Module):
 							kernel_size=self.conv_kernel,
                         	padding=int((self.conv_kernel - 1) / 2))
 		self.ReLU = nn.ReLU()
-		# self.Conv_1 = nn.Conv2d(self.out_channels,
-        #                 self.out_channels,
-        #                 kernel_size=self.conv_kernel,
-        #                 padding=int((self.conv_kernel - 1) / 2))
-		# self.ReLU_1 = nn.ReLU()
 		self.Pool = nn.MaxPool2d(self.pool_kernel, return_indices=True)
 
 	def forward(self, x):
 		x = self.Conv(x)
 		x = self.ReLU(x)
-		# x = self.Conv_1(x)
-		# x = self.ReLU_1(x)
 		shape = x.shape
 		x, indices = self.Pool(x)
 		return x, (indices, shape)
-
-	# def output_shape(self, input_shape: tuple) -> tuple:
-	# 	"""[summary]
-	# 	For a given shape, compute the outputted shape produced by the network
-
-	# 	Args:
-	# 		input_shape (tuple):
-	# 		input shape should be of len 3.  
-
-	# 	Returns:
-	# 		torch.Tensor
-	# 	"""
-
-	# 	pass
 
 
 class DecodeLayer(nn.Module):
@@ -66,33 +45,12 @@ class DecodeLayer(nn.Module):
 										kernel_size=self.conv_kernel,
 										padding=int((self.conv_kernel - 1) / 2))
 		self.ReLU = nn.ReLU()
-		# self.ConvT_1 = nn.ConvTranspose2d(self.out_channels,
-		# 								self.out_channels,
-		# 								kernel_size=self.conv_kernel,
-		# 								padding=int((self.conv_kernel - 1) / 2))
-		# self.ReLU_1 = nn.ReLU()
 
 	def forward(self, x, indices, size):
 		x = self.unPool(x, indices, output_size=size)
 		x = self.ConvT(x)
 		x = self.ReLU(x)
-		# x = self.ConvT_1(x)
-		# x = self.ReLU_1(x)
 		return x
-
-	# def output_shape(self, input_shape: tuple) -> tuple:
-	# 	"""[summary]
-	# 	For a given shape, compute the outputted shape produced by the network
-
-	# 	Args:
-	# 		input_shape (tuple):
-	# 		input shape should be of len 3.  
-
-	# 	Returns:
-	# 		torch.Tensor
-	# 	"""
-
-	# 	pass
 
 
 class AutoEncoderModel(nn.Module):
