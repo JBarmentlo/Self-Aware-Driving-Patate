@@ -1,5 +1,5 @@
-FROM nvidia/cuda:10.2-cudnn7-runtime-ubuntu18.04
-# From nvidia/cuda:11.1.1-cudnn8-runtime-ubuntu18.04
+# FROM nvidia/cuda:10.2-cudnn7-runtime-ubuntu18.04
+From nvidia/cuda:11.1.1-cudnn8-runtime-ubuntu18.04
 
 WORKDIR /App
 
@@ -34,4 +34,4 @@ RUN git clone https://github.com/JBarmentlo/Self-Aware-Driving-Patate.git \
 RUN pip3 install torch==1.9.0 torchvision
 WORKDIR /App/Self-Aware-Driving-Patate
 
-ENTRYPOINT /bin/zsh
+ENTRYPOINT /bin/zsh 

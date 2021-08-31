@@ -26,10 +26,11 @@ config.config_Simulator = DotDict()
 
 config.config_NeuralPlayer = DotDict()
 
+
 config.config_NeuralPlayer.config_Agent = DotDict()
+config.config_NeuralPlayer.config_Agent.config_Datasets = DotDict()
 config.config_NeuralPlayer.config_Agent.config_Memory = DotDict()
-config.config_NeuralPlayer.config_Agent.config_S3 = DotDict()
-config.config_NeuralPlayer.config_Agent.config_Database = DotDict()
+config.config_NeuralPlayer.config_Agent.config_Datasets.config_S3 = DotDict()
 
 config.config_NeuralPlayer.config_Preprocessing = DotDict()
 config.config_NeuralPlayer.config_Preprocessing.config_AutoEncoder = DotDict()
@@ -74,8 +75,7 @@ config.config_Simulator.update({"exe_path": "manual",
 config_NeuralPlayer = config.config_NeuralPlayer
 
 config_NeuralPlayer.agent_name               = "DQN"
-config_NeuralPlayer.save_database            = True
-config_NeuralPlayer.episodes                 = 2
+config_NeuralPlayer.episodes                 = 10000
 config_NeuralPlayer.train_frequency          = 10
 config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
 config_NeuralPlayer.cte_limit                = 4.0 # 3.2 is the white line
@@ -144,14 +144,12 @@ if (agent_type == "DQN"):
     config_Agent.epsilon_decay      = 0.9
     config_Agent.epsilon_min        = 0.02
     config_Agent.steps_to_eps_min   = 5000
-    config_Agent.batch_size         = 128
+    config_Agent.batch_size         = 2
     config_Agent.batches_number     = 10
-    config_Agent.min_memory_size    = 256
-    config_Agent.memory_size        = 10000
-    config_Agent.load_model         = False
-    config_Agent.model_to_load_path = "/workspaces/Self-Aware-Driving-Patate/model_cache/modelo/dedequene.modelo.2500"
-    config_Agent.model_to_save_path = f"/workspaces/Self-Aware-Driving-Patate/model_cache/modelo/{config_Agent.agent_name}_{date}." ### TODO : improve path
-    config_Agent.saving_frequency = 100
+    config_Agent.min_memory_size    = 258
+    config_Agent.memory_size        = 1000
+    config_Agent.num_workers        = 0 # set it to 0 if your computer can't handle multiprocessing
+    
     config_Agent.target_model_update_frequency = 15
     config_Agent.action_space_boundaries =  config.action_space_boundaries
 
@@ -186,29 +184,37 @@ if (agent_type == "DQN"):
 
 
 # -----------------------------------------------------------------
-# Player Database config
+# Player Datasets config
 # -----------------------------------------------------------------
 
-    config_Database = config.config_NeuralPlayer.config_Agent.config_Database
+    config_Datasets = config.config_NeuralPlayer.config_Agent.config_Datasets
+    
+    config_Datasets.S3_connection      = False
+    config_Datasets.load_model         = False
+    config_Datasets.model_to_load      = "dedequene.modelo.1100"
+    config_Datasets.sim_to_load        = "DDQN_sim_30_8.17_45.2"
+    config_Datasets.sim_from_folder    = True
+    
 
-    config_Database.on                  = True
-    config_Database.max_datapoints      = 10000
-    config_Database.local_model_path          = f"/workspaces/Self-Aware-Driving-Patate/simulator_cache/ddqn_track/{config_Agent.agent_name}_{date}."
+    config_Datasets.local_model_folder = "model_cache/"
+    config_Datasets.model_to_save_name = f"{config_Agent.agent_name}_weights_{date}."
+    config_Datasets.saving_frequency   = 100    
 
-
+    config_Datasets.save_SimCache      = False
+    config_Datasets.local_sim_folder   = "simulator_cache/"
+    config_Datasets.sim_infos_name     = f"{config_Agent.agent_name}_sim_{date}."
+    config_Datasets.size_SimCache      = 3000
+    
+    config_Datasets.config_extension   = "config.json"
+    
 
 
 # -----------------------------------------------------------------
 # S3 config
 # -----------------------------------------------------------------
 
-    config_S3 = config.config_NeuralPlayer.config_Agent.config_S3
+    config_S3 = config.config_NeuralPlayer.config_Agent.config_Datasets.config_S3
 
     config_S3.bucket_name = 'deyopotato'
-    config_S3.upload = True ### True if you want to upload your models locally and on s3
-    config_S3.download = False ### True if you need to download a model file from s3
-    config_S3.s3_model_path = 'model_cache/dedequene.modelo.1100' ### s3 file path inside deyopotato 
-    config_S3.s3_model_folder = 'model_cache/'
-    config_S3.local_model_path = '/workspaces/Self-Aware-Driving-Patate/model_cache/modelo/from_s3_modelo'
-    config_S3.s3_sim_path = f'sim_cache/ddqn_{config_Agent.agent_name}_{date}.'
-    config_S3.s3_sim_folder = 'sim_cache/'
+    config_S3.model_folder = 'model_cache/'
+    config_S3.simulator_folder = 'simulator_cache/'
