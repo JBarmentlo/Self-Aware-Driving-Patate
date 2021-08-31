@@ -112,6 +112,10 @@ You can change the following variable to your conveniance:
 ```
 config_Datasets.size_SimCache = 300
 ```
+Make sure this variable equals to True:
+```
+config_Datasets.save_SimCache = True
+```
 300 is the number of datapoints contained in one simcache file. The higher the number, the heavier the file.</br>
 Make sure the path variables are correct so that it saves in the right path:
 ```config_Datasets.sim_infos_name```
