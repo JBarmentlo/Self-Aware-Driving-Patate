@@ -100,7 +100,7 @@ config_Preprocessing.shrink_size        = (120, 120) # * This does not remove th
 config_Preprocessing.output_size        = (config_Preprocessing.stack_size, *config_Preprocessing.shrink_size) #*  C * H * W CHANNELS FIRST
 
 config_Preprocessing.use_AutoEncoder	= True
-config_Preprocessing.load_AutoEncoder	= False
+config_Preprocessing.load_AutoEncoder	= True
 
 
 # -----------------------------------------------------------------

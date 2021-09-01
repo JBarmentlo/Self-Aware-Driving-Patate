@@ -52,6 +52,6 @@ class ModelCache():
 				self._load_s3(model, name)
 			else:
 				self._load_local(model, name)
-			ALogger.info(f"Loaded model from file: {file_name}")
+			ALogger.info(f"Loaded model from file: {name}")
 		except Exception as e:
-			ALogger.error(f"You tried loading a model from file: {file_name} and this error occured: {e}")
+			ALogger.error(f"You tried loading a model from file: {name} and this error occured: {e}")
