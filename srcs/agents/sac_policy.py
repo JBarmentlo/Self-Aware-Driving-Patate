@@ -46,11 +46,11 @@ class GaussianPolicy():
 		self.lr = learning_rate
 
 		self.actor_network = self.build_model(
-                   				input_shape,  # input dimension is (1,) for testor
-               					bias_mu_throttle=self.bias_mu_throttle,
-               					bias_mu_steering=self.bias_mu_steering,
-               					bias_sigma_throttle=self.bias_sigma_throttle,
-               					bias_sigma_steering=self.bias_sigma_steering)
+				   				input_shape,  # input dimension is (1,) for testor
+			   					bias_mu_throttle=self.bias_mu_throttle,
+			   					bias_mu_steering=self.bias_mu_steering,
+			   					bias_sigma_throttle=self.bias_sigma_throttle,
+			   					bias_sigma_steering=self.bias_sigma_steering)
 
 		self.opt = keras.optimizers.Adam(learning_rate=self.lr)
 		self.actor_network.compile(loss='mse', optimizer=self.opt)
@@ -92,24 +92,24 @@ class GaussianPolicy():
 		current_layer = layers.Flatten()(prev_layer)
 
 		mu_throttle = layers.Dense(1,
-                    activation="linear",
-                    kernel_initializer=initializers.Zeros(),
-                    bias_initializer=initializers.Constant(bias_mu_throttle))(current_layer)
+					activation="linear",
+					kernel_initializer=initializers.Zeros(),
+					bias_initializer=initializers.Constant(bias_mu_throttle))(current_layer)
 
 		sigma_throttle = layers.Dense(1,
-                       activation="softplus",
-                       kernel_initializer=initializers.Zeros(),
-                       bias_initializer=initializers.Constant(bias_sigma_throttle))(current_layer)
+					   activation="softplus",
+					   kernel_initializer=initializers.Zeros(),
+					   bias_initializer=initializers.Constant(bias_sigma_throttle))(current_layer)
 
 		mu_steering = layers.Dense(1,
-                    activation="linear",
-                    kernel_initializer=initializers.Zeros(),
-                    bias_initializer=initializers.Constant(bias_mu_steering))(current_layer)
+					activation="linear",
+					kernel_initializer=initializers.Zeros(),
+					bias_initializer=initializers.Constant(bias_mu_steering))(current_layer)
 
 		sigma_steering = layers.Dense(1,
-                       activation="softplus",
-                       kernel_initializer=initializers.Zeros(),
-                       bias_initializer=initializers.Constant(bias_sigma_steering))(current_layer)
+					   activation="softplus",
+					   kernel_initializer=initializers.Zeros(),
+					   bias_initializer=initializers.Constant(bias_sigma_steering))(current_layer)
 
 
 		actor_network = keras.Model(inputs=inputs, outputs=[mu_throttle, sigma_throttle, mu_steering, sigma_steering])

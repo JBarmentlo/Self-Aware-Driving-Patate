@@ -22,5 +22,5 @@ neural = NeuralPlayer(config.config_NeuralPlayer, env = simulator.env, simulator
 agent = neural.agent
 
 while(len(agent.memory) < config_Agent.min_memory_size):
-    neural.do_races(1)
+	neural.do_races(1)
 
