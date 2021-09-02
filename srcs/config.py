@@ -114,7 +114,7 @@ config_AutoEncoder = config.config_NeuralPlayer.config_Preprocessing.config_Auto
 config_AutoEncoder.model_dir			= "model_cache/autoencoder/"
 config_AutoEncoder.train_dir			= "simulator_cache/"
 config_AutoEncoder.test_dir				= "simulator_cache/"
-config_AutoEncoder.name					= "Le_BG_du_13"
+config_AutoEncoder.name					= "30K_examples"
 
 # Shapes
 config_AutoEncoder.input_shape			= config_Preprocessing.output_size
@@ -137,23 +137,28 @@ if config_Preprocessing.use_AutoEncoder:
 
 config_AE_Datasets = config.config_NeuralPlayer.config_Preprocessing.config_AutoEncoder.config_AE_Datasets
 
+# Both
 config_AE_Datasets.S3_connection      = True
-config_AE_Datasets.load_model         = False
-config_AE_Datasets.model_to_load      = "dedequene.modelo.1100"
-config_AE_Datasets.sim_to_load        = "DDQN_sim_30_8.17_45.2"
+
+# Dataset
 config_AE_Datasets.sim_from_folder    = True
-
-
-config_AE_Datasets.local_model_folder = "model_cache/"
-config_AE_Datasets.model_to_save_name = f"{config_AutoEncoder.name}_weights_{date}."
-config_AE_Datasets.saving_frequency   = 100    
-
-config_AE_Datasets.save_SimCache      = False
-config_AE_Datasets.local_sim_folder   = "simulator_cache/"
+config_AE_Datasets.sim_to_load        = "DDQN_sim_30_8.17_45.2"
+config_AE_Datasets.save_SimCache      = True
 config_AE_Datasets.sim_infos_name     = f"{config_AutoEncoder.name}_sim_{date}."
+config_AE_Datasets.local_sim_folder   = "simulator_cache/"
 config_AE_Datasets.size_SimCache      = 3000
 
+# Model
+config_AE_Datasets.load_model         = False
+config_AE_Datasets.model_to_load      = "NiceAutoEncoder_h[8]_30K_examples"
+config_AE_Datasets.local_model_folder = "model_cache/"
+config_AE_Datasets.model_to_save_name = f"{config_AutoEncoder.name}_weights_{date}."
+config_AE_Datasets.saving_frequency   = 100
+
+# Unknown
 config_AE_Datasets.config_extension   = "config.json"
+
+
 
 
 # -----------------------------------------------------------------

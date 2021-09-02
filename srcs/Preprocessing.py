@@ -58,12 +58,12 @@ class Preprocessing():
 
 	def before_AutoEncoder(self, state: np.ndarray, training:bool=False) -> torch.Tensor:
 		# print(f"{state = }")
-		print(f"{state.shape = }")
+		# print(f"{state.shape = }")
 		state = self._autoencoder_prepare(state, extand=not training)
 		transform = transforms.Compose([
 				transforms.Resize(self.config.shrink_size, transforms.InterpolationMode.BICUBIC)])
 		state = transform(state)
-		print(f"{state.shape = }")
+		# print(f"{state.shape = }")
 		return state
 	
 	def after_AutoEncoder(self, state: torch.Tensor) -> torch.Tensor:
@@ -72,7 +72,7 @@ class Preprocessing():
 
 	def process(self, state: np.ndarray) -> torch.Tensor:
 		Logger.info(f"Processing.\nIn shape: {state.shape}")
-		print(f"Prep IN {state.shape = }")
+		# print(f"Prep IN {state.shape = }")
 		# state = self.gray(state)
 		# state = self.resize(state, self.config.shrink_size)
 		# state = self.stack(state)
@@ -80,7 +80,7 @@ class Preprocessing():
 		state = self.AutoEncoder.encode(state)
 		state = self.after_AutoEncoder(state)
 		state = state.cpu().detach().numpy()
-		print(f"Prep OUT {state.shape = }")
+		# print(f"Prep OUT {state.shape = }")
 		Logger.debug(f"Out shape: {state.shape}")
 		return state
 

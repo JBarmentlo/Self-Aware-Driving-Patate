@@ -50,7 +50,7 @@ class  DQNAgent():
 		self.SimCache = SimCache(self.conf_data, self.S3)
 
 
-	def save_modelo(self, file_name, config):
+	def save_modelo(self, file_name):
 		### TODO : in the future, maybe save more than just weights
 		s3_name = f"{self.conf_s3.model_folder}{file_name}"
 		local_name = f"{self.conf_data.local_model_folder}{file_name}"
@@ -114,7 +114,10 @@ class  DQNAgent():
 	def get_action(self, state, episode = 0):
 		if np.random.rand() > self.config.epsilon :
 			ALogger.debug(f"Not Random action being picked")
-			action = self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :])))
+			if self.config.with_AutoEncoder:
+				action = self.action_from_q_values(self.model.forward(torch.Tensor(state)))
+			else:
+				action = self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :])))
 			ALogger.debug(f"{action = }")
 			return action
 		else:
@@ -152,6 +155,13 @@ class  DQNAgent():
 			processed_states, actions, new_processed_states, rewards, dones = single_batch
 			dones = ~dones
 
+
+			# print(f"{processed_states.shape = }")
+			m = processed_states.shape[0]
+			s = self.config.input_size
+			processed_states = processed_states.view(m, *s)
+			new_processed_states = new_processed_states.view(m, *s)
+			# print(f"{processed_states.shape = }")
 			qs_b = self.model.forward(processed_states)
 			qss_b = self.target_model.forward(new_processed_states)
 			qss_max_b, _ = torch.max(qss_b, dim = 1)

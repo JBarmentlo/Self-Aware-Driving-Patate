@@ -94,6 +94,7 @@ class AutoEncoderModel(nn.Module):
 		x =  self.ReLU(x)
 		return x, encoder_cache[::-1]
 
+
 	def decoder(self, x, encoder_cache):
 		x = self.decode_one(x)
 		x = self.ReLU(x)
@@ -101,6 +102,7 @@ class AutoEncoderModel(nn.Module):
 			indices, size = cache
 			x = layer.forward(x, indices, size)
 		return x
+		
 
 	def forward(self, x):
 		x, cache = self.encoder(x)

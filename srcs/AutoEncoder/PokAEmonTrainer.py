@@ -64,11 +64,12 @@ class AutoEncoderTrainer():
 	def _load_local(self):
 		transform = transforms.Compose([transforms.Resize((120,120), transforms.InterpolationMode.BICUBIC),
 										transforms.ToTensor()])
-		self.dataset = datasets.ImageFolder(self.config.train_dir, transform=transform)
+		dataset = datasets.ImageFolder(self.config.train_dir, transform=transform)
 		# dataset = torch.utils.data.DataLoader(self.dataset, batch_size=self.config.batch_size,
 		# 								num_workers=1,
 		# 								pin_memory=True, shuffle=True)
-		self._train_test_split(dataset, validation_split=0.05)
+		self.dataset = dataset
+		return dataset
 		
 	def _load_s3(self):
 		path = self.SimCache.folder + self.SimCache.list_files[self.SimCache.loading_counter]
@@ -90,7 +91,7 @@ class AutoEncoderTrainer():
 			dataset = self._load_s3()
 		else:
 			dataset = self._load_local()
-		self._train_test_split(dataset)
+		self._train_test_split(dataset, validation_split=0.05)
 
 	def train(self):
 		epochs = self.config.epochs
