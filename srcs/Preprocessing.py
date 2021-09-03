@@ -79,7 +79,9 @@ class Preprocessing():
 		state = self.before_AutoEncoder(state, training=False)
 		state = self.AutoEncoder.encode(state)
 		state = self.after_AutoEncoder(state)
+
 		state = state.cpu().detach().numpy()
+		
 		# print(f"Prep OUT {state.shape = }")
 		Logger.debug(f"Out shape: {state.shape}")
 		return state

@@ -55,7 +55,9 @@ class QfunctionModel(nn.Module):
 
 
 class Qfunction():
-	def __init__(self, input_shape, bottleneck_shape, learning_rate=1e-3) -> None:
+	def __init__(self, learning_rate=1e-3) -> None:
+		# Target model: is receiving training
+		# Local model: allows for prediction
 		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 		self.model = QfunctionModel().to(self.device)
 		self.target_model = QfunctionModel().to(self.device)
@@ -67,7 +69,7 @@ class Qfunction():
 	def train(self, states, actions, targets):
 		batch = batch.to(self.device)
 
-		Qvalues = self.model(states, actions)
+		Qvalues = self.target_model(states, actions)
 
 		loss = self.criterion(Qvalues, targets)
 

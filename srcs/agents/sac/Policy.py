@@ -61,21 +61,28 @@ def gaussian_pdf(x, m, s):
 
 
 class Policy():
-	def __init__(self, input_shape, bottleneck_shape, learning_rate=1e-3) -> None:
+	def __init__(self, learning_rate=1e-3) -> None:
 		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 		self.model = PolicyModel().to(self.device)
 		self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
 		# self.criterion = nn.MSELoss()
 		self.loss = 0.
+		self.learning_rate = 1e-3
 
-	def train(self, batch):
-		batch = batch.to(self.device)
+
+	def train(self, state_t, phi_min):
+		state_t = batch.to(self.device)
 		self.optimizer.zero_grad()
-		outputs = self.model(batch)
-		loss = self.criterion(outputs, batch)
+
+		gaussian_t = self.model(state_t)
+
+		loss = self.criterion(gaussian_t, state_t, phi_min)
+
 		loss.backward()
 		self.optimizer.step()
 		self.loss += loss.item()
+
+
 
 	def draw_actions(self, gauss_throttle, gauss_steering):
 		throttle = torch.normal(*gauss_throttle)
@@ -102,8 +109,13 @@ class Policy():
 		prob = prob_throttle * prob_steering
 		return prob
 
-	def criterion(self, state, action, reward):
-		gaussian_distrib = self.model(state)
-		probability = self.policy_probability(gaussian_distrib, action)
-		loss =  reward - torch.log(probability)
+	def criterion(self, state_t, gaussian_t, phi_min):
+		action_t = self.draw_actions(*gaussian_t)
+		probability = self.policy_probability(gaussian_t, action_t)
+		
+		Qvalue = self.phi_min(state_t, action_t)
+
+		lr = self.learning_rate
+
+		loss =  Qvalue - lr * torch.log(probability)
 		return loss
