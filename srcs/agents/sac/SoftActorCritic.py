@@ -55,8 +55,6 @@ class SoftActorCritic():
 		loss = (Qvalue - lr * torch.log(probability))
 
 
-
-
 	def train(self, replay_bufer):
 		if len(replay_bufer) < self.batch_size:
 			return
@@ -89,4 +87,3 @@ class SoftActorCritic():
 
 if __name__ == "__main__":
 	SoftActorCritic()
-	
