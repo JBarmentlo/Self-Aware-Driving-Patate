@@ -38,5 +38,48 @@ def get_projected_vector(p0, p1):
         delta_pos[0] * math.sin(delta_angle) + delta_pos[1] * math.cos(delta_angle),
     ])
 
+class Scorer():
+    def __init__(self, start_pos, start_cte):
+        '''
+        `start_pos` is the starting position of the car.
+        `start_cte` is the starting Cross Track Error of the car.
+        '''
+        self.prev = Point(start_pos, start_cte)
+        self.prev_proj = numpy.array([0., 0.])
+        self.total_distance = 0.
+
+    def get_total_distance(self):
+        '''
+        Returns the total distance travelled since the beginning.
+        '''
+        return self.total_distance
+
+    def next(self, pos, cte):
+        '''
+        Updates the distance using the given new position and cte.
+
+        `start_pos` is the starting position of the car.
+        `start_cte` is the starting Cross Track Error of the car.
+        '''
+        curr = Point(pos, cte)
+        proj = get_projected_vector(curr, self.prev)
+
+        proj_len = numpy.linalg.norm(proj)
+        direction = numpy.dot(self.prev_proj, proj)
+        if direction >= -0.001:
+            self.total_distance += proj_len
+        elif direction:
+            self.total_distance -= proj_len
+
+        self.prev = curr
+        self.prev_proj = proj
+
 if __name__ == "__main__":
-    print(get_projected_vector(Point(numpy.array([0., 5.]), 1.), Point(numpy.array([3., 1.]), -1.)))
+    scorer = Scorer(numpy.array([0., 0.]), 0.)
+    scorer.next(numpy.array([1., 1.]), 1.)
+    scorer.next(numpy.array([-3., 2.]), 1.)
+
+    # If uncommented, must partially cancel previous movements
+    #scorer.next(numpy.array([0., 0.]), 0.)
+
+    print(scorer.get_total_distance())
