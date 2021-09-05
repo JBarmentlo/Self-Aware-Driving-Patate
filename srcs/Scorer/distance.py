@@ -2,11 +2,18 @@ import math
 import numpy
 
 class Point:
+    '''
+    A point on the track with its distance to the center.
+    '''
+
     def __init__(self, pos, dist):
         self.pos = pos
         self.dist = dist
 
 def compute_distance(p0, p1):
+    '''
+    Computes the distance between `p0` and `p1`, projected onto the center of the track.
+    '''
     delta_pos = p1.pos - p0.pos
     delta_dist = p1.dist - p0.dist
 
@@ -18,6 +25,9 @@ def compute_distance(p0, p1):
         return 0.
 
 def projection_angle(p0, p1, proj_dist):
+    '''
+    Computes the angle of the projected vector relative to the center of the track.
+    '''
     delta_pos = p1.pos - p0.pos
     delta_pos_len = numpy.linalg.norm(delta_pos)
     if delta_pos_len >= 0.00001:
@@ -26,6 +36,9 @@ def projection_angle(p0, p1, proj_dist):
         return 0.
 
 def get_projected_vector(p0, p1):
+    '''
+    Computes the delta vector projected onto the center of the track.
+    '''
     delta_pos = p1.pos - p0.pos
     proj_dist = compute_distance(p0, p1)
     delta_angle = projection_angle(p0, p1, proj_dist)
@@ -33,12 +46,15 @@ def get_projected_vector(p0, p1):
     if p1.dist < 0.:
         delta_angle = -delta_angle
 
-    return numpy.array([
+    proj = numpy.array([
         delta_pos[0] * math.cos(delta_angle) - delta_pos[1] * math.sin(delta_angle),
         delta_pos[0] * math.sin(delta_angle) + delta_pos[1] * math.cos(delta_angle),
     ])
+    proj /= numpy.linalg.norm(proj)
+    proj *= proj_dist
+    return proj
 
-class Scorer():
+class DistanceTracker():
     def __init__(self, start_pos, start_cte):
         '''
         `start_pos` is the starting position of the car.
@@ -51,12 +67,14 @@ class Scorer():
     def get_total_distance(self):
         '''
         Returns the total distance travelled since the beginning.
+        This function can be used to compute the score.
         '''
         return self.total_distance
 
     def next(self, pos, cte):
         '''
         Updates the distance using the given new position and cte.
+        This function must be called at each frames of the simulator to update the position and the travelled distance.
 
         `start_pos` is the starting position of the car.
         `start_cte` is the starting Cross Track Error of the car.
@@ -75,11 +93,11 @@ class Scorer():
         self.prev_proj = proj
 
 if __name__ == "__main__":
-    scorer = Scorer(numpy.array([0., 0.]), 0.)
-    scorer.next(numpy.array([1., 1.]), 1.)
-    scorer.next(numpy.array([-3., 2.]), 1.)
+    d = DistanceTracker(numpy.array([0., 0.]), 0.)
+    d.next(numpy.array([1., 1.]), 1.)
+    d.next(numpy.array([-3., 2.]), 1.)
 
     # If uncommented, must partially cancel previous movements
-    #scorer.next(numpy.array([0., 0.]), 0.)
+    d.next(numpy.array([0., 0.]), 0.)
 
-    print(scorer.get_total_distance())
+    print(d.get_total_distance())
