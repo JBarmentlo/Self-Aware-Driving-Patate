@@ -1,6 +1,6 @@
 import torch
-import Policy
-import Qfunction
+from .Policy import Policy
+from .Qfunction import Qfunction
 
 
 class SoftActorCritic():
@@ -8,7 +8,7 @@ class SoftActorCritic():
 	Inspiration from: https://spinningup.openai.com/en/latest/algorithms/sac.html
 	"""
 	def __init__(self):
-		self.learning_rate = learning_rate
+		self.learning_rate = 1e-3
 
 		self.policy = Policy()
 
@@ -16,11 +16,15 @@ class SoftActorCritic():
 		self.phi_2 = Qfunction()
 
 		self.discount_factor = 0.9
+		self.batch_size = 32
 
 	def get_action(self, s_t):
 		gaussians = self.policy.model(s_t)
+		# print(f"{gaussians = }")
 		throttle, steering = self.policy.draw_actions(*gaussians)
-		return throttle, steering
+		actions = [	float(throttle.cpu().detach()),
+					float(steering.cpu().detach())]
+		return actions
 
 	def phi_min(self, state, action):
 		phi_1 = self.phi_1.model(state, action) 
@@ -28,9 +32,9 @@ class SoftActorCritic():
 		phi = torch.min(phi_1, phi_2)
 		return phi
 
-	def compute_targets(self, r, s_t1, done):
+	def compute_targets(self, s_t1, r, done):
 		gaussians = self.policy.model(s_t1)
-		action = self.policy(*gaussians)
+		action = self.policy.draw_actions(*gaussians)
 		probability = self.policy.policy_probability(gaussians, action)
 
 		Qvalue = self.phi_min(s_t1, action)
@@ -55,21 +59,19 @@ class SoftActorCritic():
 		loss = (Qvalue - lr * torch.log(probability))
 
 
-	def train(self, replay_bufer):
-		if len(replay_bufer) < self.batch_size:
-			return
-		for i in range(len(replay_bufer) // self.batch_size):
-			# * Create batch
-			batch = []
-			for _ in range(self.batch_size):
-				elem = replay_bufer.pop()
-				# print(elem)
-				batch.append(elem)
-			
-			state_t, action_t, reward_t, state_t1, done, _ = zip(*batch)
-
+	def train(self, dataset):
+		print(f"{len(dataset) = }")
+		if len(dataset) < self.batch_size:
+			return False
+		mini_batchs = torch.utils.data.DataLoader(dataset, batch_size=self.batch_size)
+		i = 0 
+		for state_t, action_t, state_t1, reward_t, done in mini_batchs:
+			print(f"STARTING BATCH {i}")
+			print(f"{state_t.shape = }")
+			print(f"{state_t1.shape = }")
+			print(f"{action_t.shape = }")
 			# line 12
-			targets = self.compute_targets(reward_t, state_t1)
+			targets = self.compute_targets(state_t1, reward_t, done)
 
 			# line 13
 			self.phi_1.train(state_t, action_t, targets)
@@ -82,7 +84,9 @@ class SoftActorCritic():
 			self.phi_1.soft_update()
 			self.phi_2.soft_update()
 
-		replay_bufer.clear()
+			i += 1
+
+		return True
 
 
 if __name__ == "__main__":

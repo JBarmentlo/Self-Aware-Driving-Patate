@@ -10,6 +10,10 @@ from agents.Agent import DQNAgent
 from Preprocessing import Preprocessing
 import utils
 
+from agents.SAC import SoftActorCritic
+
+from Memory import SACDataset
+
 Logger = logging.getLogger("NeuralPlayer")
 Logger.setLevel(logging.INFO)
 stream = logging.StreamHandler()
@@ -19,6 +23,7 @@ Logger.addHandler(stream)
 class NeuralPlayer():
 	def __init__(self, config, env, simulator):
 		print("Start init NeuralPlayer")
+		self.sac = False
 		self.config = config
 		self.env = env
 		self.agent =  None
@@ -28,7 +33,7 @@ class NeuralPlayer():
 		self._init_preprocessor(config.config_Preprocessing)
 		self._init_reward_optimizer(self.config)
 		self.scores = []
-		self._save_config()
+		# self._save_config()
 		print("End init NeuralPlayer")
 
 
@@ -37,7 +42,11 @@ class NeuralPlayer():
 
 
 	def _init_agent(self, config_Agent):
-		self.agent = DQNAgent(config=config_Agent)
+		if self.sac:
+			self.agent = SoftActorCritic()
+		else:
+			self.agent = DQNAgent(config=config_Agent)
+
   
 	def _init_reward_optimizer(self, config_NeuralPlayer):
 		self.RO = RewardOpti(config_NeuralPlayer)
@@ -113,7 +122,7 @@ class NeuralPlayer():
 		self.scores.append(iteration)
 
 
-	def do_races(self, episodes):
+	def do_races_ddqn(self, episodes):
 		Logger.info(f"Doing {episodes} races.")
 		for e in range(1, episodes + 1):
 			Logger.info(f"\nepisode {e}/{episodes}")
@@ -158,3 +167,57 @@ class NeuralPlayer():
 		self.agent.SimCache.upload()
 		self.env.reset()
 		return
+
+	def do_races_sac(self, episodes):
+		memory = SACDataset()
+		print(f"Doing {episodes} races.")
+		for e in range(1, episodes + 1):
+			print(f"\nepisode {e}/{episodes}")
+			# print(f"memory size = {len(self.agent.memory)}")
+			self.RO.new_race_init(e)
+			
+			self.simulator = utils.fix_cte(self.simulator)
+			self.env = self.simulator.env
+
+			state, reward, done, infos = self.env.step([0, 0])
+			processed_state = self.preprocessor.process(state)
+			done = self._is_over_race(infos, done)
+			print(f"Initial CTE: {infos['cte']}")
+			iteration = 0
+			while (not done):
+
+				action = self.agent.get_action(processed_state)
+				print(f"action: {action}")
+				new_state, reward, done, infos = self.env.step(action)
+				# self.agent.add_simcache_point([state, action, new_state, reward, done, infos])
+				new_processed_state = self.preprocessor.process(new_state)
+				print(f"{new_processed_state.shape = }")
+				done = self._is_over_race(infos, done)
+
+				reward = self.RO.sticks_and_carrots(action, infos, done)
+
+				# [action, reward] = utils.to_numpy_32([action, reward])
+
+				print(f"{new_processed_state[0].shape = }")
+				# current_action = 
+				memory.add(processed_state[0], torch.cat(action, 0), new_processed_state[0], reward, int(done))
+
+				processed_state = new_processed_state
+				print(f"cte:{infos['cte'] + 2.25}")
+				iteration += 1
+			
+			self.add_score(iteration)
+
+			if (e % self.config.replay_memory_freq == 0):
+				print("Training")
+				if self.agent.train(memory):
+					memory = SACDataset()
+		
+		self.env.reset()
+		return
+
+	def do_races(self, episodes):
+		if self.sac:
+			self.do_races_sac(episodes)
+		else:
+			self.do_races_ddqn(episodes)

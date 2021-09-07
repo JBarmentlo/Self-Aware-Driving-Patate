@@ -2,31 +2,33 @@ import torch
 from torch import nn
 from torch import optim
 import torch.nn.functional as F
+import math
 
 class GaussianOut(nn.Module):
 	def __init__(self, input_units):
 		super(GaussianOut, self).__init__()
-		self.lin_μ = nn.linear(input_units, 1)
-		self.lin_σ = nn.linear(input_units, 1)
+		self.lin_μ = nn.Linear(input_units, 1)
+		self.lin_σ = nn.Linear(input_units, 1)
 
 	def forward(self, x):
 		μ = self.lin_μ(x)
 		σ = self.lin_σ(x)
-		return μ, σ
+		return μ, abs(σ)
 
 
 class PolicyModel(nn.Module):
 	def __init__(self):
 		super(PolicyModel, self).__init__()
+		input_size = [4, 8]
 		# Vector (4, 8)
-		in_channels = [*config.input_size][0]
+		in_channels = input_size[0]
 		self.conv0 = nn.Conv1d(in_channels, 4, kernel_size=1, stride=1, padding=0) # (kernal_size - 1) / 2 for same paddind
 		self.conv1 = nn.Conv1d(4, 2, kernel_size=1, stride=1, padding=0) # (kernal_size - 1) / 2 for same paddind
 		self.conv2 = nn.Conv1d(2, 1, kernel_size=1, stride=1, padding=0) # (kernal_size - 1) / 2 for same paddind
 
 		self.flatten = nn.Flatten()
 
-		self.dense1 = nn.Linear(config.input_size[1], 16)
+		self.dense1 = nn.Linear(input_size[1], 16)
 		self.dense2 = nn.Linear(16, 32)
 		self.dense3 = nn.Linear(32, 32)
 
@@ -37,7 +39,6 @@ class PolicyModel(nn.Module):
 		self.G_steering = GaussianOut(end_units)
 
 	def forward(self, x):
-		x = x.to(device)
 		# Carefull relu -> neurons might die bc low vector space
 		x = F.relu(self.conv0(x))
 		x = F.relu(self.conv1(x))
@@ -83,11 +84,12 @@ class Policy():
 		self.loss += loss.item()
 
 
-
 	def draw_actions(self, gauss_throttle, gauss_steering):
+		# print(f"Gaussian throttle μ {gauss_throttle[0].item()} σ {gauss_throttle[1].item()}")
 		throttle = torch.normal(*gauss_throttle)
 		throttle = F.tanh(throttle)
 
+		# print(f"Gaussian steering μ {gauss_steering[0].item()} σ {gauss_steering[1].item()}")
 		steering = torch.normal(*gauss_steering)
 		steering = F.sigmoid(steering)
 

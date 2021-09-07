@@ -28,6 +28,9 @@ class RewardOpti:
 			return (True)
 	
 	def sticks_and_carrots(self, action, infos, done):
+		if done:
+			return 0.
+		return 1.
 		### TODO: other infos that could be use: infos["pos"], infos["gyro"], infos["lidar"], infos["car"]
 		self.reward = 0
 		if done or self.goes_backward(action): #or infos["hit"] != None #TODO maybe diferentiate the sticks

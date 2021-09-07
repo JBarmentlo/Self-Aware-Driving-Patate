@@ -13,7 +13,7 @@ class FlattenState(nn.Module):
 		self.flatten = nn.Flatten()
 
 	def forward(self, x):
-		x = x.to(device)
+		# x = x.to(device)
 		x = F.relu(self.conv0(x))
 		x = F.relu(self.conv1(x))
 		x = F.relu(self.conv2(x))
@@ -22,7 +22,7 @@ class FlattenState(nn.Module):
 
 
 class QfunctionModel(nn.Module):
-	def __init__(self, input_shape):
+	def __init__(self, input_shape = [4, 8]):
 		super(QfunctionModel, self).__init__()
 		# Vector (4, 8)
 		in_channels = input_shape[0]
@@ -38,11 +38,13 @@ class QfunctionModel(nn.Module):
 
 
 	def forward(self, state, action):
-		state = state.to(device)
-		action = action.to(device)
+		# state = state.to(device)
+		# action = action.to(device)
 
 		state = self.FlatState(state)
 
+		print(f"{state = }")
+		print(f"{action = }")
 		x = torch.cat((state, action), dim=1)
 
 		x = F.relu(self.dense1(x))
@@ -67,7 +69,9 @@ class Qfunction():
 		self.tau = 0.5
 
 	def train(self, states, actions, targets):
-		batch = batch.to(self.device)
+		states = states.to(self.device)
+		actions = actions.to(self.device)
+		targets = targets.to(self.device)
 
 		Qvalues = self.target_model(states, actions)
 
@@ -79,18 +83,18 @@ class Qfunction():
 
 		self.loss += loss.item()
 	
-    def soft_update(self):
-        """Soft update model parameters.
-        θ_target = τ*θ_local + (1 - τ)*θ_target
-        Params
-        =======
-            local model (PyTorch model): weights will be copied from
-            target model (PyTorch model): weights will be copied to
-            tau (float): interpolation parameter
-        """
+	def soft_update(self):
+		"""Soft update model parameters.
+		θ_target = τ*θ_local + (1 - τ)*θ_target
+		Params
+		=======
+			local model (PyTorch model): weights will be copied from
+			target model (PyTorch model): weights will be copied to
+			tau (float): interpolation parameter
+		"""
 		tau = self.tau
 
-        for target_param, local_param in zip(self.target_model.parameters(), self.model.parameters()):
-            target_param.data.copy_(tau*local_param.data + (1-tau)*target_param.data)
+		for target_param, local_param in zip(self.target_model.parameters(), self.model.parameters()):
+			target_param.data.copy_(tau*local_param.data + (1-tau)*target_param.data)
 
 		self.model.load_state_dict(self.target_model.state_dict())
