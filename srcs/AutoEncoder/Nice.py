@@ -120,6 +120,8 @@ class NiceAutoEncoder():
 		self.model_path = f"{self.config.model_dir}{self.__class__.__name__}_{self.config.name}"
 
 		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+		self.device = torch.device("cpu")
+		
 		self.layers_filters = config.layers_filters
 		self.bottleneck_size = config.bottleneck_size
 		self.model = AutoEncoderModel(self.layers_filters, self.bottleneck_size).to(self.device)

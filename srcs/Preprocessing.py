@@ -82,7 +82,7 @@ class Preprocessing():
 
 		state = state.cpu().detach()#.numpy()
 		
-		print(f"Prep OUT {state.shape = }")
+		# print(f"Prep OUT {state.shape = }") 
 		Logger.debug(f"Out shape: {state.shape}")
 		return state
 

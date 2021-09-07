@@ -37,6 +37,7 @@ class SoftActorCritic():
 		action = self.policy.draw_actions(*gaussians)
 		probability = self.policy.policy_probability(gaussians, action)
 
+		action = torch.cat((action[0], action[1]), dim=1)
 		Qvalue = self.phi_min(s_t1, action)
 
 		df = self.discount_factor
@@ -52,6 +53,7 @@ class SoftActorCritic():
 		action_t = self.policy(*gaussians)
 		probability = self.policy.policy_probability(gaussians, action_t)
 
+		action_t = torch.cat((action_t[0], action_t[1]), dim=1)
 		Qvalue = self.phi_min(state_t, action_t)
 
 		lr = self.learning_rate
@@ -65,17 +67,29 @@ class SoftActorCritic():
 			return False
 		mini_batchs = torch.utils.data.DataLoader(dataset, batch_size=self.batch_size)
 		i = 0 
+		torch.autograd.set_detect_anomaly(True)
 		for state_t, action_t, state_t1, reward_t, done in mini_batchs:
 			print(f"STARTING BATCH {i}")
-			print(f"{state_t.shape = }")
-			print(f"{state_t1.shape = }")
-			print(f"{action_t.shape = }")
+			# print(f"{state_t.shape = }")
+			# print(f"{state_t1.shape = }")
+			# print(f"{action_t.shape = }")
 			# line 12
-			targets = self.compute_targets(state_t1, reward_t, done)
+			# targets_1 = self.compute_targets(state_t1.clone().detach(), reward_t.clone().detach(), done.clone().detach()).type(torch.float32)
+			# targets_2 = self.compute_targets(state_t1.clone().detach(), reward_t.clone().detach(), done.clone().detach()).type(torch.float32)
+			targets = self.compute_targets(state_t1, reward_t, done).type(torch.float32)
 
+			# print(f"{state_t.dtype}")
+			# print(f"{action_t.dtype}")
+			# print(f"{targets_1.dtype}")
+			targets_1 = targets.clone().detach()
+			targets_2 = targets.clone().detach()
+			state_t_1 = state_t.clone().detach()
+			state_t_2 = state_t.clone().detach()
+			action_t_1 = action_t.clone().detach()
+			action_t_2 = action_t.clone().detach()
 			# line 13
-			self.phi_1.train(state_t, action_t, targets)
-			self.phi_2.train(state_t, action_t, targets)
+			self.phi_1.train(state_t_1, action_t_1, targets_1)
+			self.phi_2.train(state_t_2, action_t_2, targets_2)
 
 			# line 14
 			self.policy.train(state_t, self.phi_min)

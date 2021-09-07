@@ -50,7 +50,9 @@ class PolicyModel(nn.Module):
 		x = F.relu(self.dense4(x))
 		throttle = self.G_throttle(x)
 		steering = self.G_steering(x)
-		return throttle, steering
+		# print(f"{throttle = }")
+		# print(f"{steering = }")
+		return (throttle, steering)
 
 
 def gaussian_pdf(x, m, s):
@@ -64,6 +66,7 @@ def gaussian_pdf(x, m, s):
 class Policy():
 	def __init__(self, learning_rate=1e-3) -> None:
 		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+		self.device = torch.device("cpu")
 		self.model = PolicyModel().to(self.device)
 		self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
 		# self.criterion = nn.MSELoss()
@@ -72,12 +75,13 @@ class Policy():
 
 
 	def train(self, state_t, phi_min):
-		state_t = batch.to(self.device)
+		state_t = state_t.to(self.device)
 		self.optimizer.zero_grad()
 
 		gaussian_t = self.model(state_t)
 
-		loss = self.criterion(gaussian_t, state_t, phi_min)
+		loss = self.criterion(state_t, gaussian_t, phi_min)
+		# print(f"{loss = }")
 
 		loss.backward()
 		self.optimizer.step()
@@ -112,12 +116,14 @@ class Policy():
 		return prob
 
 	def criterion(self, state_t, gaussian_t, phi_min):
+		# print(f"{gaussian_t = }")
 		action_t = self.draw_actions(*gaussian_t)
 		probability = self.policy_probability(gaussian_t, action_t)
 		
-		Qvalue = self.phi_min(state_t, action_t)
+		action_t = torch.cat((action_t[0], action_t[1]), dim=1)
+		Qvalue = phi_min(state_t, action_t)
 
 		lr = self.learning_rate
 
 		loss =  Qvalue - lr * torch.log(probability)
-		return loss
+		return loss.mean()

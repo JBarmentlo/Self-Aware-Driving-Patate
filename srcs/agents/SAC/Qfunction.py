@@ -43,8 +43,15 @@ class QfunctionModel(nn.Module):
 
 		state = self.FlatState(state)
 
-		print(f"{state = }")
-		print(f"{action = }")
+		# print(f"{state.shape = }")
+		# print(f"{action = }")
+		# print(f"{action[0].shape = }")
+		# print(f"{action[1].shape = }")
+
+		# action = torch.cat((action[0], action[1]), dim=1)
+
+		# print(f"{action.shape = }")
+
 		x = torch.cat((state, action), dim=1)
 
 		x = F.relu(self.dense1(x))
@@ -61,6 +68,7 @@ class Qfunction():
 		# Target model: is receiving training
 		# Local model: allows for prediction
 		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+		self.device = torch.device("cpu")
 		self.model = QfunctionModel().to(self.device)
 		self.target_model = QfunctionModel().to(self.device)
 		self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
@@ -76,6 +84,7 @@ class Qfunction():
 		Qvalues = self.target_model(states, actions)
 
 		loss = self.criterion(Qvalues, targets)
+		# print(f"{loss = }")
 
 		self.optimizer.zero_grad()
 		loss.backward()

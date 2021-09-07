@@ -23,7 +23,7 @@ Logger.addHandler(stream)
 class NeuralPlayer():
 	def __init__(self, config, env, simulator):
 		print("Start init NeuralPlayer")
-		self.sac = False
+		self.sac = True
 		self.config = config
 		self.env = env
 		self.agent =  None
@@ -187,23 +187,25 @@ class NeuralPlayer():
 			while (not done):
 
 				action = self.agent.get_action(processed_state)
-				print(f"action: {action}")
+				# print(f"action: {action}")
 				new_state, reward, done, infos = self.env.step(action)
 				# self.agent.add_simcache_point([state, action, new_state, reward, done, infos])
 				new_processed_state = self.preprocessor.process(new_state)
-				print(f"{new_processed_state.shape = }")
+				# print(f"{new_processed_state.shape = }")
 				done = self._is_over_race(infos, done)
 
 				reward = self.RO.sticks_and_carrots(action, infos, done)
 
 				# [action, reward] = utils.to_numpy_32([action, reward])
 
-				print(f"{new_processed_state[0].shape = }")
-				# current_action = 
-				memory.add(processed_state[0], torch.cat(action, 0), new_processed_state[0], reward, int(done))
+				# print(f"{new_processed_state[0].shape = }")
+				# print(f"{action = }")
+				current_action = torch.tensor(action)
+				# print(f"{current_action = }")
+				memory.add(processed_state[0], current_action, new_processed_state[0], reward, int(done))
 
 				processed_state = new_processed_state
-				print(f"cte:{infos['cte'] + 2.25}")
+				# print(f"cte:{infos['cte'] + 2.25}")
 				iteration += 1
 			
 			self.add_score(iteration)
