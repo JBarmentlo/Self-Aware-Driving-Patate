@@ -1,5 +1,6 @@
 import io
 import random
+from ModelCache import ModelCache
 import numpy as np
 import random
 import logging
@@ -13,7 +14,6 @@ from torch.utils.data import DataLoader
 from utils import val_to_idx
 
 from Memory import DqnMemory
-from S3 import S3
 from SimCache import SimCache
 
 
@@ -26,14 +26,13 @@ stream = logging.StreamHandler()
 ALogger.addHandler(stream)
 
 class  DQNAgent():
-    def __init__(self, config):
+    def __init__(self, config, S3 = None):
         self.config = config
-        self.conf_data, self.conf_s3 = config.config_Datasets, config.config_Datasets.config_S3
         self.memory = self._init_memory(config.config_Memory)
         self.model = DQN(config)
-        self._init_S3(self.conf_s3)
-        if (self.conf_data.load_model):
-            self._load_model(self.conf_data.model_to_load)
+        self.ModelCache = ModelCache(S3)
+        if (self.config.data.load_model):
+            self.ModelCache.load(self.model, self.config.data.load_name)
         self.model.to(device)
         self.target_model = DQN(config)
         self.target_model.to(device)
@@ -41,35 +40,7 @@ class  DQNAgent():
         self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
         self.criterion = nn.MSELoss()
         self.update_target_model_counter = 0
-        self.SimCache = SimCache(self.conf_data, self.S3)
-
-
-    def save_modelo(self, file_name):
-        ### TODO : in the future, maybe save more than just weights
-        s3_name = f"{self.conf_s3.model_folder}{file_name}"
-        local_name = f"{self.conf_data.local_model_folder}{file_name}"
-        if self.conf_data.S3_connection == True:
-            buffer = io.BytesIO()
-            torch.save(self.model.state_dict(), buffer)
-            buffer.seek(0) # ! Reset read pointer. DOT NOT FORGET THIS, else all uploaded files will be empty!
-            self.S3.upload_bytes(buffer, f"{s3_name}")
-        else:
-              torch.save(self.model.state_dict(), local_name)
-              ALogger.info(f"Modelo Saved locally in :{local_name}")
-
-
-    def _load_model(self, file_name):
-        try:
-            input = self.conf_data.local_model_folder + file_name
-            if self.conf_data.S3_connection == True:
-                bytes_obj = self.S3.get_bytes(self.conf_s3.model_folder + file_name)
-                input = io.BytesIO(bytes_obj)
-            self.model.load_state_dict(torch.load(input, map_location=torch.device('cpu'))) ##! to be changed, just for deya
-            self.model.eval()
-            ALogger.info(f"Loaded model from file: {file_name}")
-        except Exception as e:
-            ALogger.error(f"You tried loading a model from file: {file_name} and this error occured: {e}")
-
+        # self.SimCache = SimCache(self.conf_data, self.S3)
 
     def action_from_q_values(self, qs):
         ALogger.debug(f"Getting steering from qs: {qs}")
@@ -87,10 +58,6 @@ class  DQNAgent():
     def _init_memory(self, config = None):
         return DqnMemory(self.config.config_Memory)
 
-    def _init_S3(self, config):
-        self.S3 = None
-        if self.conf_data.S3_connection == True:
-            self.S3 = S3(config)
     
     def add_simcache_point(self, datapoint):
         if self.conf_data.save_SimCache == True:

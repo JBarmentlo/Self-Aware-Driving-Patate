@@ -11,9 +11,8 @@ Logger.addHandler(stream)
 
 
 class S3:
-    def __init__(self, config, aws_access_key_id = None, aws_secret_access_key = None):
-        self.config = config
-        self.bucket_name = self.config.bucket_name
+    def __init__(self, bucket_name, aws_access_key_id = None, aws_secret_access_key = None):
+        self.bucket_name = bucket_name
         if aws_access_key_id == None and aws_secret_access_key == None:
             aws_access_key_id=os.environ["ACCESS_KEY"]
             aws_secret_access_key=os.environ["SECRET_ACCESS_KEY"]
@@ -35,8 +34,7 @@ class S3:
     
     def download_file(self, s3_path, local_model_path):
         try:
-            self.client.download_file(self.config.bucket_name, s3_path, local_model_path)
-            Logger.info(f"File {s3_path} successfully downloaded to local path: {local_model_path}")
+            self.client.download_file(self.bucket_name, s3_path, local_model_path)
         except Exception as e:
             Logger.error(f"Could not download file {s3_path} from S3:\n{e}")
 
@@ -44,16 +42,14 @@ class S3:
 
     def upload_file(self, local_model_path, s3_path):
         try:
-            res = self.client.upload_file(local_model_path, self.config.bucket_name, s3_path)
-            Logger.info(f"File {local_model_path} successfully uploaded to s3 path: {s3_path}")
+            res = self.client.upload_file(local_model_path, self.bucket_name, s3_path)
         except Exception as e:
             Logger.error(f"Could not upload file {local_model_path} to S3:\n{e}")
     
 
     def upload_bytes(self, bytes_object, s3_path):
         try:
-            self.client.upload_fileobj(bytes_object, self.config.bucket_name, s3_path)
-            Logger.info(f"Object successfully uploaded to S3 in {s3_path}")
+            self.client.upload_fileobj(bytes_object, self.bucket_name, s3_path)
             return True
         except Exception as e:
             Logger.error(f"Could not upload python_object to S3:\n{e}")
@@ -62,7 +58,7 @@ class S3:
     
     def get_bytes(self, s3_path):
         try:
-            s3_obj = self.resource.Object(self.config.bucket_name, s3_path)
+            s3_obj = self.resource.Object(self.bucket_name, s3_path)
             bytes_obj = s3_obj.get()['Body'].read()
             return (bytes_obj)
         except Exception as e:
@@ -72,7 +68,7 @@ class S3:
     
     def get_folder_files(self, prefix):
         list_files = []
-        bucket = self.resource.Bucket(self.config.bucket_name)
+        bucket = self.resource.Bucket(self.bucket_name)
         for object_summary in bucket.objects.filter(Prefix=prefix):
             split_path = object_summary.key.split("/")
             if len(split_path) > 1 and split_path[-1] != "":
