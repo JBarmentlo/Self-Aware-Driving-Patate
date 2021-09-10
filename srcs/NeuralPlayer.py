@@ -61,6 +61,7 @@ class NeuralPlayer():
                 conf_path = f"{self.agent.conf_data.local_model_folder}{file_name}"
                 with open(conf_path, "w") as f:
                     json.dump(config_dictionnary, f)
+                    Logger.info(f"Config information saved in file: {conf_path}")
                 
             
 
@@ -85,7 +86,7 @@ class NeuralPlayer():
                     self.agent.replay_memory()
             
             if (self.agent.conf_data.saving_frequency != 0):
-                self.agent.save_modelo(f"{self.agent.conf_data.model_to_save_name}_simcache_{simcache.loading_counter}", self.config)
+                self.agent.save_modelo(f"{self.agent.conf_data.model_to_save_name}_simcache_{simcache.loading_counter}")
             
 
     def _is_over_race(self, infos, done):

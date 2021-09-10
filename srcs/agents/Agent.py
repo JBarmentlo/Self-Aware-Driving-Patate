@@ -44,7 +44,7 @@ class  DQNAgent():
         self.SimCache = SimCache(self.conf_data, self.S3)
 
 
-    def save_modelo(self, file_name, config):
+    def save_modelo(self, file_name):
         ### TODO : in the future, maybe save more than just weights
         s3_name = f"{self.conf_s3.model_folder}{file_name}"
         local_name = f"{self.conf_data.local_model_folder}{file_name}"

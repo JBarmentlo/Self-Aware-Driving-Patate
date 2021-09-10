@@ -198,7 +198,7 @@ if (agent_type == "DQN"):
 
     config_Datasets.local_model_folder = "model_cache/"
     config_Datasets.model_to_save_name = f"{config_Agent.agent_name}_weights_{date}."
-    config_Datasets.saving_frequency   = 100    
+    config_Datasets.saving_frequency   = 2    
 
     config_Datasets.save_SimCache      = False
     config_Datasets.local_sim_folder   = "simulator_cache/"
