@@ -1,5 +1,6 @@
 import io
 import random
+from ModelCache import ModelCache
 import numpy as np
 import random
 import logging
@@ -13,7 +14,6 @@ from torch.utils.data import DataLoader
 from utils import val_to_idx
 
 from Memory import DqnMemory
-from S3 import S3
 from SimCache import SimCache
 
 
@@ -26,6 +26,7 @@ stream = logging.StreamHandler()
 ALogger.addHandler(stream)
 
 class  DQNAgent():
+#Louis
 	def __init__(self, config):
 		self.config = config
 		self.conf_data, self.conf_s3 = config.config_Datasets, config.config_Datasets.config_S3
@@ -184,6 +185,111 @@ class  DQNAgent():
 
 	def train(self):
 		pass
+  
+  #deya:
+    def __init__(self, config, S3 = None):
+        self.config = config
+        self.memory = self._init_memory(config.config_Memory)
+        self.model = DQN(config)
+        self.ModelCache = ModelCache(S3)
+        if (self.config.data.load_model):
+            self.ModelCache.load(self.model, self.config.data.load_name)
+        self.model.to(device)
+        self.target_model = DQN(config)
+        self.target_model.to(device)
+        self.target_model.load_state_dict(self.model.state_dict())
+        self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
+        self.criterion = nn.MSELoss()
+        self.update_target_model_counter = 0
+
+
+    def action_from_q_values(self, qs):
+        ALogger.debug(f"Getting steering from qs: {qs}")
+        bounds = self.config.action_space_boundaries[0]
+        l = len(qs[0])
+        idx = torch.argmax(qs[0])
+        action = self.config.action_space[idx]
+        return action
+
+
+    def _update_target_model(self):
+        self.target_model.load_state_dict(self.model.state_dict())
+
+
+    def _init_memory(self, config = None):
+        return DqnMemory(self.config.config_Memory)
+
+    
+    
+    def _update_epsilon(self):
+        if self.config.epsilon > self.config.epsilon_min:
+            self.config.epsilon -= (self.config.initial_epsilon - self.config.epsilon_min) / self.config.steps_to_eps_min
+            ALogger.info(f"Updating self epsilon to {self.config.epsilon}")
+
+
+    def get_action(self, state, episode = 0):
+        if np.random.rand() > self.config.epsilon :
+            ALogger.debug(f"Not Random action being picked")
+            action = self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :])))
+            ALogger.debug(f"{action = }")
+            return action
+        else:
+            ALogger.debug(f"Random action being picked")
+            action = random.choice(self.config.action_space)
+            ALogger.debug(f"{action = }")
+            return action
+
+
+    def train_model(self, x, y):
+        #TODO: make this exist
+        self.model.train()
+        y_hat = self.model.forward(x)
+        loss = self.criterion(y_hat, y)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+        self.model.eval()
+
+    
+
+    def replay_memory(self):
+        #TODO : batches and batch_size as args
+        if len(self.memory) < self.config.min_memory_size:
+            return
+        ALogger.info(f"Replay from memory {len(self.memory)}")
+        
+        dataloader = DataLoader(self.memory, batch_size=self.config.batch_size,
+                        shuffle=True, num_workers=self.config.num_workers)
+
+        for i, single_batch in enumerate(dataloader):
+            self.update_target_model_counter += 1
+            self.optimizer.zero_grad()
+            targets = []
+            processed_states, actions, new_processed_states, rewards, dones = single_batch
+            dones = ~dones
+
+            qs_b = self.model.forward(processed_states)
+            qss_b = self.target_model.forward(new_processed_states)
+            qss_max_b, _ = torch.max(qss_b, dim = 1)
+
+            for i, (action, reward, done) in enumerate(zip(actions, rewards, dones)):
+                target = qs_b[i].clone()
+                target = target.detach()
+                a_idx = val_to_idx(action, self.config.action_space)
+                target[a_idx] = reward + (done * self.config.discount * qss_max_b[i]) 
+                targets.append(target)
+
+            targets = torch.stack(targets)
+            error = self.criterion(qs_b, targets)
+            error.backward()
+            self.optimizer.step()
+
+            if (self.update_target_model_counter % self.config.target_model_update_frequency == 0):
+                self._update_target_model()
+            
+
+    def train(self):
+        pass
 
 
 

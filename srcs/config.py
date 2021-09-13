@@ -26,11 +26,12 @@ config.config_Simulator = DotDict()
 
 config.config_NeuralPlayer = DotDict()
 
+config.config_NeuralPlayer.config_Datasets = DotDict()
+config.config_NeuralPlayer.config_Datasets.ddqn = DotDict()
+config.config_NeuralPlayer.config_Datasets.sim = DotDict()
 
 config.config_NeuralPlayer.config_Agent = DotDict()
-config.config_NeuralPlayer.config_Agent.config_Datasets = DotDict()
 config.config_NeuralPlayer.config_Agent.config_Memory = DotDict()
-config.config_NeuralPlayer.config_Agent.config_Datasets.config_S3 = DotDict()
 
 config.config_NeuralPlayer.config_Preprocessing = DotDict()
 config.config_NeuralPlayer.config_Preprocessing.config_AutoEncoder = DotDict()
@@ -87,6 +88,36 @@ config_NeuralPlayer.reward_stick             = -1000
 config_NeuralPlayer.replay_memory_freq       = 1
 config_NeuralPlayer.replay_memory_batches    = 3
 
+# -----------------------------------------------------------------
+# Datasets config
+# -----------------------------------------------------------------
+
+config_Datasets = config.config_NeuralPlayer.config_Datasets
+
+config_Datasets.S3_connection      = True
+if config_Datasets.S3_connection == True:
+    config_Datasets.S3_bucket_name = 'deyopotato'
+
+# config_Datasets.AE = config.config_NeuralPlayer.config_Datasets.AE
+
+# DDQN:
+config_Datasets.ddqn = config.config_NeuralPlayer.config_Datasets.ddqn
+config_Datasets.ddqn.load_model     = False
+if config_Datasets.ddqn.load_model == True:
+    config_Datasets.ddqn.load_name = "model_cache/ddqn/dedequene.modelo.1100" #if local: path from the root folder, if S3: path after bucket name
+config_Datasets.ddqn.save_name = f"model_cache/ddqn/{config_NeuralPlayer.agent_name}_weights_{date}."
+config_Datasets.ddqn.saving_frequency   = 0
+
+# SIMULATOR CACHE:
+config_Datasets.sim = config.config_NeuralPlayer.config_Datasets.sim
+config_Datasets.sim.load_name   = "simulator_cache/*"
+config_Datasets.sim.save      = True
+if config_Datasets.sim.save == True:
+    config_Datasets.sim.save_name  = f"simulator_cache/{config_NeuralPlayer.agent_name}_sim_{date}."
+config_Datasets.sim.size     = 3000
+
+# CONFIG:
+config_Datasets.config_extension   = "config.json"
 
 # -----------------------------------------------------------------
 # Prepocessing
@@ -221,6 +252,47 @@ if (agent_type == "DQN"):
 		config_Agent.with_AutoEncoder = True
 
 			
+#     config_Agent = config.config_NeuralPlayer.config_Agent
+
+#     config_Agent.agent_name         = "DDQN"
+#     config_Agent.input_size         = config_Preprocessing.output_size
+#     config_Agent.data               = config_NeuralPlayer.config_Datasets.ddqn
+#     config_Agent.action_space_size  = (11, 3)
+#     config_Agent.discount           = 0.99
+#     config_Agent.lr                 = 1e-4
+#     config_Agent.initial_epsilon    = 0.9
+#     config_Agent.epsilon            = config_Agent.initial_epsilon
+#     config_Agent.epsilon_decay      = 0.9
+#     config_Agent.epsilon_min        = 0.02
+#     config_Agent.steps_to_eps_min   = 5000
+#     config_Agent.batch_size         = 2
+#     config_Agent.batches_number     = 10
+#     config_Agent.min_memory_size    = 258
+#     config_Agent.memory_size        = 1000
+#     config_Agent.num_workers        = 0 # set it to 0 if your computer can't handle multiprocessing
+    
+#     config_Agent.target_model_update_frequency = 15
+#     config_Agent.action_space_boundaries =  config.action_space_boundaries
+
+
+
+#     config_Agent.action_space_boundaries   = config.action_space_boundaries
+#     action_space_length = 1
+    
+#     tmp = []
+#     for i, size in enumerate(config_Agent.action_space_size):
+#         bounds = config.action_space_boundaries[i]
+#         tmp.append(np.linspace(start = bounds[0], stop = bounds[1], num = size))
+    
+#     print("tmp", tmp)
+#     config_Agent.action_space = []
+#     for j in range(config_Agent.action_space_size[1]):
+#         for i in range(config_Agent.action_space_size[0]):
+#             config_Agent.action_space.append([tmp[0][i], tmp[1][j]])
+#     # print("config_Agent.action_space", config_Agent.action_space)
+    
+
+            
 
 # -----------------------------------------------------------------
 # Agent Memory config
@@ -228,42 +300,43 @@ if (agent_type == "DQN"):
 
 	config_Memory = config.config_NeuralPlayer.config_Agent.config_Memory
 
-	config_Memory.capacity = config_Agent.memory_size
+# 	config_Memory.capacity = config_Agent.memory_size
 
 
 
-# -----------------------------------------------------------------
-# Player Datasets config
-# -----------------------------------------------------------------
+# # -----------------------------------------------------------------
+# # Player Datasets config
+# # -----------------------------------------------------------------
 
-	config_Datasets = config.config_NeuralPlayer.config_Agent.config_Datasets
+# 	config_Datasets = config.config_NeuralPlayer.config_Agent.config_Datasets
 	
-	config_Datasets.S3_connection      = False
-	config_Datasets.load_model         = False
-	config_Datasets.model_to_load      = "dedequene.modelo.1100"
-	config_Datasets.sim_to_load        = "DDQN_sim_30_8.17_45.2"
-	config_Datasets.sim_from_folder    = True
-	
-
-	config_Datasets.local_model_folder = "model_cache/"
-	config_Datasets.model_to_save_name = f"{config_Agent.agent_name}_weights_{date}."
-	config_Datasets.saving_frequency   = 100    
-
-	config_Datasets.save_SimCache      = False
-	config_Datasets.local_sim_folder   = "simulator_cache/"
-	config_Datasets.sim_infos_name     = f"{config_Agent.agent_name}_sim_{date}."
-	config_Datasets.size_SimCache      = 3000
-	
-	config_Datasets.config_extension   = "config.json"
+# 	config_Datasets.S3_connection      = False
+# 	config_Datasets.load_model         = False
+# 	config_Datasets.model_to_load      = "dedequene.modelo.1100"
+# 	config_Datasets.sim_to_load        = "DDQN_sim_30_8.17_45.2"
+# 	config_Datasets.sim_from_folder    = True
 	
 
+# 	config_Datasets.local_model_folder = "model_cache/"
+# 	config_Datasets.model_to_save_name = f"{config_Agent.agent_name}_weights_{date}."
+# 	config_Datasets.saving_frequency   = 100    
 
-# -----------------------------------------------------------------
-# S3 config
-# -----------------------------------------------------------------
+# 	config_Datasets.save_SimCache      = False
+# 	config_Datasets.local_sim_folder   = "simulator_cache/"
+# 	config_Datasets.sim_infos_name     = f"{config_Agent.agent_name}_sim_{date}."
+# 	config_Datasets.size_SimCache      = 3000
+	
+# 	config_Datasets.config_extension   = "config.json"
+	
 
-	config_S3 = config.config_NeuralPlayer.config_Agent.config_Datasets.config_S3
 
-	config_S3.bucket_name = 'deyopotato'
-	config_S3.model_folder = 'model_cache/'
-	config_S3.simulator_folder = 'simulator_cache/'
+# # -----------------------------------------------------------------
+# # S3 config
+# # -----------------------------------------------------------------
+
+# 	config_S3 = config.config_NeuralPlayer.config_Agent.config_Datasets.config_S3
+
+# 	config_S3.bucket_name = 'deyopotato'
+# 	config_S3.model_folder = 'model_cache/'
+# 	config_S3.simulator_folder = 'simulator_cache/'
+    config_Memory.capacity = config_Agent.memory_size
