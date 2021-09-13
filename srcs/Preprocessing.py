@@ -16,19 +16,20 @@ Logger.addHandler(stream)
 
 
 class Preprocessing():
-	def __init__(self, config):
+	def __init__(self, config, S3 = None):
 		self.config  		= config
 		self.history 		= [None for _ in range(config.frame_skip)]
 		self.skip_counter 	= -1
+		self.S3 = S3
 
 		self.AutoEncoder = self._init_AutoEncoder()
 
 	def _init_AutoEncoder(self):
-		my_S3 = None
-		conf_data = self.config.config_AutoEncoder.config_AE_Datasets
-		if conf_data.S3_connection == True:
-			my_S3 = S3(conf_data.config_S3)
-		mc = ModelCache(conf_data, conf_data.config_S3, my_S3)
+		# my_S3 = None
+		# conf_data = self.config.config_AutoEncoder.config_AE_Datasets
+		# if conf_data.S3_connection == True:
+			# my_S3 = S3(conf_data.config_S3)
+		mc = ModelCache(self.S3)
 		ae = NiceAutoEncoder(self.config.config_AutoEncoder, mc)
 		if self.config.load_AutoEncoder:
 			ae.load()

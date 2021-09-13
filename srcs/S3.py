@@ -76,8 +76,8 @@ class S3:
                 list_files.append(prefix + file_name)
         return (list_files)
 
-#louis:
-	def name_file(self, name):
-		s3_name = f"{self.config.model_folder}{name}"
-		return s3_name
+# #louis:
+# 	def name_file(self, name):
+# 		s3_name = f"{self.config.model_folder}{name}"
+# 		return s3_name
 		

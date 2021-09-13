@@ -26,18 +26,16 @@ stream = logging.StreamHandler()
 ALogger.addHandler(stream)
 
 class  DQNAgent():
-#Louis
-	def __init__(self, config):
+	def __init__(self, config, S3 = None):
 		self.config = config
-		self.conf_data, self.conf_s3 = config.config_Datasets, config.config_Datasets.config_S3
 		self.memory = self._init_memory(config.config_Memory)
 		if self.config.with_AutoEncoder:
 			self.model = FlatDQN(config)
 		else:
 			self.model = DQN(config)
-		self._init_S3(self.conf_s3)
-		if (self.conf_data.load_model):
-			self._load_model(self.conf_data.model_to_load)
+		self.ModelCache = ModelCache(S3)
+		if (self.config.data.load_model):
+			self.ModelCache.load(self.model, self.config.data.load_name)
 		self.model.to(device)
 		if self.config.with_AutoEncoder:
 			self.target_model = FlatDQN(config)
@@ -48,34 +46,6 @@ class  DQNAgent():
 		self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
 		self.criterion = nn.MSELoss()
 		self.update_target_model_counter = 0
-		self.SimCache = SimCache(self.conf_data, self.S3)
-
-
-	def save_modelo(self, file_name):
-		### TODO : in the future, maybe save more than just weights
-		s3_name = f"{self.conf_s3.model_folder}{file_name}"
-		local_name = f"{self.conf_data.local_model_folder}{file_name}"
-		if self.conf_data.S3_connection == True:
-			buffer = io.BytesIO()
-			torch.save(self.model.state_dict(), buffer)
-			buffer.seek(0) # ! Reset read pointer. DOT NOT FORGET THIS, else all uploaded files will be empty!
-			self.S3.upload_bytes(buffer, f"{s3_name}")
-		else:
-			  torch.save(self.model.state_dict(), local_name)
-			  ALogger.info(f"Modelo Saved locally in :{local_name}")
-
-
-	def _load_model(self, file_name):
-		try:
-			input = self.conf_data.local_model_folder + file_name
-			if self.conf_data.S3_connection == True:
-				bytes_obj = self.S3.get_bytes(self.conf_s3.model_folder + file_name)
-				input = io.BytesIO(bytes_obj)
-			self.model.load_state_dict(torch.load(input, map_location=torch.device('cpu'))) ##! to be changed, just for deya
-			self.model.eval()
-			ALogger.info(f"Loaded model from file: {file_name}")
-		except Exception as e:
-			ALogger.error(f"You tried loading a model from file: {file_name} and this error occured: {e}")
 
 
 	def action_from_q_values(self, qs):
@@ -94,16 +64,6 @@ class  DQNAgent():
 	def _init_memory(self, config = None):
 		return DqnMemory(self.config.config_Memory)
 
-	def _init_S3(self, config):
-		self.S3 = None
-		if self.conf_data.S3_connection == True:
-			self.S3 = S3(config)
-	
-	def add_simcache_point(self, datapoint):
-		if self.conf_data.save_SimCache == True:
-			if self.SimCache.datapoints_counter + 1 > self.conf_data.size_SimCache:
-				self.SimCache.upload()
-			self.SimCache.add_point(datapoint)
 
 
 	def _update_epsilon(self):
@@ -156,7 +116,6 @@ class  DQNAgent():
 			processed_states, actions, new_processed_states, rewards, dones = single_batch
 			dones = ~dones
 
-
 			# print(f"{processed_states.shape = }")
 			m = processed_states.shape[0]
 			s = self.config.input_size
@@ -186,111 +145,6 @@ class  DQNAgent():
 	def train(self):
 		pass
   
-  #deya:
-    def __init__(self, config, S3 = None):
-        self.config = config
-        self.memory = self._init_memory(config.config_Memory)
-        self.model = DQN(config)
-        self.ModelCache = ModelCache(S3)
-        if (self.config.data.load_model):
-            self.ModelCache.load(self.model, self.config.data.load_name)
-        self.model.to(device)
-        self.target_model = DQN(config)
-        self.target_model.to(device)
-        self.target_model.load_state_dict(self.model.state_dict())
-        self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
-        self.criterion = nn.MSELoss()
-        self.update_target_model_counter = 0
-
-
-    def action_from_q_values(self, qs):
-        ALogger.debug(f"Getting steering from qs: {qs}")
-        bounds = self.config.action_space_boundaries[0]
-        l = len(qs[0])
-        idx = torch.argmax(qs[0])
-        action = self.config.action_space[idx]
-        return action
-
-
-    def _update_target_model(self):
-        self.target_model.load_state_dict(self.model.state_dict())
-
-
-    def _init_memory(self, config = None):
-        return DqnMemory(self.config.config_Memory)
-
-    
-    
-    def _update_epsilon(self):
-        if self.config.epsilon > self.config.epsilon_min:
-            self.config.epsilon -= (self.config.initial_epsilon - self.config.epsilon_min) / self.config.steps_to_eps_min
-            ALogger.info(f"Updating self epsilon to {self.config.epsilon}")
-
-
-    def get_action(self, state, episode = 0):
-        if np.random.rand() > self.config.epsilon :
-            ALogger.debug(f"Not Random action being picked")
-            action = self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :])))
-            ALogger.debug(f"{action = }")
-            return action
-        else:
-            ALogger.debug(f"Random action being picked")
-            action = random.choice(self.config.action_space)
-            ALogger.debug(f"{action = }")
-            return action
-
-
-    def train_model(self, x, y):
-        #TODO: make this exist
-        self.model.train()
-        y_hat = self.model.forward(x)
-        loss = self.criterion(y_hat, y)
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
-        self.model.eval()
-
-    
-
-    def replay_memory(self):
-        #TODO : batches and batch_size as args
-        if len(self.memory) < self.config.min_memory_size:
-            return
-        ALogger.info(f"Replay from memory {len(self.memory)}")
-        
-        dataloader = DataLoader(self.memory, batch_size=self.config.batch_size,
-                        shuffle=True, num_workers=self.config.num_workers)
-
-        for i, single_batch in enumerate(dataloader):
-            self.update_target_model_counter += 1
-            self.optimizer.zero_grad()
-            targets = []
-            processed_states, actions, new_processed_states, rewards, dones = single_batch
-            dones = ~dones
-
-            qs_b = self.model.forward(processed_states)
-            qss_b = self.target_model.forward(new_processed_states)
-            qss_max_b, _ = torch.max(qss_b, dim = 1)
-
-            for i, (action, reward, done) in enumerate(zip(actions, rewards, dones)):
-                target = qs_b[i].clone()
-                target = target.detach()
-                a_idx = val_to_idx(action, self.config.action_space)
-                target[a_idx] = reward + (done * self.config.discount * qss_max_b[i]) 
-                targets.append(target)
-
-            targets = torch.stack(targets)
-            error = self.criterion(qs_b, targets)
-            error.backward()
-            self.optimizer.step()
-
-            if (self.update_target_model_counter % self.config.target_model_update_frequency == 0):
-                self._update_target_model()
-            
-
-    def train(self):
-        pass
-
 
 
 def conv2d_size_out(size, kernel_size = 5, stride = 2):
