@@ -17,4 +17,3 @@ from config import config
 
 # neural = NeuralPlayer(config.config_NeuralPlayer, env = simulator.env, simulator=simulator)
 neural = NeuralPlayer(config.config_NeuralPlayer, None, None)
-neural.agent.ModelCache.save(neural.agent.model, f"{neural.agent.config.data.save_name}3")

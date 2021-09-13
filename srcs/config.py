@@ -93,7 +93,7 @@ config_NeuralPlayer.replay_memory_batches    = 3
 
 config_Datasets = config.config_NeuralPlayer.config_Datasets
 
-config_Datasets.S3_connection      = False
+config_Datasets.S3_connection      = True
 if config_Datasets.S3_connection == True:
     config_Datasets.S3_bucket_name = 'deyopotato'
 
@@ -101,7 +101,7 @@ if config_Datasets.S3_connection == True:
 
 # DDQN:
 config_Datasets.ddqn = config.config_NeuralPlayer.config_Datasets.ddqn
-config_Datasets.ddqn.load_model     = True
+config_Datasets.ddqn.load_model     = False
 if config_Datasets.ddqn.load_model == True:
     config_Datasets.ddqn.load_name = "model_cache/ddqn/dedequene.modelo.1100" #if local: path from the root folder, if S3: path after bucket name
 config_Datasets.ddqn.save_name = f"model_cache/ddqn/{config_NeuralPlayer.agent_name}_weights_{date}."
@@ -109,7 +109,7 @@ config_Datasets.ddqn.saving_frequency   = 0
 
 # SIMULATOR CACHE:
 config_Datasets.sim = config.config_NeuralPlayer.config_Datasets.sim
-config_Datasets.sim.load_name   = "simulator_cache/DDQN_sim_30_8.17_45.2"
+config_Datasets.sim.load_name   = "simulator_cache/*"
 config_Datasets.sim.save      = False
 if config_Datasets.sim.save == True:
     config_Datasets.sim.save_name  = f"simulator_cache/{config_NeuralPlayer.agent_name}_sim_{date}."

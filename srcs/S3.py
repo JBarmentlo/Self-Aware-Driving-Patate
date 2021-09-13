@@ -67,13 +67,14 @@ class S3:
         
     
     def get_folder_files(self, prefix):
+        print(prefix)
         list_files = []
         bucket = self.resource.Bucket(self.bucket_name)
         for object_summary in bucket.objects.filter(Prefix=prefix):
             split_path = object_summary.key.split("/")
             if len(split_path) > 1 and split_path[-1] != "":
                 file_name = split_path[-1]
-                list_files.append(file_name)
+                list_files.append(prefix + file_name)
         return (list_files)
 
 

@@ -40,7 +40,7 @@ class  DQNAgent():
         self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
         self.criterion = nn.MSELoss()
         self.update_target_model_counter = 0
-        # self.SimCache = SimCache(self.conf_data, self.S3)
+
 
     def action_from_q_values(self, qs):
         ALogger.debug(f"Getting steering from qs: {qs}")
@@ -59,13 +59,7 @@ class  DQNAgent():
         return DqnMemory(self.config.config_Memory)
 
     
-    def add_simcache_point(self, datapoint):
-        if self.conf_data.save_SimCache == True:
-            if self.SimCache.datapoints_counter + 1 > self.conf_data.size_SimCache:
-                self.SimCache.upload()
-            self.SimCache.add_point(datapoint)
-
-
+    
     def _update_epsilon(self):
         if self.config.epsilon > self.config.epsilon_min:
             self.config.epsilon -= (self.config.initial_epsilon - self.config.epsilon_min) / self.config.steps_to_eps_min

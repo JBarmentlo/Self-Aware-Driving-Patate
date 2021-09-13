@@ -11,6 +11,7 @@ from agents.Agent import DQNAgent
 from Preprocessing import Preprocessing
 from S3 import S3
 import utils
+from SimCache import SimCache
 
 Logger = logging.getLogger("NeuralPlayer")
 Logger.setLevel(logging.INFO)
@@ -30,12 +31,13 @@ class NeuralPlayer():
         self._init_preprocessor(config.config_Preprocessing)
         self._init_reward_optimizer(self.config)
         self.scores = []
-        self._save_config()
+        # self._save_config()
 
     def _init_dataset(self, config):
         self.S3 = None
         if self.config.config_Datasets.S3_connection == True:
             self.S3 = S3(self.config.config_Datasets.S3_bucket_name)
+        self.SimCache = SimCache(self.config.config_Datasets.sim, self.S3)
 
 
     def _init_preprocessor(self, config_Preprocessing):
@@ -71,18 +73,22 @@ class NeuralPlayer():
                 with open(conf_path, "w") as f:
                     json.dump(config_dictionnary, f)
                     Logger.info(f"Config information saved in file: {conf_path}")
-                
+    
+    
+    def add_simcache_point(self, datapoint):
+        if self.SimCache.datapoints_counter + 1 > self.conf_data.size_SimCache:
+            self.SimCache.upload(self.config.config_Datasets.sim.save_name)
+        self.SimCache.add_point(datapoint)
             
 
 
     def train_agent_from_SimCache(self):
         Logger.info(f"Training agent from SimCache database")
-        simcache = self.agent.SimCache
-        while simcache.loading_counter < simcache.nb_files_to_load:
-            path = simcache.folder + simcache.list_files[simcache.loading_counter]
-            self.agent.SimCache.load(path)
+        while self.SimCache.loading_counter < self.SimCache.nb_files_to_load:
+            path = self.SimCache.list_files[self.SimCache.loading_counter]
+            self.SimCache.load(path)
             
-            for datapoint in self.agent.SimCache.data:
+            for datapoint in self.SimCache.data:
                 state, action, new_state, reward, done, infos = datapoint
                 done = self._is_over_race(infos, done)
                 reward = self.RO.sticks_and_carrots(action, infos, done)
@@ -90,12 +96,11 @@ class NeuralPlayer():
                 processed_state, new_processed_state = self.preprocessor.process(state), self.preprocessor.process(new_state)
                 self.agent.memory.add(processed_state, action, new_processed_state, reward, done)
 
-            if (len(self.agent.memory) >= self.agent.config.memory_size):
-                for _ in range(self.config.replay_memory_batches):
-                    self.agent.replay_memory()
+            for _ in range(self.config.replay_memory_batches):
+                self.agent.replay_memory()
             
-            if (self.agent.conf_data.saving_frequency != 0):
-                self.agent.ModelCache.save(f"{self.agent.conf_data.model_to_save_name}_simcache_{simcache.loading_counter}")
+            if (self.agent.config.data.saving_frequency != 0):
+                self.agent.ModelCache.save(self.agent.model, f"{self.agent.config.data.save_name}{self.SimCache.loading_counter}")
             
 
     def _is_over_race(self, infos, done):
@@ -141,7 +146,8 @@ class NeuralPlayer():
                 action = self.agent.get_action(processed_state, e)
                 Logger.debug(f"action: {action}")
                 new_state, reward, done, infos = self.env.step(action)
-                # self.agent.add_simcache_point([state, action, new_state, reward, done, infos])
+                if self.config.config_Datasets.sim.save == True:
+                    self.add_simcache_point([state, action, new_state, reward, done, infos])
                 new_processed_state = self.preprocessor.process(new_state)
                 done = self._is_over_race(infos, done)
                 reward = self.RO.sticks_and_carrots(action, infos, done)
@@ -156,13 +162,14 @@ class NeuralPlayer():
             if (e % self.config.replay_memory_freq == 0):
                 for _ in range(self.config.replay_memory_batches):
                     self.agent.replay_memory()
-                    pass
 
 
             if (self.agent.config.data.saving_frequency != 0 and
                 (e % self.agent.config.data.saving_frequency == 0 or e == self.config.episodes)):
                 self.agent.ModelCache.save(self.agent.model, f"{self.agent.config.data.save_name}{e}")
         
-        # self.agent.SimCache.upload()
+        
+        if self.config.config_Datasets.sim.save == True:
+            self.agent.SimCache.upload(self.config.config_Datasets.sim.save_name)
         self.env.reset()
         return
