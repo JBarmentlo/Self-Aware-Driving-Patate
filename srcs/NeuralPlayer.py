@@ -44,7 +44,8 @@ class NeuralPlayer():
         self.S3 = None
         if self.config.config_Datasets.S3_connection == True:
             self.S3 = S3(self.config.config_Datasets.S3_bucket_name)
-        self.SimCache = SimCache(self.config.config_Datasets.sim, self.S3)
+        if self.config.agent_name == "DQN":
+            self.SimCache = SimCache(self.config.config_Datasets.ddqn.sim, self.S3)
         
 
     def _init_preprocessor(self, config_Preprocessing):
@@ -87,8 +88,8 @@ class NeuralPlayer():
 
 
     def add_simcache_point(self, datapoint):
-        if self.SimCache.datapoints_counter + 1 > self.config.config_Datasets.sim.size:
-            self.SimCache.upload(self.config.config_Datasets.sim.save_name)
+        if self.SimCache.datapoints_counter + 1 > self.agent.config.sim.size:
+            self.SimCache.upload(self.agent.config.sim.save_name)
         self.SimCache.add_point(datapoint)
                 
 
@@ -156,7 +157,7 @@ class NeuralPlayer():
                 action = self.agent.get_action(processed_state, e)
                 Logger.debug(f"action: {action}")
                 new_state, reward, done, infos = self.env.step(action)
-                if self.config.config_Datasets.sim.save == True:
+                if self.agent.config.sim.save == True:
                     self.add_simcache_point([state, action, new_state, reward, done, infos])
                 new_processed_state = self.preprocessor.process(new_state)
                 done = self._is_over_race(infos, done)
@@ -179,8 +180,8 @@ class NeuralPlayer():
                 self.agent.ModelCache.save(self.agent.model, f"{self.agent.config.data.save_name}{e}")
         
         
-        if self.config.config_Datasets.sim.save == True:
-            self.SimCache.upload(f"{self.config.config_Datasets.sim.save_name}{e}")
+        if self.agent.config.sim.save == True:
+            self.SimCache.upload(f"{self.agent.config.sim.save_name}{e}")
         self.env.reset()
         return
     

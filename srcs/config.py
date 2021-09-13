@@ -28,8 +28,9 @@ config.config_NeuralPlayer = DotDict()
 
 config.config_NeuralPlayer.config_Datasets = DotDict()
 config.config_NeuralPlayer.config_Datasets.ddqn = DotDict()
+config.config_NeuralPlayer.config_Datasets.ddqn.sim = DotDict()
 config.config_NeuralPlayer.config_Datasets.ae = DotDict()
-config.config_NeuralPlayer.config_Datasets.sim = DotDict()
+config.config_NeuralPlayer.config_Datasets.ae.sim = DotDict()
 
 config.config_NeuralPlayer.config_Agent = DotDict()
 config.config_NeuralPlayer.config_Agent.config_Memory = DotDict()
@@ -108,20 +109,27 @@ config_Datasets.ddqn.save_name 			= f"model_cache/ddqn/{config_NeuralPlayer.agen
 config_Datasets.ddqn.saving_frequency	= 0
 
 
+# SIMULATOR CACHE FOR DDQN:
+config_Datasets.ddqn.sim = config.config_NeuralPlayer.config_Datasets.ddqn.sim
+config_Datasets.ddqn.sim.load_name			= "simulator_cache/*"
+config_Datasets.ddqn.sim.save				= False
+if config_Datasets.ddqn.sim.save == True:
+    config_Datasets.ddqn.sim.save_name		= f"simulator_cache/{config_NeuralPlayer.agent_name}_sim_{date}."
+config_Datasets.ddqn.sim.size				= 3000
+
+
 # AUTOENCODER:
 config_Datasets.ae = config.config_NeuralPlayer.config_Datasets.ae
 config_Datasets.ae.load_model			= True
 if config_Datasets.ae.load_model == True:
-    config_Datasets.ae.load_name 		= "model_cache/autoencoder/NiceAutoEncoder_h[8]_30K_examples" #if local: path from the root folder, if S3: path after bucket name
+    config_Datasets.ae.load_name 		= "model_cache/autoencoder/Le_BG_du_13" #if local: path from the root folder, if S3: path after bucket name
+config_Datasets.ae.save_name			= f"model_cache/autoencoder/weshwesh."
 
 
-# SIMULATOR CACHE:
-config_Datasets.sim = config.config_NeuralPlayer.config_Datasets.sim
-config_Datasets.sim.load_name			= "simulator_cache/*"
-config_Datasets.sim.save				= False
-if config_Datasets.sim.save == True:
-    config_Datasets.sim.save_name		= f"simulator_cache/{config_NeuralPlayer.agent_name}_sim_{date}."
-config_Datasets.sim.size				= 3000
+# SIMULATOR CACHE FOR AUTOENCODER:
+config_Datasets.ae.sim = config.config_NeuralPlayer.config_Datasets.ae.sim
+config_Datasets.ae.sim.load_name		= "simulator_cache/DDQN_sim_30_8.17_45.2"
+
 
 # CONFIG:
 config_Datasets.config_extension		= "config.json"
@@ -148,7 +156,8 @@ config_Preprocessing.use_AutoEncoder	= True ## TODO: implement option to turn it
 config_AutoEncoder = config.config_NeuralPlayer.config_Preprocessing.config_AutoEncoder
 
 # Shapes
-config_AutoEncoder.data					= config_NeuralPlayer.config_Datasets.ac
+config_AutoEncoder.data					= config_NeuralPlayer.config_Datasets.ae
+config_AutoEncoder.sim					= config_NeuralPlayer.config_Datasets.ae.sim
 config_AutoEncoder.input_shape			= config_Preprocessing.output_size
 config_AutoEncoder.bottleneck_size		= 8
 config_AutoEncoder.layers_filters		= [3, 32, 32, 32, 64, 64, 128]
@@ -174,6 +183,7 @@ if (agent_type == "DQN"):
 	config_Agent.agent_name         = "DDQN"
 	config_Agent.input_size         = config_Preprocessing.output_size
 	config_Agent.data               = config_NeuralPlayer.config_Datasets.ddqn
+	config_Agent.sim                = config_NeuralPlayer.config_Datasets.ddqn.sim
 	config_Agent.action_space_size  = (11, 3)
 	config_Agent.discount           = 0.99
 	config_Agent.lr                 = 1e-4

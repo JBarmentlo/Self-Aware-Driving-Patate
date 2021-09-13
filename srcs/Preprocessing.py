@@ -27,10 +27,10 @@ class Preprocessing():
 	def _init_AutoEncoder(self):
 		mc = ModelCache(self.S3)
 		ae = NiceAutoEncoder(self.config.config_AutoEncoder, mc)
-		if self.config.data.load_model == True:
+		if self.config.config_AutoEncoder.data.load_model == True:
 			ae.load()
 		else:
-			my_SimCache = SimCache(self.config.data, self.S3)
+			my_SimCache = SimCache(self.config.config_AutoEncoder.sim, self.S3)
 			AutoEncoderTrainer(ae,
 					self.config.config_AutoEncoder,
 					plot=True,

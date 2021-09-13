@@ -149,6 +149,7 @@ class NiceAutoEncoder():
 			Y = self.model(X)
 			return Y
 
+
 	def encode(self, X):
 		batch_size = X.shape[0]
 		with torch.no_grad():
@@ -157,13 +158,11 @@ class NiceAutoEncoder():
 			X = X.view((batch_size, self.bottleneck_size))
 			return X
 
+
 	def load(self):
-		self.ModelCache.load(self.model, self.name())
+		self.ModelCache.load(self.model, self.config.data.load_name)
+
 
 	def save(self):
-		self.ModelCache.save(self.model, self.name())
-
-
-	def name(self):
-		name = f"{self.__class__.__name__}_h[{self.bottleneck_size}]_{self.config.name}"
-		return name
+		save_name = f"{self.config.data.save_name}h[{self.bottleneck_size}]"
+		self.ModelCache.save(self.model, save_name)

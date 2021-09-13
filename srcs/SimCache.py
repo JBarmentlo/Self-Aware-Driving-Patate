@@ -27,10 +27,12 @@ class SimCache():
                 liste = os.listdir(folder)
                 self.list_files = [folder + name for name in liste]
         self.nb_files_to_load = len(self.list_files)
+        
 
     def _reset(self):
         self.datapoints_counter	= 0
         self.data = []
+
 
     def add_point(self, point):
         self.data.append(point)
