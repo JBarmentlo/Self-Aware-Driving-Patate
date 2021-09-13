@@ -122,7 +122,7 @@ config_Datasets.ddqn.sim.size				= 3000
 config_Datasets.ae = config.config_NeuralPlayer.config_Datasets.ae
 config_Datasets.ae.load_model			= True
 if config_Datasets.ae.load_model == True:
-    config_Datasets.ae.load_name 		= "model_cache/autoencoder/Le_BG_du_13" #if local: path from the root folder, if S3: path after bucket name
+    config_Datasets.ae.load_name 		= "model_cache/autoencoder/NiceAutoEncoder_h[8]_30K_examples" #if local: path from the root folder, if S3: path after bucket name
 config_Datasets.ae.save_name			= f"model_cache/autoencoder/weshwesh."
 
 
