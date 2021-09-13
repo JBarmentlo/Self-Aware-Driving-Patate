@@ -107,9 +107,13 @@ if config_Datasets.ddqn.load_model == True:
 config_Datasets.ddqn.save_name 			= f"model_cache/ddqn/{config_NeuralPlayer.agent_name}_weights_{date}."
 config_Datasets.ddqn.saving_frequency	= 0
 
+
 # AUTOENCODER:
 config_Datasets.ae = config.config_NeuralPlayer.config_Datasets.ae
-# config_Datasets.ae.model_dir			= "model_cache/autoencoder/"
+config_Datasets.ae.load_model			= True
+if config_Datasets.ae.load_model == True:
+    config_Datasets.ae.load_name 		= "model_cache/autoencoder/NiceAutoEncoder_h[8]_30K_examples" #if local: path from the root folder, if S3: path after bucket name
+
 
 # SIMULATOR CACHE:
 config_Datasets.sim = config.config_NeuralPlayer.config_Datasets.sim
@@ -135,7 +139,6 @@ config_Preprocessing.shrink_size        = (120, 120) # * This does not remove th
 config_Preprocessing.output_size        = (config_Preprocessing.stack_size, *config_Preprocessing.shrink_size) #*  C * H * W CHANNELS FIRST
 
 config_Preprocessing.use_AutoEncoder	= True ## TODO: implement option to turn it off
-config_Preprocessing.load_AutoEncoder	= True
 
 
 # -----------------------------------------------------------------

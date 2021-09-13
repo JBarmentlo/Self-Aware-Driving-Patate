@@ -25,16 +25,12 @@ class Preprocessing():
 		self.AutoEncoder = self._init_AutoEncoder()
 
 	def _init_AutoEncoder(self):
-		# my_S3 = None
-		# conf_data = self.config.config_AutoEncoder.config_AE_Datasets
-		# if conf_data.S3_connection == True:
-			# my_S3 = S3(conf_data.config_S3)
 		mc = ModelCache(self.S3)
 		ae = NiceAutoEncoder(self.config.config_AutoEncoder, mc)
-		if self.config.load_AutoEncoder:
+		if self.config.data.load_model == True:
 			ae.load()
 		else:
-			my_SimCache = SimCache(conf_data, my_S3)
+			my_SimCache = SimCache(self.config.data, self.S3)
 			AutoEncoderTrainer(ae,
 					self.config.config_AutoEncoder,
 					plot=True,
