@@ -67,7 +67,6 @@ class S3:
         
     
     def get_folder_files(self, prefix):
-        print(prefix)
         list_files = []
         bucket = self.resource.Bucket(self.bucket_name)
         for object_summary in bucket.objects.filter(Prefix=prefix):

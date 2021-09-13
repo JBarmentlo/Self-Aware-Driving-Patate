@@ -76,7 +76,7 @@ class NeuralPlayer():
     
     
     def add_simcache_point(self, datapoint):
-        if self.SimCache.datapoints_counter + 1 > self.conf_data.size_SimCache:
+        if self.SimCache.datapoints_counter + 1 > self.config.config_Datasets.sim.size:
             self.SimCache.upload(self.config.config_Datasets.sim.save_name)
         self.SimCache.add_point(datapoint)
             
@@ -87,6 +87,7 @@ class NeuralPlayer():
         while self.SimCache.loading_counter < self.SimCache.nb_files_to_load:
             path = self.SimCache.list_files[self.SimCache.loading_counter]
             self.SimCache.load(path)
+            print(path)
             
             for datapoint in self.SimCache.data:
                 state, action, new_state, reward, done, infos = datapoint
@@ -130,7 +131,6 @@ class NeuralPlayer():
         Logger.info(f"Doing {episodes} races.")
         for e in range(1, episodes + 1):
             Logger.info(f"\nepisode {e}/{episodes}")
-            print(f"memory size = {len(self.agent.memory)}")
             self.RO.new_race_init(e)
             
             self.simulator = utils.fix_cte(self.simulator)
@@ -170,6 +170,6 @@ class NeuralPlayer():
         
         
         if self.config.config_Datasets.sim.save == True:
-            self.agent.SimCache.upload(self.config.config_Datasets.sim.save_name)
+            self.SimCache.upload(f"{self.config.config_Datasets.sim.save_name}{e}")
         self.env.reset()
         return

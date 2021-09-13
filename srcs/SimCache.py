@@ -54,8 +54,10 @@ class SimCache():
     def upload(self, path):
         if self.S3 != None:
             self._S3_upload(self.data, path)
+            Logger.info(f"simcache data uploaded to S3 in : {path}")
         else:
             self._local_upload(self.data, path)
+            Logger.info(f"simcache data uploaded locally in : {path}")
         self.upload_counter += 1
         self._reset()
     
@@ -75,7 +77,9 @@ class SimCache():
     def load(self, path):
         if self.S3 != None:
             self.data = self._S3_load(path)
+            Logger.info(f"simcache data loaded from S3 path : {path}")
         else:
             self.data = self._local_load(path)
+            Logger.info(f"simcache data loaded from local path : {path}")
         self.loading_counter += 1
         return (self.data)

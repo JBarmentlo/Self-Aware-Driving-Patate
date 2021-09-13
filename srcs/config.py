@@ -110,7 +110,7 @@ config_Datasets.ddqn.saving_frequency   = 0
 # SIMULATOR CACHE:
 config_Datasets.sim = config.config_NeuralPlayer.config_Datasets.sim
 config_Datasets.sim.load_name   = "simulator_cache/*"
-config_Datasets.sim.save      = False
+config_Datasets.sim.save      = True
 if config_Datasets.sim.save == True:
     config_Datasets.sim.save_name  = f"simulator_cache/{config_NeuralPlayer.agent_name}_sim_{date}."
 config_Datasets.sim.size     = 3000
