@@ -93,7 +93,7 @@ config_NeuralPlayer.replay_memory_batches    = 3
 
 config_Datasets = config.config_NeuralPlayer.config_Datasets
 
-config_Datasets.S3_connection      = True
+config_Datasets.S3_connection      = False
 if config_Datasets.S3_connection == True:
     config_Datasets.S3_bucket_name = 'deyopotato'
 
@@ -212,3 +212,11 @@ if (agent_type == "DQN"):
     config_Memory = config.config_NeuralPlayer.config_Agent.config_Memory
 
     config_Memory.capacity = config_Agent.memory_size
+
+
+# -----------------------------------------------------------------
+# Distibuted
+# -----------------------------------------------------------------
+
+config.WORKER_NAME = "worker{}"
+config.CENTRAL_NAME = "central_agent{}"

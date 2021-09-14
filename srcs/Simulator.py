@@ -33,6 +33,9 @@ class Simulator:
 			self.env = gym.make(self.env_name, conf=self.config)
 			
 
+	def release_simulator(self):
+		self.client.release_sim(self.port)
+
 
 	def kill_simulator(self):
 		self.env.close()

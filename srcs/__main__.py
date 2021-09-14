@@ -6,6 +6,49 @@ from NeuralPlayer import NeuralPlayer
 
 from config import config
 
+
+import os
+from itertools import count
+
+import torch.multiprocessing as mp
+import torch.distributed.rpc as rpc
+
+from MasterPlayer import MasterPlayer
+from DistributedPlayer import DistributedPlayer
+import time
+
+AGENT_NAME = "agent"
+OBSERVER_NAME="worker{}"
+
+def run_worker(rank, world_size):
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '29500'
+    if rank == 0:
+        # rank0 is the agent
+        rpc.init_rpc(AGENT_NAME, rank=rank, world_size=world_size)
+
+        agent = MasterPlayer(config, world_size)
+
+        for i_episode in range(2):
+            agent.run_remote_episode()
+
+        for woker_rref in agent.worker_rrefs:
+            woker_rref.rpc_sync().release_sim()
+    else:
+        # other ranks are the observer
+        print("PRE ININT \n\n")
+
+        rpc.init_rpc(OBSERVER_NAME.format(rank), rank=rank, world_size=world_size)
+        print("POST ININT \n\n")
+        
+    # block until all rpcs finish, and shutdown the RPC instance
+    rpc.shutdown()
+
+
+
+
+
+
 def parse_arguments():
     env_list = [
         "donkey-warehouse-v0",
@@ -44,11 +87,10 @@ def parse_arguments():
     return (args)
 
 if __name__ == "__main__":
-    args = parse_arguments()
-    simulator = Simulator(config.config_Simulator, args.env_name)
-    try:
-        neural = NeuralPlayer(config.config_NeuralPlayer, env = simulator.env, simulator=simulator)
-        neural.do_races(neural.config.episodes)
-    finally:
-        simulator.client.release_sim()
+    mp.spawn(
+        run_worker,
+        args=(10, ),
+        nprocs=10,
+        join=True
+    )
         # simulator.env.unwrapped.close()

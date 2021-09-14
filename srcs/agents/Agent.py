@@ -39,7 +39,7 @@ class  DQNAgent():
         self.target_model.load_state_dict(self.model.state_dict())
         self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
         self.criterion = nn.MSELoss()
-        self.update_target_model_counter = 0
+        self.update_target_model_counter = 1
 
 
     def action_from_q_values(self, qs):
@@ -88,7 +88,6 @@ class  DQNAgent():
         loss.backward()
         self.optimizer.step()
         self.model.eval()
-
     
 
     def replay_memory(self):
@@ -125,7 +124,12 @@ class  DQNAgent():
 
             if (self.update_target_model_counter % self.config.target_model_update_frequency == 0):
                 self._update_target_model()
+                self.update_target_model_counter = 1
             
+
+    def add_to_memory(self, preprocessed_old_state, action, preprocessed_new_state, reward, done):
+        self.memory.add(preprocessed_old_state, action, preprocessed_new_state, reward, done)
+
 
     def train(self):
         pass
