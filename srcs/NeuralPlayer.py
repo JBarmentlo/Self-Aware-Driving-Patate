@@ -246,5 +246,5 @@ class NeuralPlayer():
 	def do_races(self, episodes):
 		if self.config.agent_name == "SAC":
 			self.do_races_sac(episodes)
-		elif self.config.agent_name == "DDQN":
+		elif self.config.agent_name == "DQN":
 			self.do_races_ddqn(episodes)
