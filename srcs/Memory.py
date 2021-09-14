@@ -1,3 +1,6 @@
+import random
+import numpy as np
+from torch.utils.data import Dataset
 from collections import deque
 
 class Memory():
@@ -28,11 +31,34 @@ class Memory():
 
 	def __getitem__(self, i):
 		return self.data[i]
-		
 
-import random
-import numpy as np
-from torch.utils.data import Dataset
+class AutoEncoderDataset(Dataset):
+	def __init__(self):
+		self.data = []
+
+	def add(self, data):
+		self.data.append(data)
+
+	def __len__(self):
+		return len(self.data)
+
+	def __getitem__(self, i):
+		return self.data[i]
+
+
+class SACDataset(Dataset):
+	def __init__(self):
+		self.data = []
+
+	def add(self, processed_state, action, new_processed_state, reward, done):
+		data = [processed_state, action, new_processed_state, reward, done]
+		self.data.append(data)
+
+	def __len__(self):
+		return len(self.data)
+
+	def __getitem__(self, i):
+		return self.data[i]
 
 class DqnMemory(Dataset):
 	def __init__(self, config):
