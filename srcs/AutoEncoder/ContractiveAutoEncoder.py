@@ -16,16 +16,16 @@ class ContractiveAutoEncoderModel(nn.Module):
 
 		# self.fc1 = nn.Linear(784, 400, bias=False)  # Encoder
 		self.fc1 = nn.Sequential(
-                    nn.Conv2d(3, 6, kernel_size=5),
-                    nn.ReLU(True),
-                    nn.Conv2d(6, 16, kernel_size=5),
-                    nn.ReLU(True))
+					nn.Conv2d(3, 6, kernel_size=5),
+					nn.ReLU(True),
+					nn.Conv2d(6, 16, kernel_size=5),
+					nn.ReLU(True))
 		# self.fc2 = nn.Linear(400, 784, bias=False)  # Decoder
 		self.fc2 = nn.Sequential(
-                    nn.ConvTranspose2d(16, 6, kernel_size=5),
-                    nn.ReLU(True),
-                    nn.ConvTranspose2d(6, 3, kernel_size=5),
-                    nn.ReLU(True))
+					nn.ConvTranspose2d(16, 6, kernel_size=5),
+					nn.ReLU(True),
+					nn.ConvTranspose2d(6, 3, kernel_size=5),
+					nn.ReLU(True))
 
 		self.relu = nn.ReLU()
 		self.sigmoid = nn.Sigmoid()

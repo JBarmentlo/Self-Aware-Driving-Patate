@@ -27,7 +27,7 @@ class SimCache():
                 liste = os.listdir(folder)
                 self.list_files = [folder + name for name in liste]
         self.nb_files_to_load = len(self.list_files)
-
+        
 
     def _reset(self):
         self.datapoints_counter	= 0
@@ -37,20 +37,20 @@ class SimCache():
     def add_point(self, point):
         self.data.append(point)
         self.datapoints_counter += 1
-    
-    
+
+
     def _S3_upload(self, data, path):
         buffer = io.BytesIO()
         pickle.dump(data, buffer)
         buffer.seek(0)
         self.S3.upload_bytes(buffer, path)
-    
-    
+
+
     def _local_upload(self, data, path):
         with open(path, "wb") as f:    
             pickle.dump(data, f)
 
-
+            
     def upload(self, path):
         if self.S3 != None:
             self._S3_upload(self.data, path)
@@ -60,18 +60,19 @@ class SimCache():
             Logger.info(f"simcache data uploaded locally in : {path}")
         self.upload_counter += 1
         self._reset()
-    
-    
+
+
     def _S3_load(self, path):
         bytes_obj = self.S3.get_bytes(path)
         data = pickle.loads(bytes_obj)
         return (data)
 
-    
+
     def _local_load(self, path):
         with open(path, "rb") as f:
             data = pickle.load(f)
         return (data)
+        
 
 
     def load(self, path):
