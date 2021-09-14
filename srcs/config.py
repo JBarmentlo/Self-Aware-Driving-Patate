@@ -93,7 +93,7 @@ config_NeuralPlayer.replay_memory_batches    = 3
 
 config_Datasets = config.config_NeuralPlayer.config_Datasets
 
-config_Datasets.S3_connection      = True
+config_Datasets.S3_connection      = False
 if config_Datasets.S3_connection == True:
     config_Datasets.S3_bucket_name = 'deyopotato'
 
@@ -170,15 +170,15 @@ if (agent_type == "DQN"):
     config_Agent.data               = config_NeuralPlayer.config_Datasets.ddqn
     config_Agent.action_space_size  = (11, 3)
     config_Agent.discount           = 0.99
-    config_Agent.lr                 = 1e-4
+    config_Agent.lr                 = 5e-4
     config_Agent.initial_epsilon    = 0.9
     config_Agent.epsilon            = config_Agent.initial_epsilon
     config_Agent.epsilon_decay      = 0.9
     config_Agent.epsilon_min        = 0.02
     config_Agent.steps_to_eps_min   = 5000
-    config_Agent.batch_size         = 2
+    config_Agent.batch_size         = 256
     config_Agent.batches_number     = 10
-    config_Agent.min_memory_size    = 258
+    config_Agent.min_memory_size    = 256
     config_Agent.memory_size        = 1000
     config_Agent.num_workers        = 0 # set it to 0 if your computer can't handle multiprocessing
     
