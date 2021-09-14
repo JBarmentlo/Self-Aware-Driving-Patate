@@ -23,13 +23,13 @@ from Simulator import Simulator
 from config import config
 
 class DistributedPlayer():
-	def __init__(self):
+	def __init__(self, data):
 		self.config = config.config_NeuralPlayer
 		self.agent =  None
 		self.preprocessor = None
 		self.simulator = Simulator(config.config_Simulator, "donkey-generated-roads-v0")
 		self.simulator = utils.fix_cte(self.simulator)
-
+		print("DATA", data)
 		self.env = self.simulator.env
 		self._init_preprocessor(self.config.config_Preprocessing)
 		self._init_reward_optimizer(self.config)

@@ -39,8 +39,9 @@ class SimHandler():
         print("Finding sim")
         print("sims", self.sims)
         for port in self.sims.keys():
-            print(port, self.sims[port].is_in_use)
+            print(port, "in use: ", self.sims[port].is_in_use)
             if (self.sims[port].is_in_use == False):
+                self.sims[port].is_in_use = True
                 return port
         else:
             return self.start_new_sim()
@@ -120,6 +121,7 @@ class SimHandler():
         for port in dead_sims:
             SimHandlerLogger.error(f"Dead sim processes (not killed by us):  {dead_sims}")
             self.sims.pop(port)
+            self.porthandler.status[port] = True
 
 
     def ping_sim(self, port):

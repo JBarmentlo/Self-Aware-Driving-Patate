@@ -40,8 +40,9 @@ class MasterPlayer():
 			print("in")
 			worker_info = rpc.get_worker_info(f"worker{worker_rank}")
 			print("mid")
-
-			self.worker_rrefs.append(remote(worker_info, DistributedPlayer, timeout=600))
+			print(type(config))
+			print(type(dict(config)))
+			self.worker_rrefs.append(remote(worker_info, DistributedPlayer, args = (config, ), timeout=600))
 			print("OUT")
 		# self._save_config()
 
@@ -69,7 +70,7 @@ class MasterPlayer():
 
 
 
-	def run_remote_episode(self, num_frames = 100):
+	def run_remote_episode(self, num_frames = 10):
 		futures = []
 		for worker_rref in self.worker_rrefs:
 			futures.append(

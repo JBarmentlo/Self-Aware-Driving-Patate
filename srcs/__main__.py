@@ -89,8 +89,8 @@ def parse_arguments():
 if __name__ == "__main__":
     mp.spawn(
         run_worker,
-        args=(10, ),
-        nprocs=10,
+        args=(3, ),
+        nprocs=3,
         join=True
     )
         # simulator.env.unwrapped.close()
