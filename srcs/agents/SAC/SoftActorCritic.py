@@ -1,104 +1,104 @@
 import torch
 from .Policy import Policy
 from .Qfunction import Qfunction
+from torch import optim
 
 
 class SoftActorCritic():
 	"""
 	Inspiration from: https://spinningup.openai.com/en/latest/algorithms/sac.html
 	"""
-	def __init__(self):
-		self.learning_rate = 1e-3
+	def __init__(self, config):
+		self.config = config
+		self.lr = config.lr
 
-		self.policy = Policy()
+		self.policy = Policy(config.policy)
 
-		self.phi_1 = Qfunction()
-		self.phi_2 = Qfunction()
+		self.phi_1 = Qfunction(config.Qfunction)
+		self.phi_2 = Qfunction(config.Qfunction)
 
-		self.discount_factor = 0.9
-		self.batch_size = 32
+		self.discount_factor = config.discount_factor
+		self.batch_size = config.batch_size
+
+		self.update_step = 0
+		self.delay_step = config.train_delay_step
+
+	def _scale_action(self, a_t):
+		throttle = 1
+		steering = 0
+
+		a_t[...,steering] = torch.tanh   (a_t[...,steering])
+		a_t[...,throttle] = torch.sigmoid(a_t[...,throttle])
+
+		a_t[...,throttle] = torch.max(a_t[...,throttle], torch.ones(a_t.shape)[...,throttle] * .25)
+		return a_t
+
+	def _unscale_action(self, a_t):
+		throttle = 1
+		steering = 0
+
+		a_t[...,steering] = torch.arctanh(a_t[...,steering])
+		a_t[...,throttle] = torch.logit  (a_t[...,throttle])
+		return a_t
 
 	def get_action(self, s_t):
-		gaussians = self.policy.model(s_t)
-		# print(f"{gaussians = }")
-		throttle, steering = self.policy.draw_actions(*gaussians)
-		actions = [	float(throttle.cpu().detach()),
-					float(steering.cpu().detach())]
-		return actions
+		_, _, action, _ = self.policy.model.sample(s_t)
+		action = action.detach().cpu()
+		action = self._scale_action(action)
+		return action
 
-	def phi_min(self, state, action):
-		phi_1 = self.phi_1.model(state, action) 
-		phi_2 = self.phi_2.model(state, action)
-		phi = torch.min(phi_1, phi_2)
-		return phi
+	def _min_QValue(self, state, action):
+		minQvalues = torch.min(
+				self.phi_1.model(state, action),
+				self.phi_2.model(state, action)
+		)
+		return minQvalues
 
-	def compute_targets(self, s_t1, r, done):
-		gaussians = self.policy.model(s_t1)
-		action = self.policy.draw_actions(*gaussians)
-		probability = self.policy.policy_probability(gaussians, action)
+	def _compute_targets(self, s_t1, r, done):
+		_, _, action, log_pi = self.policy.model.sample(s_t1)
 
-		action = torch.cat((action[0], action[1]), dim=1)
-		Qvalue = self.phi_min(s_t1, action)
+		Qvalues = self._min_QValue(s_t1, action)
 
+		alpha = self.policy.alpha
 		df = self.discount_factor
-		lr = self.learning_rate
 
-		targets = r + df * (1 - done) * (Qvalue - lr * torch.log(probability))
+		next_Qvalues = (Qvalues - alpha * log_pi)
+		next_Qvalues = (1 - done) * next_Qvalues
+		targets = r + df * next_Qvalues
+		
+		Qvalues = targets.detach().type(torch.float32)
 
-		return targets
-
-	def policy_update(self, state_t):
-
-		gaussians = self.policy.model(state_t)
-		action_t = self.policy(*gaussians)
-		probability = self.policy.policy_probability(gaussians, action_t)
-
-		action_t = torch.cat((action_t[0], action_t[1]), dim=1)
-		Qvalue = self.phi_min(state_t, action_t)
-
-		lr = self.learning_rate
-
-		loss = (Qvalue - lr * torch.log(probability))
+		return Qvalues
 
 
 	def train(self, dataset):
-		print(f"{len(dataset) = }")
 		if len(dataset) < self.batch_size:
 			return False
-		mini_batchs = torch.utils.data.DataLoader(dataset, batch_size=self.batch_size)
-		i = 0 
+		print(f"Train {len(dataset)}")
+		mini_batchs = torch.utils.data.DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
 		torch.autograd.set_detect_anomaly(True)
 		for state_t, action_t, state_t1, reward_t, done in mini_batchs:
-			print(f"STARTING BATCH {i}")
-			# print(f"{state_t.shape = }")
-			# print(f"{state_t1.shape = }")
-			# print(f"{action_t.shape = }")
+			#Reshape
+			done = done.view((done.shape[0], -1))
+			reward_t = reward_t.view((reward_t.shape[0], -1))
+			action_t = self._unscale_action(action_t)
 			# line 12
-			# targets_1 = self.compute_targets(state_t1.clone().detach(), reward_t.clone().detach(), done.clone().detach()).type(torch.float32)
-			# targets_2 = self.compute_targets(state_t1.clone().detach(), reward_t.clone().detach(), done.clone().detach()).type(torch.float32)
-			targets = self.compute_targets(state_t1, reward_t, done).type(torch.float32)
+			expected_Qvalues = self._compute_targets(state_t1, reward_t, done)
 
-			# print(f"{state_t.dtype}")
-			# print(f"{action_t.dtype}")
-			# print(f"{targets_1.dtype}")
-			targets_1 = targets.clone().detach()
-			targets_2 = targets.clone().detach()
-			state_t_1 = state_t.clone().detach()
-			state_t_2 = state_t.clone().detach()
-			action_t_1 = action_t.clone().detach()
-			action_t_2 = action_t.clone().detach()
 			# line 13
-			self.phi_1.train(state_t_1, action_t_1, targets_1)
-			self.phi_2.train(state_t_2, action_t_2, targets_2)
+			self.phi_1.train(state_t, action_t, expected_Qvalues.detach())
+			self.phi_2.train(state_t, action_t, expected_Qvalues.detach())
 
-			# line 14
-			self.policy.train(state_t, self.phi_min)
+			if self.update_step % self.delay_step == 0:
+				# line 14
+				self.policy.train(state_t, self._min_QValue)
+				# line 15
+				self.phi_1.soft_update()
+				self.phi_2.soft_update()
 
-			# line 15
-			self.phi_1.soft_update()
-			self.phi_2.soft_update()
+			self.policy.update_temperature(state_t)
 
-			i += 1
+		self.update_step += 1
 
 		return True
 

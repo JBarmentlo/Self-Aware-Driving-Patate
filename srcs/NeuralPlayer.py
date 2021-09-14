@@ -13,6 +13,7 @@ import utils
 from agents.SAC import SoftActorCritic
 
 from Memory import SACDataset
+from agents.config import config as agent_config
 
 Logger = logging.getLogger("NeuralPlayer")
 Logger.setLevel(logging.INFO)
@@ -43,7 +44,7 @@ class NeuralPlayer():
 
 	def _init_agent(self, config_Agent):
 		if self.sac:
-			self.agent = SoftActorCritic()
+			self.agent = SoftActorCritic(agent_config)
 		else:
 			self.agent = DQNAgent(config=config_Agent)
 
@@ -171,6 +172,7 @@ class NeuralPlayer():
 	def do_races_sac(self, episodes):
 		memory = SACDataset()
 		print(f"Doing {episodes} races.")
+		scores = []
 		for e in range(1, episodes + 1):
 			print(f"\nepisode {e}/{episodes}")
 			# print(f"memory size = {len(self.agent.memory)}")
@@ -186,8 +188,9 @@ class NeuralPlayer():
 			iteration = 0
 			while (not done):
 
-				action = self.agent.get_action(processed_state)
-				# print(f"action: {action}")
+				action = self.agent.get_action(processed_state)[0].numpy()
+				# print(f"True {action = }")
+				# print(f"action: st {int(action[0] * 100)/100:7.2} th {(action[1] * 100)/100:7.2}")
 				new_state, reward, done, infos = self.env.step(action)
 				# self.agent.add_simcache_point([state, action, new_state, reward, done, infos])
 				new_processed_state = self.preprocessor.process(new_state)
@@ -209,11 +212,15 @@ class NeuralPlayer():
 				iteration += 1
 			
 			self.add_score(iteration)
+			print(f"Episode len: {self.scores[-1]}")
 
 			if (e % self.config.replay_memory_freq == 0):
+
 				print("Training")
+				# scores.append(len(memory))
 				if self.agent.train(memory):
 					memory = SACDataset()
+				print(self.scores)
 		
 		self.env.reset()
 		return

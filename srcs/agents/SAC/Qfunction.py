@@ -1,82 +1,62 @@
 import torch
-from torch import nn
 from torch import optim
+from torch import nn
 import torch.nn.functional as F
-
-class FlattenState(nn.Module):
-	def __init__(self, input_channels):
-		super(FlattenState, self).__init__()
-		self.conv0 = nn.Conv1d(input_channels, 4, kernel_size=1, stride=1, padding=0)
-		self.conv1 = nn.Conv1d(4, 2, kernel_size=1, stride=1, padding=0)
-		self.conv2 = nn.Conv1d(2, 1, kernel_size=1, stride=1, padding=0)
-
-		self.flatten = nn.Flatten()
-
-	def forward(self, x):
-		# x = x.to(device)
-		x = F.relu(self.conv0(x))
-		x = F.relu(self.conv1(x))
-		x = F.relu(self.conv2(x))
-		x = self.flatten(x)
-		return x
-
+from .Network import FlattenState, LinearDense
 
 class QfunctionModel(nn.Module):
-	def __init__(self, input_shape = [4, 8]):
+	def __init__(self, config):
 		super(QfunctionModel, self).__init__()
-		# Vector (4, 8)
-		in_channels = input_shape[0]
-		nb_features = input_shape[1] + 2
+		self.config = config
+		if len(self.config.state_shape) == 2:
+			in_channels = config.state_shape[0]
+			nb_features = config.state_shape[1] + config.num_actions
+			self.FlatState = FlattenState(in_channels)
+			end_units = 128
 
-		self.FlatState = FlattenState(in_channels)
-		
-		self.dense1 = nn.Linear(nb_features, 16)
-		self.dense2 = nn.Linear(16, 32)
-		self.dense3 = nn.Linear(32, 32)
-		self.dense4 = nn.Linear(32, 32)
-		self.dense5 = nn.Linear(32, 1)
+		elif len(self.config.state_shape) == 1:
+			nb_features = config.state_shape[0] + config.num_actions
+			end_units = 128
+
+		self.LinearDense = LinearDense(nb_features, end_units, 1)
+		self.end = nn.Linear(end_units, config.num_actions)
+
+		self.end.weight.data.uniform_(-3e-3, 3e-3)
+		self.end.bias.data.uniform_(-3e-3, 3e-3)
 
 
 	def forward(self, state, action):
-		# state = state.to(device)
-		# action = action.to(device)
-
-		state = self.FlatState(state)
-
-		# print(f"{state.shape = }")
-		# print(f"{action = }")
-		# print(f"{action[0].shape = }")
-		# print(f"{action[1].shape = }")
-
-		# action = torch.cat((action[0], action[1]), dim=1)
-
-		# print(f"{action.shape = }")
-
+		if len(self.config.state_shape) == 2:
+			state = self.FlatState(state)
+		# print(f"Forward: {state.shape = }")
 		x = torch.cat((state, action), dim=1)
-
-		x = F.relu(self.dense1(x))
-		x = F.relu(self.dense2(x))
-		x = F.relu(self.dense3(x))
-		x = F.relu(self.dense4(x))
-		x = self.dense5(x)
-
+		x = self.LinearDense(x)
+		x = self.end(x)
 		return x
 
 
 class Qfunction():
-	def __init__(self, learning_rate=1e-3) -> None:
-		# Target model: is receiving training
-		# Local model: allows for prediction
+	def __init__(self, config) -> None:
+		self.config = config
 		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-		self.device = torch.device("cpu")
-		self.model = QfunctionModel().to(self.device)
-		self.target_model = QfunctionModel().to(self.device)
-		self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
+		# self.device = torch.device("cpu")
+		# * Models creation
+		# * Target model: is receiving training
+		# * Local model: allows for prediction
+		self.model = QfunctionModel(config).to(self.device)
+		print(self.model)
+		self.target_model = QfunctionModel(config).to(self.device)
+		# * Training tools
+		self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
 		self.criterion = nn.MSELoss()
+		# * Vars
 		self.loss = 0.
-		self.tau = 0.5
+		self.tau = config.tau
 
 	def train(self, states, actions, targets):
+		# print(f"Qfunc train")
+		# print(f"{states.shape = }")
+		# print(f"{actions.shape = }")
 		states = states.to(self.device)
 		actions = actions.to(self.device)
 		targets = targets.to(self.device)
