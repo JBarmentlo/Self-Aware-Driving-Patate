@@ -8,11 +8,39 @@ from agents.Agent import DQNAgent
 from Preprocessing import Preprocessing
 from Simulator import Simulator
 import utils
+from S3 import S3
+from SimCache import SimCache
 
 Logger = logging.getLogger("HumanPlayer")
 Logger.setLevel(logging.INFO)
 stream = logging.StreamHandler()
 Logger.addHandler(stream)
+
+class  HumanAgent():
+    def __init__(self, config):
+        self.config = config
+        self.conf_data, self.conf_s3 = config.config_Datasets, config.config_Datasets.config_S3
+        self._init_S3(self.conf_s3)
+        self.SimCache = SimCache(self.conf_data, self.S3)
+
+
+    def _init_S3(self, config):
+        self.S3 = None
+        if self.conf_data.S3_connection == True:
+            self.S3 = S3(config)
+    
+    
+    def add_simcache_point(self, datapoint):
+        if self.conf_data.save_SimCache == True:
+            if self.SimCache.datapoints_counter + 1 > self.conf_data.size_SimCache:
+                self.SimCache.upload()
+            self.SimCache.add_point(datapoint)
+
+
+    def get_action(self, state, episode = 0):
+        pass
+
+
 
 
 class HumanPlayer():

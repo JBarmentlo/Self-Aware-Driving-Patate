@@ -30,8 +30,8 @@ def parse_arguments():
 						help='constant throttle for driving')
 	parser.add_argument('--env_name', type=str, default="donkey-generated-roads-v0",
 						help='name of donkey sim environment', choices=env_list)
-	parser.add_argument('--agent', type=str, default="DDQN",
-						help='Choice of reinforcement Learning Agent (now determined by config file)', choices=["DDQN", "SAC"])
+	parser.add_argument('--agent', type=str, default="DQN",
+						help='Choice of reinforcement Learning Agent (now determined by config file)', choices=["DQN", "SAC"])
 	parser.add_argument('--no_sim', type=str, default=False,
 						help='agent uses stored database to train')
 	parser.add_argument('--save', action="store_true",
@@ -41,6 +41,7 @@ def parse_arguments():
 	parser.add_argument('--supervised', action="store_true",
 						help='Use Human Player instead of Neural Player')
 	args = parser.parse_args()
+	config.config_NeuralPlayer.agent_name = args.agent
 	return (args)
 
 if __name__ == "__main__":

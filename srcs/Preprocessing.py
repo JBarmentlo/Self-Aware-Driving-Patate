@@ -10,30 +10,28 @@ from SimCache import SimCache
 from ModelCache import ModelCache
 
 Logger = logging.getLogger("PreProc")
-Logger.setLevel(logging.WARNING)
+Logger.setLevel(logging.INFO)
 stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
 
 class Preprocessing():
-	def __init__(self, config):
+	def __init__(self, config, S3 = None):
 		self.config  		= config
 		self.history 		= [None for _ in range(config.frame_skip)]
 		self.skip_counter 	= -1
-
-		self.AutoEncoder = self._init_AutoEncoder()
+		self.S3 = S3
+		if self.config.use_AutoEncoder == True:
+			Logger.info("Initializing AutoEncoder")
+			self.AutoEncoder = self._init_AutoEncoder()
 
 	def _init_AutoEncoder(self):
-		my_S3 = None
-		conf_data = self.config.config_AutoEncoder.config_AE_Datasets
-		if conf_data.S3_connection == True:
-			my_S3 = S3(conf_data.config_S3)
-		mc = ModelCache(conf_data, conf_data.config_S3, my_S3)
+		mc = ModelCache(self.S3)
 		ae = NiceAutoEncoder(self.config.config_AutoEncoder, mc)
-		if self.config.load_AutoEncoder:
+		if self.config.config_AutoEncoder.data.load_model == True:
 			ae.load()
 		else:
-			my_SimCache = SimCache(conf_data, my_S3)
+			my_SimCache = SimCache(self.config.config_AutoEncoder.sim, self.S3)
 			AutoEncoderTrainer(ae,
 					self.config.config_AutoEncoder,
 					plot=True,
@@ -72,18 +70,19 @@ class Preprocessing():
 
 	def process(self, state: np.ndarray) -> torch.Tensor:
 		Logger.info(f"Processing.\nIn shape: {state.shape}")
-		# print(f"Prep IN {state.shape = }")
-		# state = self.gray(state)
-		# state = self.resize(state, self.config.shrink_size)
-		# state = self.stack(state)
-		state = self.before_AutoEncoder(state, training=False)
-		state = self.AutoEncoder.encode(state)
-		state = self.after_AutoEncoder(state)
+		if self.config.use_AutoEncoder == True:
+			state = self.before_AutoEncoder(state, training=False)
+			state = self.AutoEncoder.encode(state)
+			state = self.after_AutoEncoder(state)
+		else:
+			state = self.gray(state)
+			state = self.resize(state, self.config.shrink_size)
+			state = torch.from_numpy(state)
+			state = self.stack(state)
 
 		state = state.cpu().detach()#.numpy()
 		
-		# print(f"Prep OUT {state.shape = }") 
-		Logger.debug(f"Out shape: {state.shape}")
+		Logger.info(f"Out shape: {state.shape}")
 		return state
 
 	def resize(self, state, output_shape):

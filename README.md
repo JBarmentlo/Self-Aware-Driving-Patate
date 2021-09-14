@@ -70,12 +70,12 @@ export PS="wesh" ; export SIM_PATH="/Users/deyaberger/projects/DonkeySimMac/donk
 ```
 
 # Data
-Two elements can be saved locally or on S3:</br>
+Three elements can be saved locally or on S3: </br></br>Model weights, config info, simulator cache</br></br>
 To save and load everything from S3, please activate this variable in config:
 ```
 config_Datasets.S3_connection = True
 ```
-</br>
+</br> The config information will be automatically saved if Model weights saving is activated (saved in the same folder as model weights)
 
 ## 1 - Model Weights:
 </br>

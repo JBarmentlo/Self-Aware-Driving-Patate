@@ -11,65 +11,76 @@ stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
 class SimCache():
-	def __init__(self, config, S3 = None):
-		self.config				= config
-		self.data				= []
-		self.datapoints_counter	= 0
-		self.upload_counter		= 0
-		self.S3					= S3
-		if self.config.S3_connection == True:
-			self.folder = self.S3.config.simulator_folder
-		else:
-			self.folder = self.config.local_sim_folder
+    def __init__(self, config, S3 = None):
+        self.config				= config
+        self.data				= []
+        self.datapoints_counter	= 0
+        self.upload_counter		= 0
+        self.loading_counter	= 0
+        self.S3					= S3
+        self.list_files = [f"{self.config.load_name}"]
+        if self.config.load_name.endswith("/*"):
+            folder = self.config.load_name[0:-1]
+            if S3 != None:
+                self.list_files = self.S3.get_folder_files(folder)
+            else:
+                liste = os.listdir(folder)
+                self.list_files = [folder + name for name in liste]
+        self.nb_files_to_load = len(self.list_files)
+        
 
-		self.loading_counter	= 0
-		self.list_files = [f"{self.config.sim_to_load}"]
-		if self.config.sim_from_folder == True:
-			if self.config.S3_connection == True:
-				self.list_files = self.S3.get_folder_files(f"{self.folder}")
-			else:
-				if not os.path.exists(self.folder):
-					os.makedirs(self.folder)
-				self.list_files = os.listdir(f"{self.folder}")
-		self.nb_files_to_load = len(self.list_files)
-
-
-	def _reset(self):
-		self.datapoints_counter	= 0
-		self.data = []
+    def _reset(self):
+        self.datapoints_counter	= 0
+        self.data = []
 
 
-	def add_point(self, point):
-		self.data.append(point)
-		self.datapoints_counter += 1
+    def add_point(self, point):
+        self.data.append(point)
+        self.datapoints_counter += 1
 
 
-	def upload(self, file_path = None):
-		if file_path == None:
-			file_path = f"{self.folder}{self.config.sim_infos_name}{self.upload_counter}"
-		if self.config.S3_connection == True:
-			buffer = io.BytesIO()
-			pickle.dump(self.data, buffer)
-			buffer.seek(0)
-			ret = self.S3.upload_bytes(buffer, file_path)
-		else:
-			with open(file_path, "wb") as f:
-				pickle.dump(self.data, f)
-			Logger.info(f"Simulator Cache saved locally in file: {file_path}")
-		self.upload_counter += 1
-		self._reset()
+    def _S3_upload(self, data, path):
+        buffer = io.BytesIO()
+        pickle.dump(data, buffer)
+        buffer.seek(0)
+        self.S3.upload_bytes(buffer, path)
 
 
-	def load(self, path):
-		if self.config.S3_connection == True:
-			bytes_obj = self.S3.get_bytes(path)
-			self.data = pickle.loads(bytes_obj)
-		else:
-			with open(path, "rb") as f:
-				self.data = pickle.load(f)
-			Logger.info(f"Loading data from file: {path}")
-		self.loading_counter += 1
+    def _local_upload(self, data, path):
+        with open(path, "wb") as f:    
+            pickle.dump(data, f)
+
+            
+    def upload(self, path):
+        if self.S3 != None:
+            self._S3_upload(self.data, path)
+            Logger.info(f"simcache data uploaded to S3 in : {path}")
+        else:
+            self._local_upload(self.data, path)
+            Logger.info(f"simcache data uploaded locally in : {path}")
+        self.upload_counter += 1
+        self._reset()
 
 
-	def make_processed_memory(self):
-		pass
+    def _S3_load(self, path):
+        bytes_obj = self.S3.get_bytes(path)
+        data = pickle.loads(bytes_obj)
+        return (data)
+
+
+    def _local_load(self, path):
+        with open(path, "rb") as f:
+            data = pickle.load(f)
+        return (data)
+        
+
+
+    def load(self, path):
+        if self.S3 != None:
+            self.data = self._S3_load(path)
+            Logger.info(f"simcache data loaded from S3 path : {path}")
+        else:
+            self.data = self._local_load(path)
+            Logger.info(f"simcache data loaded from local path : {path}")
+        self.loading_counter += 1
+        return (self.data)
