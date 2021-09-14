@@ -2,6 +2,8 @@ import numpy as np
 from utils import get_path_to_cache
 import uuid
 from datetime import datetime
+import pickle as pkl
+
 
 date = f"{datetime.now().day}_{datetime.now().month}.{datetime.now().hour}_{datetime.now().minute}"
 
@@ -17,6 +19,12 @@ class DotDict(dict):
     __getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
+
+    def __getstate__(self):
+        return self
+
+    def __setstate__(self, data):
+        self = data
 
 # TODO: Ask for automated find if os.environ["SIM_PATH"] doasnt exist (needed by server)
 

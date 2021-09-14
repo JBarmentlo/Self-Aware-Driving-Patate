@@ -30,7 +30,7 @@ def run_worker(rank, world_size):
         agent = MasterPlayer(config, world_size)
 
         for i_episode in range(2):
-            agent.run_remote_episode()
+            agent.run_remote_episode(100)
 
         for woker_rref in agent.worker_rrefs:
             woker_rref.rpc_sync().release_sim()
@@ -89,8 +89,8 @@ def parse_arguments():
 if __name__ == "__main__":
     mp.spawn(
         run_worker,
-        args=(3, ),
-        nprocs=3,
+        args=(10, ),
+        nprocs=10,
         join=True
     )
         # simulator.env.unwrapped.close()

@@ -20,16 +20,16 @@ stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
 from Simulator import Simulator
-from config import config
+from config import DotDict
 
 class DistributedPlayer():
-	def __init__(self, data):
+	def __init__(self, config, env_name = "donkey-generated-roads-v0"):
+		# config = DotDict(config)
 		self.config = config.config_NeuralPlayer
 		self.agent =  None
 		self.preprocessor = None
-		self.simulator = Simulator(config.config_Simulator, "donkey-generated-roads-v0")
+		self.simulator = Simulator(config.config_Simulator, env_name)  
 		self.simulator = utils.fix_cte(self.simulator)
-		print("DATA", data)
 		self.env = self.simulator.env
 		self._init_preprocessor(self.config.config_Preprocessing)
 		self._init_reward_optimizer(self.config)
@@ -67,6 +67,7 @@ class DistributedPlayer():
 
 
 	def release_sim(self):
+		self.env.close()
 		self.simulator.release_simulator()
 
 

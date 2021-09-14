@@ -18,6 +18,7 @@ from torch.distributed.rpc import RRef, rpc_async, remote
 from DistributedPlayer import DistributedPlayer
 from Simulator import Simulator
 
+from config import DotDict
 
 Logger = logging.getLogger("NeuralPlayer")
 Logger.setLevel(logging.INFO)
@@ -40,8 +41,6 @@ class MasterPlayer():
 			print("in")
 			worker_info = rpc.get_worker_info(f"worker{worker_rank}")
 			print("mid")
-			print(type(config))
-			print(type(dict(config)))
 			self.worker_rrefs.append(remote(worker_info, DistributedPlayer, args = (config, ), timeout=600))
 			print("OUT")
 		# self._save_config()

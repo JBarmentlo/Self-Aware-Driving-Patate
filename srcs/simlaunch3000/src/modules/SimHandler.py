@@ -36,7 +36,7 @@ class SimHandler():
 
 
     def get_sim(self):
-        print("Finding sim")
+        print("Looking for released sim")
         print("sims", self.sims)
         for port in self.sims.keys():
             print(port, "in use: ", self.sims[port].is_in_use)
