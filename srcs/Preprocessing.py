@@ -10,7 +10,7 @@ from SimCache import SimCache
 from ModelCache import ModelCache
 
 Logger = logging.getLogger("PreProc")
-Logger.setLevel(logging.WARNING)
+Logger.setLevel(logging.INFO)
 stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
@@ -21,8 +21,9 @@ class Preprocessing():
 		self.history 		= [None for _ in range(config.frame_skip)]
 		self.skip_counter 	= -1
 		self.S3 = S3
-
-		self.AutoEncoder = self._init_AutoEncoder()
+		if self.config.use_AutoEncoder == True:
+			Logger.info("Initializing AutoEncoder")
+			self.AutoEncoder = self._init_AutoEncoder()
 
 	def _init_AutoEncoder(self):
 		mc = ModelCache(self.S3)
@@ -69,17 +70,18 @@ class Preprocessing():
 
 	def process(self, state: np.ndarray) -> torch.Tensor:
 		Logger.info(f"Processing.\nIn shape: {state.shape}")
-		# print(f"Prep IN {state.shape = }")
-		# state = self.gray(state)
-		# state = self.resize(state, self.config.shrink_size)
-		# state = self.stack(state)
-		state = self.before_AutoEncoder(state, training=False)
-		state = self.AutoEncoder.encode(state)
-		state = self.after_AutoEncoder(state)
+		if self.config.use_AutoEncoder == True:
+			state = self.before_AutoEncoder(state, training=False)
+			state = self.AutoEncoder.encode(state)
+			state = self.after_AutoEncoder(state)
+		else:
+			state = self.gray(state)
+			state = self.resize(state, self.config.shrink_size)
+			state = torch.from_numpy(state)
+			state = self.stack(state)
 
 		state = state.cpu().detach()#.numpy()
 		
-		# print(f"Prep OUT {state.shape = }") 
 		Logger.debug(f"Out shape: {state.shape}")
 		return state
 

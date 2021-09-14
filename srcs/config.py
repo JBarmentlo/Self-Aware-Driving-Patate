@@ -146,7 +146,7 @@ config_Preprocessing.frame_skip         = 2  # interval in frames between the st
 config_Preprocessing.shrink_size        = (120, 120) # * This does not remove the channels and generate a (60, 60) output. Channels are preserved :input (100, 100, 3) => (60, 60, 3)
 config_Preprocessing.output_size        = (config_Preprocessing.stack_size, *config_Preprocessing.shrink_size) #*  C * H * W CHANNELS FIRST
 
-config_Preprocessing.use_AutoEncoder	= True ## TODO: implement option to turn it off
+config_Preprocessing.use_AutoEncoder	= False ## TODO: implement option to turn it off
 
 
 # -----------------------------------------------------------------
@@ -221,6 +221,9 @@ if (agent_type == "DQN"):
 
 	if config_Preprocessing.use_AutoEncoder:
 		config_Agent.with_AutoEncoder = True
+	else:
+		config_Agent.with_AutoEncoder = False
+     
 
 			
 # -----------------------------------------------------------------
