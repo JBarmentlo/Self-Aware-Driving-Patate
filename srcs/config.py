@@ -80,7 +80,7 @@ config.config_Simulator.update({"exe_path": "manual",
 # Distributed Learning config
 # -----------------------------------------------------------------
 
-config.num_workers = 2          #* Number of simulators running during training
+config.num_workers = 5          #* Number of simulators running during training
 config.centralized_agent = True #* Wether to send a copy of the agent to every worker (not Implemented)
 
 
@@ -100,7 +100,7 @@ config_NeuralPlayer.cte_coef                 = 1000 # cte goes from -3.2 to 3.2 
 config_NeuralPlayer.speed_coef               = 200 # speed goes aprox from 0 to 10
 config_NeuralPlayer.reward_stick             = -1000
 config_NeuralPlayer.replay_memory_freq       = 1
-config_NeuralPlayer.replay_memory_batches    = 3
+config_NeuralPlayer.replay_memory_batches    = 5
 
 # -----------------------------------------------------------------
 # Datasets config
@@ -194,7 +194,7 @@ if (agent_type == "DQN"):
     config_Agent.batch_size         = 2
     config_Agent.batches_number     = 10
     config_Agent.min_memory_size    = 258
-    config_Agent.memory_size        = 1000
+    config_Agent.memory_size        = 10000
     config_Agent.num_workers        = 0 # set it to 0 if your computer can't handle multiprocessing
     
     config_Agent.target_model_update_frequency = 15

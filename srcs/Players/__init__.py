@@ -1,2 +1,3 @@
 from .CentralAgentMaster import CentralAgentMaster
 from .CentralAgentWorker import CentralAgentWorker
+from .CopyAgentWorker import CopyAgentWorker

@@ -30,12 +30,13 @@ def run_worker(rank, world_size):
         # rank0 is the agent
         rpc.init_rpc(AGENT_NAME, rank=rank, world_size=world_size)
 
-        agent = CentralAgentMaster(config, world_size)
+        Masta = CentralAgentMaster(config, world_size)
 
-        for i_episode in range(2):
-            agent.run_remote_episode(1000)
+        for i_episode in range(3):
+            Masta.update_worker_agent_params()
+            Masta.run_remote_episode(1000)
 
-        for woker_rref in agent.worker_rrefs:
+        for woker_rref in Masta.worker_rrefs:
             woker_rref.rpc_sync().release_sim()
     else:
         # other ranks are the observer

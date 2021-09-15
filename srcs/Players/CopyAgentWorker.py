@@ -18,7 +18,9 @@ import torch.distributed.rpc as rpc
 from Simulator import Simulator
 from config import DotDict
 
-class CentralAgentWorker():
+LOGGING_LEVEL = logging.INFO
+
+class CopyAgentWorker():
 	agent: 		DQNAgent
 	simulator: 	Simulator
 	RO:			RewardOpti
@@ -32,19 +34,21 @@ class CentralAgentWorker():
 		self.env = self.simulator.env
 		self._init_preprocessor(self.config.config_Preprocessing)
 		self._init_reward_optimizer(self.config)
+		self._init_agent(self.config.config_Agent)
 		self._init_logger()
 		self.scores = []
 		# self._save_config()
 
 
-	def update_agent_params(self, state_dict):
-		pass
+	def _init_agent(self, config_Agent):
+		self.agent = DQNAgent(config=config_Agent)
 
 
 	def _init_logger(self):
 		self.Logger = logging.getLogger(f"DistributedPlayer-{self.id}")
-		self.Logger.setLevel(logging.INFO)
+		self.Logger.setLevel(LOGGING_LEVEL)
 		self.Logger.addHandler(logging.StreamHandler())
+
 
 	def _init_preprocessor(self, config_Preprocessing):
 		self.preprocessor = Preprocessing(config = config_Preprocessing)
@@ -69,8 +73,12 @@ class CentralAgentWorker():
 		return False
 
 
+	def update_agent_params(self, state_dict):
+		self.agent.model.load_state_dict(state_dict)
+
+
 	def get_action(self, processed_state):
-		return self.agent_rref.rpc_sync().get_action(processed_state)
+		return self.agent.get_action(processed_state)
 
 
 	def release_sim(self):
@@ -108,6 +116,5 @@ class CentralAgentWorker():
 				if (n % 10 != 0 and self.agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
 					break
 				n += 1
-
 		self.env.reset()
 		return

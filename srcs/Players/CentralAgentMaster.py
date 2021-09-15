@@ -16,9 +16,11 @@ from SimCache import SimCache
 import torch.distributed.rpc as rpc
 from torch.distributed.rpc import RRef, rpc_async, remote
 from .CentralAgentWorker import CentralAgentWorker
+from .CopyAgentWorker import CopyAgentWorker
 from Simulator import Simulator
-
 from config import DotDict
+
+from datetime import datetime
 
 Logger = logging.getLogger("Central Agent Master")
 Logger.setLevel(logging.INFO)
@@ -27,9 +29,12 @@ Logger.addHandler(stream)
 
 
 class CentralAgentMaster():
+	agent: 		DQNAgent
+	simulator: 	Simulator
+	RO:			RewardOpti
+
 	def __init__(self, config, world_size):
 		self.config = config.config_NeuralPlayer
-		self.agent =  None
 		self.preprocessor = None
 		self._init_dataset(self.config.config_Datasets)
 		self._init_agent(self.config.config_Agent)
@@ -68,6 +73,24 @@ class CentralAgentMaster():
 		self.scores.append(iteration)
 
 
+	def update_worker_agent_params(self):
+		state_dict = {k: v.cpu() for k, v in zip(self.agent.model.state_dict().keys(), self.agent.model.state_dict().values())}
+		futures = []
+		for worker_rref in self.worker_rrefs:
+			futures.append(
+				rpc_async(
+					worker_rref.owner(),
+					worker_rref.rpc_sync(timeout=0).update_agent_params,
+					args=(state_dict,),
+					timeout=0
+				)
+			)
+
+		for fut in futures:
+			fut.wait()
+
+
+
 	def run_remote_episode(self, num_frames = 10):
 		self.agent.new_frames = 0
 		futures = []
@@ -84,8 +107,10 @@ class CentralAgentMaster():
 		for fut in futures:
 			fut.wait()
 
+		t = datetime.now()
 		for _ in range(self.config.replay_memory_batches):
 			self.agent.replay_memory()
 		
+		print(datetime.now() - t)
 		self.agent._update_epsilon()
 
