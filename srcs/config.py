@@ -87,11 +87,11 @@ config.config_Simulator.update({"exe_path": "manual",
 
 config_NeuralPlayer = config.config_NeuralPlayer
 
-config_NeuralPlayer.agent_name               = "DQN"
+config_NeuralPlayer.agent_name               = "SAC"
 config_NeuralPlayer.episodes                 = 10000
 config_NeuralPlayer.train_frequency          = 10
 config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
-config_NeuralPlayer.cte_limit                = 4.0 # 3.2 is the white line
+config_NeuralPlayer.cte_limit                = 3.2 # 3.2 is the white line
 config_NeuralPlayer.cte_offset               = 2.25
 config_NeuralPlayer.cte_coef                 = 1000 # cte goes from -3.2 to 3.2 on the road
 config_NeuralPlayer.speed_coef               = 200 # speed goes aprox from 0 to 10
@@ -119,7 +119,7 @@ config_HumanPlayer.init_steering	= 0.1
 
 config_Datasets = config.config_NeuralPlayer.config_Datasets
 
-config_Datasets.S3_connection			= False
+config_Datasets.S3_connection			= True
 if config_Datasets.S3_connection == True:
     config_Datasets.S3_bucket_name		= 'deyopotato'
 
@@ -176,7 +176,7 @@ config_Preprocessing.frame_skip         = 2  # interval in frames between the st
 config_Preprocessing.shrink_size        = (120, 120) # * This does not remove the channels and generate a (60, 60) output. Channels are preserved :input (100, 100, 3) => (60, 60, 3)
 config_Preprocessing.output_size        = (config_Preprocessing.stack_size, *config_Preprocessing.shrink_size) #*  C * H * W CHANNELS FIRST
 
-config_Preprocessing.use_AutoEncoder	= False ## TODO: implement option to turn it off
+config_Preprocessing.use_AutoEncoder	= True ## TODO: implement option to turn it off
 
 
 # -----------------------------------------------------------------

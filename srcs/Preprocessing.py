@@ -82,7 +82,7 @@ class Preprocessing():
 
 		state = state.cpu().detach()#.numpy()
 		
-		Logger.debug(f"Out shape: {state.shape}")
+		Logger.info(f"Out shape: {state.shape}")
 		return state
 
 	def resize(self, state, output_shape):

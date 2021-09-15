@@ -16,6 +16,7 @@ from SimCache import SimCache
 from agents.SAC import SoftActorCritic
 
 from Memory import SACDataset
+from agents.config import config as agent_config
 
 Logger = logging.getLogger("NeuralPlayer")
 Logger.setLevel(logging.INFO)
@@ -24,9 +25,8 @@ Logger.addHandler(stream)
 
 
 class NeuralPlayer():
-  #louis:
     def __init__(self, config, env, simulator):
-        self.sac = False
+        self.sac = True
         self.config = config
         self.env = env
         self.agent =  None
@@ -49,12 +49,13 @@ class NeuralPlayer():
         
 
     def _init_preprocessor(self, config_Preprocessing):
-        self.preprocessor = Preprocessing(config = config_Preprocessing)
+        self.preprocessor = Preprocessing(config = config_Preprocessing, S3=self.S3)
 
 
     def _init_agent(self, config_Agent):
         if self.config.agent_name == "SAC":
-            self.agent = SoftActorCritic() ### TODO : rajouter config dedans
+            self.agent = SoftActorCritic(agent_config)
+            # self.agent = SoftActorCritic() ### TODO : rajouter config dedans
         elif self.config.agent_name == "DQN":
             self.agent = DQNAgent(config=config_Agent, S3=self.S3)
 
@@ -186,16 +187,16 @@ class NeuralPlayer():
         return
     
     
-    
 
     def do_races_sac(self, episodes):
         memory = SACDataset()
         print(f"Doing {episodes} races.")
+        scores = []
         for e in range(1, episodes + 1):
             print(f"\nepisode {e}/{episodes}")
             # print(f"memory size = {len(self.agent.memory)}")
             self.RO.new_race_init(e)
-            
+
             self.simulator = utils.fix_cte(self.simulator)
             self.env = self.simulator.env
 
@@ -206,8 +207,9 @@ class NeuralPlayer():
             iteration = 0
             while (not done):
 
-                action = self.agent.get_action(processed_state)
-                # print(f"action: {action}")
+                action = self.agent.get_action(processed_state)[0].numpy()
+                # print(f"True {action = }")
+                # print(f"action: st {int(action[0] * 100)/100:7.2} th {(action[1] * 100)/100:7.2}")
                 new_state, reward, done, infos = self.env.step(action)
                 # self.agent.add_simcache_point([state, action, new_state, reward, done, infos])
                 new_processed_state = self.preprocessor.process(new_state)
@@ -222,19 +224,24 @@ class NeuralPlayer():
                 # print(f"{action = }")
                 current_action = torch.tensor(action)
                 # print(f"{current_action = }")
-                memory.add(processed_state[0], current_action, new_processed_state[0], reward, int(done))
+                memory.add(processed_state[0], current_action,
+                           new_processed_state[0], reward, int(done))
 
                 processed_state = new_processed_state
                 # print(f"cte:{infos['cte'] + 2.25}")
                 iteration += 1
-            
+
             self.add_score(iteration)
+            print(f"Episode len: {self.scores[-1]}")
 
             if (e % self.config.replay_memory_freq == 0):
+
                 print("Training")
+                # scores.append(len(memory))
                 if self.agent.train(memory):
                     memory = SACDataset()
-        
+                print(self.scores)
+
         self.env.reset()
         return
 
