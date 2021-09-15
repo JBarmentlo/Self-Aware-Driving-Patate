@@ -27,8 +27,10 @@ config.config_Simulator = DotDict()
 config.config_NeuralPlayer = DotDict()
 
 config.config_NeuralPlayer.config_Datasets = DotDict()
+
 config.config_NeuralPlayer.config_Datasets.ddqn = DotDict()
 config.config_NeuralPlayer.config_Datasets.ddqn.sim = DotDict()
+
 config.config_NeuralPlayer.config_Datasets.ae = DotDict()
 config.config_NeuralPlayer.config_Datasets.ae.sim = DotDict()
 
@@ -39,6 +41,13 @@ config.config_NeuralPlayer.config_Preprocessing = DotDict()
 config.config_NeuralPlayer.config_Preprocessing.config_AutoEncoder = DotDict()
 config.config_NeuralPlayer.config_Preprocessing.config_AutoEncoder.config_AE_Datasets = DotDict()
 config.config_NeuralPlayer.config_Preprocessing.config_AutoEncoder.config_AE_Datasets.config_S3 = DotDict()
+
+
+
+config.config_HumanPlayer = DotDict()
+
+config.config_HumanPlayer.config_Datasets = DotDict()
+config.config_HumanPlayer.config_Datasets.sim = DotDict()
 
 
 # -----------------------------------------------------------------
@@ -91,6 +100,20 @@ config_NeuralPlayer.replay_memory_freq       = 1
 config_NeuralPlayer.replay_memory_batches    = 3
 
 # -----------------------------------------------------------------
+# Human Player config
+# -----------------------------------------------------------------
+
+config_HumanPlayer = config.config_HumanPlayer
+config_HumanPlayer.min_steering = config.min_steering
+config_HumanPlayer.max_steering = config.max_steering
+config_HumanPlayer.min_throttle = config.min_throttle
+config_HumanPlayer.max_throttle = config.max_throttle
+config_HumanPlayer.coef				= 3
+config_HumanPlayer.init_throttle	= 0.1
+config_HumanPlayer.init_steering	= 0.1
+
+
+# -----------------------------------------------------------------
 # Datasets config
 # -----------------------------------------------------------------
 
@@ -129,6 +152,13 @@ config_Datasets.ae.save_name			= f"model_cache/autoencoder/weshwesh."
 # SIMULATOR CACHE FOR AUTOENCODER:
 config_Datasets.ae.sim = config.config_NeuralPlayer.config_Datasets.ae.sim
 config_Datasets.ae.sim.load_name		= "simulator_cache/DDQN_sim_30_8.17_45.2"
+
+
+# SIMULATOR CACHE FOR HUMAN PLAYER:
+config.config_HumanPlayer.config_Datasets.S3_connection = config_Datasets.S3_connection
+if config_Datasets.S3_connection == True:
+	config.config_HumanPlayer.config_Datasets.S3_bucket_name = config_Datasets.S3_bucket_name
+config.config_HumanPlayer.config_Datasets.sim.save_name		= f"simulator_cache/Human_sim_{date}."
 
 
 # CONFIG:

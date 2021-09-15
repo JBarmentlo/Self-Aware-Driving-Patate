@@ -87,9 +87,9 @@ class NeuralPlayer():
                     Logger.info(f"Config information saved in file: {conf_path}")
 
 
-    def add_simcache_point(self, datapoint):
+    def add_simcache_point(self, datapoint, e):
         if self.SimCache.datapoints_counter + 1 > self.agent.config.sim.size:
-            self.SimCache.upload(self.agent.config.sim.save_name)
+            self.SimCache.upload(f"{self.agent.config.sim.save_name}{e}")
         self.SimCache.add_point(datapoint)
                 
 
@@ -158,7 +158,7 @@ class NeuralPlayer():
                 Logger.debug(f"action: {action}")
                 new_state, reward, done, infos = self.env.step(action)
                 if self.agent.config.sim.save == True:
-                    self.add_simcache_point([state, action, new_state, reward, done, infos])
+                    self.add_simcache_point([state, action, new_state, reward, done, infos], e)
                 new_processed_state = self.preprocessor.process(new_state)
                 done = self._is_over_race(infos, done)
                 reward = self.RO.sticks_and_carrots(action, infos, done)

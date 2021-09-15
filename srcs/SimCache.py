@@ -18,15 +18,19 @@ class SimCache():
         self.upload_counter		= 0
         self.loading_counter	= 0
         self.S3					= S3
-        self.list_files = [f"{self.config.load_name}"]
-        if self.config.load_name.endswith("/*"):
-            folder = self.config.load_name[0:-1]
-            if S3 != None:
-                self.list_files = self.S3.get_folder_files(folder)
-            else:
-                liste = os.listdir(folder)
-                self.list_files = [folder + name for name in liste]
-        self.nb_files_to_load = len(self.list_files)
+        try:
+            self.list_files = [f"{self.config.load_name}"]
+            if self.config.load_name.endswith("/*"):
+                folder = self.config.load_name[0:-1]
+                if S3 != None:
+                    self.list_files = self.S3.get_folder_files(folder)
+                else:
+                    liste = os.listdir(folder)
+                    self.list_files = [folder + name for name in liste]
+            self.nb_files_to_load = len(self.list_files)
+        except KeyError:
+            Logger.warning("Nothing to be loaded in SimCache")
+            pass
         
 
     def _reset(self):
