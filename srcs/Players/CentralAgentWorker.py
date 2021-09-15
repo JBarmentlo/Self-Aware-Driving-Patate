@@ -14,17 +14,13 @@ import utils
 from SimCache import SimCache
 import torch.distributed.rpc as rpc
 
-Logger = logging.getLogger("NeuralPlayer")
-Logger.setLevel(logging.INFO)
-stream = logging.StreamHandler()
-Logger.addHandler(stream)
 
 from Simulator import Simulator
 from config import DotDict
 
-class DistributedPlayer():
+class CentralAgentWorker():
 	def __init__(self, config, env_name = "donkey-generated-roads-v0"):
-		# config = DotDict(config)
+		self.id = rpc.get_worker_info().id
 		self.config = config.config_NeuralPlayer
 		self.agent =  None
 		self.preprocessor = None
@@ -33,10 +29,15 @@ class DistributedPlayer():
 		self.env = self.simulator.env
 		self._init_preprocessor(self.config.config_Preprocessing)
 		self._init_reward_optimizer(self.config)
+		self._init_logger()
 		self.scores = []
-		self.id = rpc.get_worker_info().id
 		# self._save_config()
 
+
+	def _init_logger(self):
+		self.Logger = logging.getLogger(f"DistributedPlayer-{self.id}")
+		self.Logger.setLevel(logging.INFO)
+		self.Logger.addHandler(logging.StreamHandler())
 
 	def _init_preprocessor(self, config_Preprocessing):
 		self.preprocessor = Preprocessing(config = config_Preprocessing)
@@ -75,7 +76,7 @@ class DistributedPlayer():
 		self.agent_rref = agent_rref
 		n = 0
 		e = 0
-		while (n < n_max):
+		while (not self.agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
 			self.RO.new_race_init(e)
 			e += 1
 			self.simulator = utils.fix_cte(self.simulator)
@@ -84,11 +85,11 @@ class DistributedPlayer():
 			state, reward, done, infos = self.env.step([0, 0])
 			processed_state = self.preprocessor.process(state)
 			done = self._is_over_race(infos, done)
-			Logger.debug(f"Initial CTE: {infos['cte']}")
+			self.Logger.debug(f"Initial CTE: {infos['cte']}")
 			while (not done):
 
 				action = self.get_action(processed_state)
-				Logger.debug(f"action: {action}")
+				self.Logger.debug(f"action: {action}")
 				new_state, reward, done, infos = self.env.step(action)
 				new_processed_state = self.preprocessor.process(new_state)
 				done = self._is_over_race(infos, done)
@@ -96,14 +97,12 @@ class DistributedPlayer():
 				[action, reward] = utils.to_numpy_32([action, reward])
 				self.agent_rref.rpc_sync().add_to_memory(processed_state, action, new_processed_state, reward, done)
 				processed_state = new_processed_state
-				Logger.debug(f"cte:{infos['cte'] + 2.25}")
+				self.Logger.debug(f"cte:{infos['cte'] + 2.25}")
 				n += 1
 				print(f"{n = }")
-				if (n > n_max):
-					break
 
-			if (n > n_max):
-				break
+				if (self.agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
+					break
 
 		self.env.reset()
 		return

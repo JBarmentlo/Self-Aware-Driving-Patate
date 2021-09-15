@@ -13,12 +13,15 @@ from itertools import count
 import torch.multiprocessing as mp
 import torch.distributed.rpc as rpc
 
-from MasterPlayer import MasterPlayer
-from DistributedPlayer import DistributedPlayer
-import time
+from Players import CentralAgentWorker, CentralAgentMaster
+from utils import free_all_sims
+
 
 AGENT_NAME = "agent"
 OBSERVER_NAME="worker{}"
+
+
+
 
 def run_worker(rank, world_size):
     os.environ['MASTER_ADDR'] = 'localhost'
@@ -27,19 +30,17 @@ def run_worker(rank, world_size):
         # rank0 is the agent
         rpc.init_rpc(AGENT_NAME, rank=rank, world_size=world_size)
 
-        agent = MasterPlayer(config, world_size)
+        agent = CentralAgentMaster(config, world_size)
 
         for i_episode in range(2):
-            agent.run_remote_episode(100)
+            agent.run_remote_episode(1000)
 
         for woker_rref in agent.worker_rrefs:
             woker_rref.rpc_sync().release_sim()
     else:
         # other ranks are the observer
-        print("PRE ININT \n\n")
 
         rpc.init_rpc(OBSERVER_NAME.format(rank), rank=rank, world_size=world_size)
-        print("POST ININT \n\n")
         
     # block until all rpcs finish, and shutdown the RPC instance
     rpc.shutdown()
@@ -87,10 +88,11 @@ def parse_arguments():
     return (args)
 
 if __name__ == "__main__":
+    free_all_sims(config.num_workers)
     mp.spawn(
         run_worker,
-        args=(10, ),
-        nprocs=10,
+        args=(config.num_workers + 1, ),
+        nprocs=config.num_workers + 1,
         join=True
     )
         # simulator.env.unwrapped.close()

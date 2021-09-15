@@ -4,7 +4,6 @@ import uuid
 from datetime import datetime
 import pickle as pkl
 
-
 date = f"{datetime.now().day}_{datetime.now().month}.{datetime.now().hour}_{datetime.now().minute}"
 
 
@@ -75,6 +74,14 @@ config.config_Simulator.update({"exe_path": "manual",
 						"max_cte": 10,
 				})
 
+
+
+# -----------------------------------------------------------------
+# Distributed Learning config
+# -----------------------------------------------------------------
+
+config.num_workers = 2          #* Number of simulators running during training
+config.centralized_agent = True #* Wether to send a copy of the agent to every worker (not Implemented)
 
 
 # -----------------------------------------------------------------

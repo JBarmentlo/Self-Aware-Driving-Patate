@@ -17,3 +17,4 @@ srcs/.env
 .autoenv.zsh
 .env
 simulator_cache
+.zsh_history

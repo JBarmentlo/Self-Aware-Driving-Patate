@@ -15,18 +15,18 @@ import utils
 from SimCache import SimCache
 import torch.distributed.rpc as rpc
 from torch.distributed.rpc import RRef, rpc_async, remote
-from DistributedPlayer import DistributedPlayer
+from .CentralAgentWorker import CentralAgentWorker
 from Simulator import Simulator
 
 from config import DotDict
 
-Logger = logging.getLogger("NeuralPlayer")
+Logger = logging.getLogger("Central Agent Master")
 Logger.setLevel(logging.INFO)
 stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
 
-class MasterPlayer():
+class CentralAgentMaster():
 	def __init__(self, config, world_size):
 		self.config = config.config_NeuralPlayer
 		self.agent =  None
@@ -41,7 +41,7 @@ class MasterPlayer():
 			print("in")
 			worker_info = rpc.get_worker_info(f"worker{worker_rank}")
 			print("mid")
-			self.worker_rrefs.append(remote(worker_info, DistributedPlayer, args = (config, ), timeout=600))
+			self.worker_rrefs.append(remote(worker_info, CentralAgentWorker, args = (config, ), timeout=600))
 			print("OUT")
 		# self._save_config()
 
@@ -68,14 +68,14 @@ class MasterPlayer():
 		self.scores.append(iteration)
 
 
-
 	def run_remote_episode(self, num_frames = 10):
+		self.agent.new_frames = 0
 		futures = []
 		for worker_rref in self.worker_rrefs:
 			futures.append(
 				rpc_async(
 					worker_rref.owner(),
-					worker_rref.rpc_sync().do_races,
+					worker_rref.rpc_sync(timeout=0).do_races,
 					args=(self.agent_rref, num_frames,),
 					timeout=0
 				)
