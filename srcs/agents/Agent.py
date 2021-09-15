@@ -11,7 +11,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
 from torch.utils.data import DataLoader
-from utils import val_to_idx
+from utils import action_to_bin_batch
 
 from Memory import DqnMemory
 from SimCache import SimCache
@@ -99,26 +99,36 @@ class  DQNAgent():
         dataloader = DataLoader(self.memory, batch_size=self.config.batch_size,
                         shuffle=True, num_workers=self.config.num_workers)
 
+        self.update_target_model_counter += 1
+
         for i, single_batch in enumerate(dataloader):
-            self.update_target_model_counter += 1
             self.optimizer.zero_grad()
             targets = []
             processed_states, actions, new_processed_states, rewards, dones = single_batch
-            dones = ~dones
-
+            dones = (~dones).to(torch.int).cuda()
+            rewards = rewards.cuda()
+            actions = actions.cuda()
             qs_b = self.model.forward(processed_states)
-            qss_b = self.target_model.forward(new_processed_states)
-            qss_max_b, _ = torch.max(qss_b, dim = 1)
+            #TODO  Some of these are on GPU others on CPU why ??
 
-            for i, (action, reward, done) in enumerate(zip(actions, rewards, dones)):
-                target = qs_b[i].clone()
-                target = target.detach()
-                a_idx = val_to_idx(action, self.config.action_space)
-                target[a_idx] = reward + (done * self.config.discount * qss_max_b[i]) 
-                targets.append(target)
-
-            targets = torch.stack(targets)
-            error = self.criterion(qs_b, targets)
+            with torch.no_grad():
+                qss_b = self.target_model.forward(new_processed_states)
+                qss_max_b, _ = torch.max(qss_b, dim = 1)
+                action_bins = action_to_bin_batch(actions, self.config.action_space_boundaries, self.config.action_space_size)
+                # print(f"ACTIONS {actions}")
+                # print("BINS", action_bins)
+                targets = qs_b.clone()
+                hot = F.one_hot(action_bins, num_classes = self.config.action_space_length)
+                mul = (1 - hot) * targets
+                yj = torch.mul(qss_max_b, dones)
+                yj = yj * self.config.discount
+                yj = yj + rewards
+                yj = torch.mul(hot, yj.view(-1, 1))
+                # print(f"{yj = }\n")
+                mul = mul +  yj
+                # print(f"{rewards = }\n{action_bins = }\n{qss_max_b = }\n{targets = }\n{mul =}\n\n\n\n\n\n\n")
+                
+            error = self.criterion(qs_b, mul)
             error.backward()
             self.optimizer.step()
 

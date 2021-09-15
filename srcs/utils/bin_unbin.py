@@ -45,6 +45,22 @@ def val_to_bin_torch(val, bounds, slices):
 	if (slices == 1):
 		out = torch.zeros(val.size(), dtype = torch.int64)
 	else:
-		out = (val - bounds[0]) / (bounds[1] - bounds[0]) * (slices - 1)
+		out = (val - bounds[0]) * (slices - 1) / (bounds[1] - bounds[0])
 		out.to(torch.int64)
-	return out.item()
+	return out
+
+
+def action_to_bin_batch(action, bounds, sizes):
+	'''
+		WILL GIVE ABSURD RESULTS OR CRASH IF SIZES IS NOT TWO DIMENSIONAL
+	'''
+	a0 = action[:, 0]
+	a1 = action[:, 1]
+	b0, b1 = bounds
+	s0, s1 = sizes
+	b0 = val_to_bin_torch(a0, b0, s0)
+	b1 = val_to_bin_torch(a1, b1, s1)
+	return (b0 + b1 * s0).long()
+
+
+
