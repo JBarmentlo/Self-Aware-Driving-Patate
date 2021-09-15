@@ -98,9 +98,7 @@ class CentralAgentWorker():
 				self.agent_rref.rpc_sync().add_to_memory(processed_state, action, new_processed_state, reward, done)
 				processed_state = new_processed_state
 				self.Logger.debug(f"cte:{infos['cte'] + 2.25}")
-				n += 1
-				print(f"{n = }")
-
+				
 				if (self.agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
 					break
 
