@@ -14,7 +14,7 @@ from pynput import keyboard
 
 
 Logger = logging.getLogger("HumanPlayer")
-Logger.setLevel(logging.DEBUG)
+Logger.setLevel(logging.INFO)
 stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
@@ -118,12 +118,12 @@ class HumanPlayer():
             action = self.get_action(gk.key, gk.released_key)
             Logger.debug(f"action: {action}")
             new_state, reward, done, infos = self.env.step(action)
-            # self.add_simcache_point([state, action, new_state, reward, done, infos])
+            self.add_simcache_point([state, action, new_state, reward, done, infos])
             state = new_state
 
         listener.stop()
         print("\nStoping race and listening Keyboard\n")
 
-        # self.SimCache.upload(f"{self.config.sim_save_name}")
+        self.SimCache.upload(f"{self.config.config_Datasets.sim.save_name}")
         self.env.reset()
         return
