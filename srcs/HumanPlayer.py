@@ -90,7 +90,7 @@ class HumanPlayer():
                 self.steering = 0
         
         self.check_min_max()
-        return ([self.throttle, self.steering])
+        return ([self.steering, self.throttle])
     
     def check_min_max(self):
         if self.throttle > self.config.max_throttle:
