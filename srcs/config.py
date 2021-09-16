@@ -176,7 +176,7 @@ config_Preprocessing.frame_skip         = 2  # interval in frames between the st
 config_Preprocessing.shrink_size        = (120, 120) # * This does not remove the channels and generate a (60, 60) output. Channels are preserved :input (100, 100, 3) => (60, 60, 3)
 config_Preprocessing.output_size        = (config_Preprocessing.stack_size, *config_Preprocessing.shrink_size) #*  C * H * W CHANNELS FIRST
 
-config_Preprocessing.use_AutoEncoder	= True ## TODO: implement option to turn it off
+config_Preprocessing.use_AutoEncoder	= False ## TODO: implement option to turn it off
 
 
 # -----------------------------------------------------------------
@@ -208,50 +208,6 @@ if (agent_type == "DQN"):
 # Agent / training config
 # -----------------------------------------------------------------
 
-<<<<<<< HEAD
-    config_Agent = config.config_NeuralPlayer.config_Agent
-
-    config_Agent.agent_name         = "DDQN"
-    config_Agent.input_size         = config_Preprocessing.output_size
-    config_Agent.data               = config_NeuralPlayer.config_Datasets.ddqn
-    config_Agent.action_space_size  = (11, 3)
-    config_Agent.discount           = 0.99
-    config_Agent.lr                 = 5e-4
-    config_Agent.initial_epsilon    = 0.9
-    config_Agent.epsilon            = config_Agent.initial_epsilon
-    config_Agent.epsilon_decay      = 0.9
-    config_Agent.epsilon_min        = 0.02
-    config_Agent.steps_to_eps_min   = 5000
-    config_Agent.batch_size         = 256
-    config_Agent.batches_number     = 10
-    config_Agent.min_memory_size    = 256
-    config_Agent.memory_size        = 1000
-    config_Agent.num_workers        = 0 # set it to 0 if your computer can't handle multiprocessing
-    
-    config_Agent.target_model_update_frequency = 15
-    config_Agent.action_space_boundaries =  config.action_space_boundaries
-
-
-
-    config_Agent.action_space_boundaries   = config.action_space_boundaries
-    action_space_length = 1
-    
-    tmp = []
-    for i, size in enumerate(config_Agent.action_space_size):
-        bounds = config.action_space_boundaries[i]
-        tmp.append(np.linspace(start = bounds[0], stop = bounds[1], num = size))
-    
-    print("tmp", tmp)
-    config_Agent.action_space = []
-    for j in range(config_Agent.action_space_size[1]):
-        for i in range(config_Agent.action_space_size[0]):
-            config_Agent.action_space.append([tmp[0][i], tmp[1][j]])
-    # print("config_Agent.action_space", config_Agent.action_space)
-    
-
-            
-
-=======
 	config_Agent = config.config_NeuralPlayer.config_Agent
 
 	config_Agent.agent_name         = "DDQN"
@@ -300,7 +256,6 @@ if (agent_type == "DQN"):
      
 
 			
->>>>>>> 266cf2692fdd4e93781470a9008b435c60866604
 # -----------------------------------------------------------------
 # Agent Memory config
 # -----------------------------------------------------------------
