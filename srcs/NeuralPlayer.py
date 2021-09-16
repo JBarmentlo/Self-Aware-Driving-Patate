@@ -1,3 +1,4 @@
+from srcs.Simulator import Simulator
 from ModelCache import ModelCache
 import torch
 import logging
@@ -20,11 +21,13 @@ Logger.addHandler(stream)
 
 
 class NeuralPlayer():
+    agent:          DQNAgent
+    preprocessor:   Preprocessing
+    simulator:      Simulator
+    
     def __init__(self, config, env, simulator):
         self.config = config
         self.env = env
-        self.agent =  None
-        self.preprocessor = None
         self.simulator = simulator
         self._init_dataset(config.config_Datasets)
         self._init_agent(config.config_Agent)

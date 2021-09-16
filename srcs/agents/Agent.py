@@ -52,6 +52,7 @@ class  DQNAgent():
 
 
     def _update_target_model(self):
+        print("Updating Target Model")
         self.target_model.load_state_dict(self.model.state_dict())
 
 

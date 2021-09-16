@@ -80,7 +80,7 @@ config.config_Simulator.update({"exe_path": "manual",
 # Distributed Learning config
 # -----------------------------------------------------------------
 
-config.num_workers = 5          #* Number of simulators running during training
+config.num_workers = 8          #* Number of simulators running during training
 config.centralized_agent = True #* Wether to send a copy of the agent to every worker (not Implemented)
 
 
@@ -120,7 +120,7 @@ config_Datasets.ddqn.load_model     = False
 if config_Datasets.ddqn.load_model == True:
     config_Datasets.ddqn.load_name = "model_cache/ddqn/dedequene.modelo.1100" #if local: path from the root folder, if S3: path after bucket name
 config_Datasets.ddqn.save_name = f"model_cache/ddqn/{config_NeuralPlayer.agent_name}_weights_{date}."
-config_Datasets.ddqn.saving_frequency   = 0
+config_Datasets.ddqn.saving_frequency   = 5
 
 # SIMULATOR CACHE:
 config_Datasets.sim = config.config_NeuralPlayer.config_Datasets.sim
@@ -180,7 +180,7 @@ if (agent_type == "DQN"):
 
     config_Agent = config.config_NeuralPlayer.config_Agent
 
-    config_Agent.agent_name         = "DDQN"
+    config_Agent.agent_name         = "DDQN_split"
     config_Agent.input_size         = config_Preprocessing.output_size
     config_Agent.data               = config_NeuralPlayer.config_Datasets.ddqn
     config_Agent.action_space_size  = (5, 3)
@@ -190,14 +190,14 @@ if (agent_type == "DQN"):
     config_Agent.epsilon            = config_Agent.initial_epsilon
     config_Agent.epsilon_decay      = 0.9
     config_Agent.epsilon_min        = 0.02
-    config_Agent.steps_to_eps_min   = 5000
+    config_Agent.steps_to_eps_min   = 100
     config_Agent.batch_size         = 256
     config_Agent.batches_number     = 5
     config_Agent.min_memory_size    = 1000
     config_Agent.memory_size        = 10000
     config_Agent.num_workers        = 0 # set it to 0 if your computer can't handle multiprocessing
     
-    config_Agent.target_model_update_frequency = 15
+    config_Agent.target_model_update_frequency = 20
     config_Agent.action_space_boundaries =  config.action_space_boundaries
 
 

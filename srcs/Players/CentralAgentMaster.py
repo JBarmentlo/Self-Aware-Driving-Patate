@@ -34,6 +34,7 @@ class CentralAgentMaster():
 	RO:			RewardOpti
 
 	def __init__(self, config, world_size):
+		self.e = 0
 		self.config = config.config_NeuralPlayer
 		self.preprocessor = None
 		self._init_dataset(self.config.config_Datasets)
@@ -113,4 +114,9 @@ class CentralAgentMaster():
 		
 		print(datetime.now() - t)
 		self.agent._update_epsilon()
+
+		if (self.agent.config.data.saving_frequency != 0 and (self.e % self.agent.config.data.saving_frequency == 0 or self.e == self.config.episodes)):
+			self.agent.ModelCache.save(self.agent.model, f"{self.agent.config.data.save_name}{self.e}")
+
+		self.e += 1
 

@@ -1,7 +1,7 @@
 import argparse
 
 from Simulator import Simulator
-from NeuralPlayer import NeuralPlayer
+# from NeuralPlayer import NeuralPlayer
 # from HumanPlayer import HumanPlayer
 
 from config import config
@@ -32,7 +32,7 @@ def run_worker(rank, world_size):
 
         Masta = CentralAgentMaster(config, world_size)
 
-        for i_episode in range(3):
+        for i_episode in range(100):
             Masta.update_worker_agent_params()
             Masta.run_remote_episode(1000)
 

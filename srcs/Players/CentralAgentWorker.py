@@ -34,6 +34,7 @@ class CentralAgentWorker():
 		self._init_reward_optimizer(self.config)
 		self._init_logger()
 		self.scores = []
+		self.e = 0
 		# self._save_config()
 
 
@@ -81,10 +82,9 @@ class CentralAgentWorker():
 	def do_races(self, agent_rref, n_max):
 		self.agent_rref = agent_rref
 		n = 0
-		e = 0
 		while (not self.agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
-			self.RO.new_race_init(e)
-			e += 1
+			self.RO.new_race_init(self.e)
+			self.e += 1
 			self.simulator = utils.fix_cte(self.simulator)
 			self.env = self.simulator.env
 
@@ -104,9 +104,6 @@ class CentralAgentWorker():
 				self.agent_rref.rpc_async().add_to_memory(processed_state, action, new_processed_state, reward, done)
 				processed_state = new_processed_state
 				self.Logger.debug(f"cte:{infos['cte'] + 2.25}")
-				
-				if (n % 10 != 0 and self.agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
-					break
 				n += 1
 
 		self.env.reset()

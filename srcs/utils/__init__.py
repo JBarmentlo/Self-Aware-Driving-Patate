@@ -1,6 +1,6 @@
 import logging
 UtilsLogger = logging.Logger("Utils")
-UtilsLogger.setLevel(logging.INFO)
+UtilsLogger.setLevel(logging.WARN)
 stream = logging.StreamHandler()
 UtilsLogger.addHandler(stream)
 
