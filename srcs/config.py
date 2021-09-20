@@ -87,7 +87,7 @@ config.config_Simulator.update({"exe_path": "manual",
 
 config_NeuralPlayer = config.config_NeuralPlayer
 
-config_NeuralPlayer.agent_name               = "SAC"
+config_NeuralPlayer.agent_name               = "DQN"
 config_NeuralPlayer.episodes                 = 10000
 config_NeuralPlayer.train_frequency          = 10
 config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
@@ -143,7 +143,7 @@ config_Datasets.ddqn.sim.size				= 3000
 
 # AUTOENCODER:
 config_Datasets.ae = config.config_NeuralPlayer.config_Datasets.ae
-config_Datasets.ae.load_model			= True
+config_Datasets.ae.load_model			= False
 if config_Datasets.ae.load_model == True:
     config_Datasets.ae.load_name 		= "model_cache/autoencoder/NiceAutoEncoder_h[8]_30K_examples" #if local: path from the root folder, if S3: path after bucket name
 config_Datasets.ae.save_name			= f"model_cache/autoencoder/weshwesh."
@@ -176,7 +176,7 @@ config_Preprocessing.frame_skip         = 2  # interval in frames between the st
 config_Preprocessing.shrink_size        = (120, 120) # * This does not remove the channels and generate a (60, 60) output. Channels are preserved :input (100, 100, 3) => (60, 60, 3)
 config_Preprocessing.output_size        = (config_Preprocessing.stack_size, *config_Preprocessing.shrink_size) #*  C * H * W CHANNELS FIRST
 
-config_Preprocessing.use_AutoEncoder	= True ## TODO: implement option to turn it off
+config_Preprocessing.use_AutoEncoder	= False ## TODO: implement option to turn it off
 
 
 # -----------------------------------------------------------------
