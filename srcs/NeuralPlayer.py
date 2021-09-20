@@ -12,6 +12,7 @@ from Preprocessing import Preprocessing
 from S3 import S3
 import utils
 from SimCache import SimCache
+from Scorer import DistanceTracker
 
 from agents.SAC import SoftActorCritic
 
@@ -99,13 +100,15 @@ class NeuralPlayer():
         while self.SimCache.loading_counter < self.SimCache.nb_files_to_load:
             path = self.SimCache.list_files[self.SimCache.loading_counter]
             self.SimCache.load(path)
-            print(path)
-            
+            infos = self.SimCache.data[0][5]
+            self.Distance = DistanceTracker(infos["pos"], infos["cte"]) ## TODO: check that
+                        
             for datapoint in self.SimCache.data:
                 state, action, new_state, reward, done, infos = datapoint
                 done = self._is_over_race(infos, done)
                 reward = self.RO.sticks_and_carrots(action, infos, done)
                 [action, reward] = utils.to_numpy_32([action, reward])
+                self.Distance.next(infos["pos"], infos["cte"]) ### TODO check that
                 processed_state, new_processed_state = self.preprocessor.process(state), self.preprocessor.process(new_state)
                 self.agent.memory.add(processed_state, action, new_processed_state, reward, done)
 
@@ -114,6 +117,8 @@ class NeuralPlayer():
             
             if (self.agent.config.data.saving_frequency != 0):
                 self.agent.ModelCache.save(self.agent.model, f"{self.agent.config.data.save_name}{self.SimCache.loading_counter}")
+        print(f"TOtal distance: {self.Distance.total_distance}") ## TODO : check
+        
 
 
     def _is_over_race(self, infos, done):
@@ -149,6 +154,9 @@ class NeuralPlayer():
             self.env = self.simulator.env
 
             state, reward, done, infos = self.env.step([0, 0])
+
+            self.Distance = DistanceTracker(infos["pos"], infos["cte"]) ## TODO: check that
+
             processed_state = self.preprocessor.process(state)
             done = self._is_over_race(infos, done)
             Logger.debug(f"Initial CTE: {infos['cte']}")
@@ -160,6 +168,7 @@ class NeuralPlayer():
                 new_state, reward, done, infos = self.env.step(action)
                 if self.agent.config.sim.save == True:
                     self.add_simcache_point([state, action, new_state, reward, done, infos], e)
+                self.Distance.next(infos["pos"], infos["cte"]) ### TODO check that
                 new_processed_state = self.preprocessor.process(new_state)
                 done = self._is_over_race(infos, done)
                 reward = self.RO.sticks_and_carrots(action, infos, done)
@@ -183,6 +192,7 @@ class NeuralPlayer():
         
         if self.agent.config.sim.save == True:
             self.SimCache.upload(f"{self.agent.config.sim.save_name}{e}")
+        Logger.info(f"TOtal distance: {self.Distance.total_distance}") ## TODO : check
         self.env.reset()
         return
     

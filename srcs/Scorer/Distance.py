@@ -48,6 +48,7 @@ def get_projected_vector(p0, p1):
 
     proj = numpy.array([
         delta_pos[0] * math.cos(delta_angle) - delta_pos[1] * math.sin(delta_angle),
+        0.,
         delta_pos[0] * math.sin(delta_angle) + delta_pos[1] * math.cos(delta_angle),
     ])
     proj /= numpy.linalg.norm(proj)
@@ -61,7 +62,7 @@ class DistanceTracker():
         `start_cte` is the starting Cross Track Error of the car.
         '''
         self.prev = Point(start_pos, start_cte)
-        self.prev_proj = numpy.array([0., 0.])
+        self.prev_proj = numpy.array([0., 0., 0.])
         self.total_distance = 0.
 
     def get_total_distance(self):
@@ -79,10 +80,12 @@ class DistanceTracker():
         `start_pos` is the starting position of the car.
         `start_cte` is the starting Cross Track Error of the car.
         '''
+        pos = numpy.array(pos)
         curr = Point(pos, cte)
         proj = get_projected_vector(curr, self.prev)
 
         proj_len = numpy.linalg.norm(proj)
+        print(f"{self.prev_proj = }, {proj = }")
         direction = numpy.dot(self.prev_proj, proj)
         if direction >= -0.001:
             self.total_distance += proj_len
