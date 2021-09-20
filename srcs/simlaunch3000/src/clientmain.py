@@ -1,4 +1,4 @@
-# from .modules import Client
+from modules import Client
 
-# c = Client()
-# # c.request_simulator()
+c = Client()
+c.request_simulator()

@@ -1,214 +1,252 @@
-import os
+from ModelCache import ModelCache
+import torch
+import logging
+import time
 import numpy as np
-from collections import deque
-from preprocessing import Preprocessing
-from agents.ddqn import DQNAgent
-from agents.sac import SoftActorCritic
-from utils import is_cte_out, read_pickle_file, init_dic_info, append_db, save_memory_db
-from Simulator import Simulator
-from gym.spaces import Box
-from config import config
-import os
-from encodDecod import AutoEncoder
-from PIL import Image
-from s3 import S3
-# doesn't show TF warnings..
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import json
+import io
+
+from RewardOpti import RewardOpti
+from agents.Agent import DQNAgent
+from Preprocessing import Preprocessing
+from S3 import S3
+import utils
+from SimCache import SimCache
+
+from agents.SAC import SoftActorCritic
+
+from Memory import SACDataset
+from agents.config import config as agent_config
+
+Logger = logging.getLogger("NeuralPlayer")
+Logger.setLevel(logging.INFO)
+stream = logging.StreamHandler()
+Logger.addHandler(stream)
+
 
 class NeuralPlayer():
-	def __init__(self, args):
-		'''
-		run a DDQN training session, or test it's result, with the donkey simulator
-		'''
-		self.args = args
-		self.our_s3 = None
-		if self.args.save:
-			if self.args.destination == "s3":
-				self.our_s3 = S3()
-			self.general_infos = init_dic_info(self.args, self.our_s3)
-		if not self.args.no_sim:
-			Simulator(self)
-		# Construct gym environment. Starts the simulator if path is given.
-		self.memory = deque(maxlen=10000)
-		self.model_path = f"{config.main_folder}/model_cache/"
-		self.model_name = self.args.model
-		self.episode_memory = []
-		self.db = None
-		self.db_len = 0
-		# Preprocessing
-		# Create an instance of autoencoder, load model parametter 
-		# Call encoder and encode image
-		self.preprocessing = Preprocessing()
-		self.AC = AutoEncoder()
-		self.encoder, _, _ = self.AC.AutoEncoder_model(config.img_rows, config.img_cols)
-		self.enc_loaded = self.AC.Loaded_Encoder("", self.encoder)
+    def __init__(self, config, env, simulator):
+        self.sac = True
+        self.config = config
+        self.env = env
+        self.agent =  None
+        self.preprocessor = None
+        self.simulator = simulator
+        self._init_dataset(config.config_Datasets)
+        self._init_agent(config.config_Agent)
+        self._init_preprocessor(config.config_Preprocessing)
+        self._init_reward_optimizer(self.config)
+        self.scores = []
+        # self._save_config()
 
-		# Get size of state and action from environment
-		self.state_size = (config.img_rows, config.img_cols, config.img_channels)
-		self.action_space = Box(-1.0, 1.0, (2,), dtype=np.float32) ### TODO: not the best
-		# self.action_space = self.env.action_space  # Steering and Throttle
-		if args.agent == "DDQN": 
-			self.agent = DQNAgent(self.state_size,
-								self.action_space,
-								input_shape=(config.img_rows, config.img_cols, config.img_channels),
-								output_size=config.turn_bins,
-								train=not args.test)
-		elif args.agent == "SAC":
-			self.agent = SoftActorCritic(self.state_size,
-								self.action_space,
-								input_shape=(config.prep_img_rows, config.prep_img_cols, config.prep_img_channels),
-								learning_rate=1e-4,
-								train=not args.test)
-		# self.preprocessing = Preprocessing()
 
-		# For numpy print formating:
-		np.set_printoptions(precision=4)
+    def _init_dataset(self, config):
+        self.S3 = None
+        if self.config.config_Datasets.S3_connection == True:
+            self.S3 = S3(self.config.config_Datasets.S3_bucket_name)
+        if self.config.agent_name == "DQN":
+            self.SimCache = SimCache(self.config.config_Datasets.ddqn.sim, self.S3)
+        
 
-		if os.path.exists(args.model):
-			print("load the saved model")
-			# TODO: Carefull, when we will have 2 different agents available (DDQN & SAC),
-			# TODO: 	it will be an easy mistake to load the wrong one.
-			# TODO: 	We need to protect against it
-			self.agent.load_model(args.model)
-		try:
-			self.run_agent()
-		except KeyboardInterrupt:
-			print("stopping run...")
-		finally:
-			if self.args.sim == "simlaunch3000":
-				self.client.kill_sim()
-			if not self.args.no_sim:
-				self.env.unwrapped.close()
+    def _init_preprocessor(self, config_Preprocessing):
+        self.preprocessor = Preprocessing(config = config_Preprocessing, S3=self.S3)
 
-	def prepare_state(self, state, old_state=None): ### TODO: rename old state
-		# Preprocessing is done on image not numpy array	
-		state = Image.fromarray(state) # to check
-		x_t = np.array(self.preprocessing.process_image(state))
-		# x_t = self.preprocessing.process_image(state)
-		if type(old_state) == type(None):
-			# For 1st iteration when we do not have old_state
-			s_t = np.stack((x_t, x_t, x_t, x_t), axis=2)
-			# In Keras, need to reshape
-			# print(f"before:\t{s_t.shape = }")
-			# s_t = s_t.reshape(1, config.prep_img_rows, config.prep_img_cols)  # 1*80*80*4 wrong size ?
-			s_t = np.expand_dims(s_t, axis=0)
-			# print(f"after:\t{s_t.shape = }")
 
-		else:
-			# print(f"before:\t{x_t.shape = }")
-			# x_t = x_t.reshape(1, 1, config.encoder_output_shape)  # 1x80x80x1
-			x_t = np.expand_dims(x_t, axis=(0, 3))
-			# print(f"after:\t{x_t.shape = }")
+    def _init_agent(self, config_Agent):
+        if self.config.agent_name == "SAC":
+            self.agent = SoftActorCritic(agent_config)
+            # self.agent = SoftActorCritic() ### TODO : rajouter config dedans
+        elif self.config.agent_name == "DQN":
+            self.agent = DQNAgent(config=config_Agent, S3=self.S3)
 
-			s_t = np.append(x_t, old_state[:, :, :, :3], axis=3)  # 1x80x80x4 
-			# print(f"{s_t.shape = }")
-		return s_t
+  
+    def _init_reward_optimizer(self, config_NeuralPlayer):
+        self.RO = RewardOpti(config_NeuralPlayer)
 
-	def reward_optimization(self, reward, done):
-		if (done):
-			# TODO: Carefull with reward if terminal state is after winning the race -> should be positive
-			reward = -1000.0
-		return reward
 
-	def get_db_from_file(self, name, episode):
-		file_name = f"{name}_{episode}{config.memory_sufix}"
-		if os.path.exists(file_name):
-			self.db = read_pickle_file(file_name)
-			self.db_len = len(self.db)
-		else:
-			return (False)
-		return (True)
-	
-	def save_memory_train(self, preprocessed_state, action, reward, new_preprocessed_state, done, info):
-		### TODO: rajouter check des arguments
-		# MEMORY for Train_replay():
-				# Save the sample <s, a, r, s', d> to the memory
-				# 	preprocessed_state:		Is the state directly usable by agent, after preprocessing
-				# 	action:		            Direct values [steering, throttle] for interaction with simulators (floats between [-1, 1] and [0, 1])
-				#	reward:		            Reward for action.
-				#	new_preprocessed_state:	New state resulting from 'action'
-				# 	done:	                Is at True when game is over
-				#   info:                   info about velocity, cte ... etc
-		self.memory.append((preprocessed_state, action, reward, new_preprocessed_state, done, info))
-	
-	def run_agent(self):
-		for e in range(config.EPISODES):
-			print("Episode: ", e)
-			episode_len = 0
-			# TODO: create function for following if/else
-			if self.args.no_sim != False:
-				res = self.get_db_from_file(self.args.no_sim, e)
-				if res == False:
-					break
-				state, _, _, _, done, _ = self.db[episode_len]
-			else:
-				done = False
-				state = self.env.reset()
-				throttle = self.args.throttle  # Set throttle as constant value
-			print(f"done = {done}")
-			preprocessed_state = None
-			while not done:
-				if self.args.sim == "simlaunch3000":
-					self.client.ping_sim()
-				# Apply preprocessing and stack 4 frames
-				preprocessed_state = self.prepare_state(state, old_state=preprocessed_state)
-				# print(f"From env: cte {self.env.viewer.handler.cte}")
-				# Choose action
-				# TODO: It is time to make the model decide the throttle itself
-				if not self.args.no_sim:
-					if self.args.agent == "SAC":
-						action = self.agent.choose_action(preprocessed_state)
-						steering, _ = action
-						# Adding throttle
-						# ATTENTION: change was needed for SAC agent
-						#		converted: 	[steering, throttle]
-						#		to:			np.array([steering, throttle])
-						action = np.array([steering, throttle])
-						print(f"Steering: {steering:10.3} | Throttle: {throttle:10.3}")
-					elif self.args.agent == "DDQN":
-						steering = self.agent.choose_action(preprocessed_state)
-						# Adding throttle
-						action = [steering, throttle]
-						# Do action
-					new_state, reward, done, info = self.env.step(action)
-					# episode_len > 10 because sometimes
-					# 	simulator gives cte value from previous episode at the begining
-					# TODO: create function for defining game_over
-					if episode_len > 10 and is_cte_out(info['cte']):
-						done = True
-					if done == True:
-						print("doonnnnnnnnnnnnne*************")
-				else:
-					_, action, reward, new_state, done, info = self.db[episode_len]
-				# Reward opti
-				reward = self.reward_optimization(reward, done)
-				# Apply preprocessing and stack 4 frames
-				new_preprocessed_state = self.prepare_state(new_state, old_state=preprocessed_state)
-				
-				self.save_memory_train(preprocessed_state, action, reward, new_preprocessed_state, done, info)
-				
-				if self.args.save:
-					append_db(self.episode_memory, state, action, reward, new_state, done, info)
-				
-				# TODO: remove bc uncompatible with SAC
-				self.agent.update_epsilon()
-				# if self.agent.t % 30 == 0:
-				# print(f"Episode: {e}, episode_len: {episode_len:<5} Action: [{action[0]:6.3} {action[1]:6.3}], Reward: {reward:6.4} Ep_len: {episode_len:<5} MaxQ: {self.agent.max_Q:3.3}")
-				episode_len = episode_len + 1
-				if done or (self.db_len != 0 and episode_len == (self.db_len - 1)): ### TODO check longueur db
-					# Every episode update the target model to be same with model
-					self.agent.update_target_model()
-					# Save model for each episode
-					if self.agent.train:
-						self.agent.save_model(self.model_path, self.model_name)
-						# self.agent.save_model(f"{config.main_folder}/model_cache/{self.args.model}") ### TODO: faire un truc propre avec os
-					if self.args.save:
-						save_memory_db(self.episode_memory, self.general_infos, e, self.our_s3)
-					print(f"episode: {e} memory length: {len(self.memory)} epsilon: {self.agent.epsilon} episode length: {episode_len}")
-				
-				# Updating state variables
-				state = new_state
-				preprocessed_state = new_preprocessed_state
+    def _train_agent(self):
+        self.agent.train()
+    
+    
+    def _save_config(self):
+        ## TODO :NOt working with the new config
+        if self.agent.config.data.saving_frequency > 0:
+            config_dictionnary = {}
+            for info in self.config:
+                config_dictionnary[info] = self.config[info]
+            file_name = f"{self.agent.conf_data.model_to_save_name}{self.agent.conf_data.config_extension}"
+            if self.agent.conf_data.S3_connection == True:
+                conf_path = f"{self.agent.S3.config.model_folder}{file_name}"
+                json_obj = json.dumps(config_dictionnary).encode('UTF-8')
+                bytes_obj = io.BytesIO(json_obj)
+                bytes_obj.seek(0)
+                self.agent.S3.upload_bytes(bytes_obj, conf_path)
+            else:
+                conf_path = f"{self.agent.conf_data.local_model_folder}{file_name}"
+                with open(conf_path, "w") as f:
+                    json.dump(config_dictionnary, f)
+                    Logger.info(f"Config information saved in file: {conf_path}")
 
-			if self.agent.train:
-				self.agent.train_on_memory(self.memory)
+
+    def add_simcache_point(self, datapoint, e):
+        if self.SimCache.datapoints_counter + 1 > self.agent.config.sim.size:
+            self.SimCache.upload(f"{self.agent.config.sim.save_name}{e}")
+        self.SimCache.add_point(datapoint)
+                
+
+    def train_agent_from_SimCache(self):
+        Logger.info(f"Training agent from SimCache database")
+        while self.SimCache.loading_counter < self.SimCache.nb_files_to_load:
+            path = self.SimCache.list_files[self.SimCache.loading_counter]
+            self.SimCache.load(path)
+            print(path)
+            
+            for datapoint in self.SimCache.data:
+                state, action, new_state, reward, done, infos = datapoint
+                done = self._is_over_race(infos, done)
+                reward = self.RO.sticks_and_carrots(action, infos, done)
+                [action, reward] = utils.to_numpy_32([action, reward])
+                processed_state, new_processed_state = self.preprocessor.process(state), self.preprocessor.process(new_state)
+                self.agent.memory.add(processed_state, action, new_processed_state, reward, done)
+
+            for _ in range(self.config.replay_memory_batches):
+                self.agent.replay_memory()
+            
+            if (self.agent.config.data.saving_frequency != 0):
+                self.agent.ModelCache.save(self.agent.model, f"{self.agent.config.data.save_name}{self.SimCache.loading_counter}")
+
+
+    def _is_over_race(self, infos, done):
+        cte = infos["cte"]
+        cte_corr = cte + self.config.cte_offset
+        if (done):
+            return True
+
+        if (abs(cte) > 100):
+            return True
+        
+        if (abs(cte_corr) > self.config.cte_limit):
+            return True
+
+        return False
+
+
+    def get_action(self, state):
+        return self.agent.get_action(self.preprocessor.process(state))
+
+
+    def add_score(self, iteration):
+        self.scores.append(iteration)
+
+
+    def do_races_ddqn(self, episodes):
+        Logger.info(f"Doing {episodes} races.")
+        for e in range(1, episodes + 1):
+            Logger.info(f"\nepisode {e}/{episodes}")
+            self.RO.new_race_init(e)
+            
+            self.simulator = utils.fix_cte(self.simulator)
+            self.env = self.simulator.env
+
+            state, reward, done, infos = self.env.step([0, 0])
+            processed_state = self.preprocessor.process(state)
+            done = self._is_over_race(infos, done)
+            Logger.debug(f"Initial CTE: {infos['cte']}")
+            iteration = 0
+            while (not done):
+
+                action = self.agent.get_action(processed_state, e)
+                Logger.debug(f"action: {action}")
+                new_state, reward, done, infos = self.env.step(action)
+                if self.agent.config.sim.save == True:
+                    self.add_simcache_point([state, action, new_state, reward, done, infos], e)
+                new_processed_state = self.preprocessor.process(new_state)
+                done = self._is_over_race(infos, done)
+                reward = self.RO.sticks_and_carrots(action, infos, done)
+                [action, reward] = utils.to_numpy_32([action, reward])
+                self.agent.memory.add(processed_state, action, new_processed_state, reward, done)
+                processed_state = new_processed_state
+                Logger.debug(f"cte:{infos['cte'] + 2.25}")
+                iteration += 1
+            
+            self.add_score(iteration)
+            self.agent._update_epsilon()
+            if (e % self.config.replay_memory_freq == 0):
+                for _ in range(self.config.replay_memory_batches):
+                    self.agent.replay_memory()
+
+
+            if (self.agent.config.data.saving_frequency != 0 and
+                (e % self.agent.config.data.saving_frequency == 0 or e == self.config.episodes)):
+                self.agent.ModelCache.save(self.agent.model, f"{self.agent.config.data.save_name}{e}")
+        
+        
+        if self.agent.config.sim.save == True:
+            self.SimCache.upload(f"{self.agent.config.sim.save_name}{e}")
+        self.env.reset()
+        return
+    
+    
+
+    def do_races_sac(self, episodes):
+        memory = SACDataset()
+        print(f"Doing {episodes} races.")
+        scores = []
+        for e in range(1, episodes + 1):
+            print(f"\nepisode {e}/{episodes}")
+            # print(f"memory size = {len(self.agent.memory)}")
+            self.RO.new_race_init(e)
+
+            self.simulator = utils.fix_cte(self.simulator)
+            self.env = self.simulator.env
+
+            state, reward, done, infos = self.env.step([0, 0])
+            processed_state = self.preprocessor.process(state)
+            done = self._is_over_race(infos, done)
+            print(f"Initial CTE: {infos['cte']}")
+            iteration = 0
+            while (not done):
+
+                action = self.agent.get_action(processed_state)[0].numpy()
+                # print(f"True {action = }")
+                # print(f"action: st {int(action[0] * 100)/100:7.2} th {(action[1] * 100)/100:7.2}")
+                new_state, reward, done, infos = self.env.step(action)
+                # self.agent.add_simcache_point([state, action, new_state, reward, done, infos])
+                new_processed_state = self.preprocessor.process(new_state)
+                # print(f"{new_processed_state.shape = }")
+                done = self._is_over_race(infos, done)
+
+                reward = self.RO.sticks_and_carrots(action, infos, done)
+
+                # [action, reward] = utils.to_numpy_32([action, reward])
+
+                # print(f"{new_processed_state[0].shape = }")
+                # print(f"{action = }")
+                current_action = torch.tensor(action)
+                # print(f"{current_action = }")
+                memory.add(processed_state[0], current_action,
+                           new_processed_state[0], reward, int(done))
+
+                processed_state = new_processed_state
+                # print(f"cte:{infos['cte'] + 2.25}")
+                iteration += 1
+
+            self.add_score(iteration)
+            print(f"Episode len: {self.scores[-1]}")
+
+            if (e % self.config.replay_memory_freq == 0):
+
+                print("Training")
+                # scores.append(len(memory))
+                if self.agent.train(memory):
+                    memory = SACDataset()
+                print(self.scores)
+
+        self.env.reset()
+        return
+
+    def do_races(self, episodes):
+        if self.sac:
+            self.do_races_sac(episodes)
+        else:
+            self.do_races_ddqn(episodes)
