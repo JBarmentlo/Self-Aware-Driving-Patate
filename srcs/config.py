@@ -122,6 +122,7 @@ config_Datasets = config.config_NeuralPlayer.config_Datasets
 config_Datasets.S3_connection			= True
 if config_Datasets.S3_connection == True:
     config_Datasets.S3_bucket_name		= 'deyopotato'
+    
 
 # DDQN:
 config_Datasets.ddqn = config.config_NeuralPlayer.config_Datasets.ddqn
@@ -130,6 +131,7 @@ if config_Datasets.ddqn.load_model == True:
     config_Datasets.ddqn.load_name 		= "model_cache/ddqn/dedequene.modelo.1100" #if local: path from the root folder, if S3: path after bucket name
 config_Datasets.ddqn.save_name 			= f"model_cache/ddqn/{config_NeuralPlayer.agent_name}_weights_{date}."
 config_Datasets.ddqn.saving_frequency	= 0
+config_Datasets.ddqn.save_score			= True
 
 
 # SIMULATOR CACHE FOR DDQN:
@@ -143,11 +145,11 @@ config_Datasets.ddqn.sim.size				= 3000
 
 # AUTOENCODER:
 config_Datasets.ae = config.config_NeuralPlayer.config_Datasets.ae
-config_Datasets.ae.load_model			= False
+config_Datasets.ae.load_model			= True
 if config_Datasets.ae.load_model == True:
     config_Datasets.ae.load_name 		= "model_cache/autoencoder/NiceAutoEncoder_h[8]_30K_examples" #if local: path from the root folder, if S3: path after bucket name
 config_Datasets.ae.save_name			= "model_cache/autoencoder/dedes_autoencoder"
-config_Datasets.ae.save_result			= True
+config_Datasets.ae.save_result			= False
 if config_Datasets.ae.save_result == True:
 	config_Datasets.ae.result_name		= "model_cache/autoencoder/images_results/dedes_autoencoder.png"
 
@@ -197,7 +199,7 @@ config_AutoEncoder.bottleneck_size		= 8
 config_AutoEncoder.layers_filters		= [3, 32, 32, 32, 64, 64, 128]
 
 # Hyper Parameters
-config_AutoEncoder.epochs				= 2
+config_AutoEncoder.epochs				= 15
 config_AutoEncoder.batch_size			= 64
 config_AutoEncoder.lr					= 1e-3
 
