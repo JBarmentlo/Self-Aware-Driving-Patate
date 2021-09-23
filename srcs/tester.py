@@ -1,16 +1,16 @@
-from Simulator import Simulator
-from NeuralPlayer import NeuralPlayer
-# from HumanPlayer import HumanPlayer
-# from pynput import keyboard
-import pickle
+import matplotlib.pyplot as plt
+from S3 import S3
+import io
 
 from config import config
 
-# env_name = "donkey-generated-roads-v0"
-# simulator = Simulator(config.config_Simulator, env_name)
+plt.figure()
+plt.plot([1, 2])
+plt.title("test")
+# plt.savefig("hey")
 
-neural = NeuralPlayer(config.config_NeuralPlayer, None, None)
-neural.train_agent_from_SimCache()
-
-# with open("simulator_cache/DDQN_sim_27_8.12_28.3", "rb") as f:
-    # test = pickle.load(f)
+my_s3 = S3("deyopotato")
+buf = io.BytesIO()
+plt.savefig(buf, format='png')
+buf.seek(0)
+my_s3.upload_bytes(buf, "model_cache/autoencoder/images_results/weshwesh")

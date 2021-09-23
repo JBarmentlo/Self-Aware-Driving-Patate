@@ -146,13 +146,15 @@ config_Datasets.ae = config.config_NeuralPlayer.config_Datasets.ae
 config_Datasets.ae.load_model			= False
 if config_Datasets.ae.load_model == True:
     config_Datasets.ae.load_name 		= "model_cache/autoencoder/NiceAutoEncoder_h[8]_30K_examples" #if local: path from the root folder, if S3: path after bucket name
-config_Datasets.ae.save_name			= f"model_cache/autoencoder/dedes_autoencoder"
-config_Datasets.ae.result_name			= "model_cache/autoencoder/images_results/dedes_autoencoder"
+config_Datasets.ae.save_name			= "model_cache/autoencoder/dedes_autoencoder"
+config_Datasets.ae.save_result			= True
+if config_Datasets.ae.save_result == True:
+	config_Datasets.ae.result_name		= "model_cache/autoencoder/images_results/dedes_autoencoder.png"
 
 
 # SIMULATOR CACHE FOR AUTOENCODER:
 config_Datasets.ae.sim = config.config_NeuralPlayer.config_Datasets.ae.sim
-config_Datasets.ae.sim.load_name		= "simulator_cache/human_player/*"
+config_Datasets.ae.sim.load_name		= "simulator_cache/human_player/Human_sim_22_9.18_58"
 
 
 
@@ -178,7 +180,7 @@ config_Preprocessing.frame_skip         = 2  # interval in frames between the st
 config_Preprocessing.shrink_size        = (120, 120) # * This does not remove the channels and generate a (60, 60) output. Channels are preserved :input (100, 100, 3) => (60, 60, 3)
 config_Preprocessing.output_size        = (config_Preprocessing.stack_size, *config_Preprocessing.shrink_size) #*  C * H * W CHANNELS FIRST
 
-config_Preprocessing.use_AutoEncoder	= True ## TODO: implement option to turn it off
+config_Preprocessing.use_AutoEncoder	= True
 
 
 # -----------------------------------------------------------------
@@ -198,6 +200,8 @@ config_AutoEncoder.layers_filters		= [3, 32, 32, 32, 64, 64, 128]
 config_AutoEncoder.epochs				= 2
 config_AutoEncoder.batch_size			= 64
 config_AutoEncoder.lr					= 1e-3
+
+config_AutoEncoder.show_plot			= False
 
 if config_Preprocessing.use_AutoEncoder:
 	config_Preprocessing.output_size    = (config_Preprocessing.stack_size, config_AutoEncoder.bottleneck_size)
@@ -243,12 +247,11 @@ if (agent_type == "DQN"):
 		bounds = config.action_space_boundaries[i]
 		tmp.append(np.linspace(start = bounds[0], stop = bounds[1], num = size))
 	
-	print("tmp", tmp)
 	config_Agent.action_space = []
 	for j in range(config_Agent.action_space_size[1]):
 		for i in range(config_Agent.action_space_size[0]):
 			config_Agent.action_space.append([tmp[0][i], tmp[1][j]])
-	print("config_Agent.action_space", config_Agent.action_space)
+	# print("config_Agent.action_space", config_Agent.action_space)
 	
 
 	if config_Preprocessing.use_AutoEncoder:

@@ -5,13 +5,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 from Memory import AutoEncoderDataset
+import logging
+import io
 
-def plot_comparaison(X, Y, path=None, plot=False):
+Logger = logging.getLogger("Pokemontrainer")
+Logger.setLevel(logging.INFO)
+stream = logging.StreamHandler()
+Logger.addHandler(stream)
+
+def plot_comparaison(X, Y, config, S3=None):
     m = len(X)
     if m <= 1:
         return
-    if not path and not plot:
+    if not config.show_plot and not config.data.save_result:
         return
+    path = config.data.result_name
     if not hasattr(plot_comparaison, "axs"):
         plt.ion()
         _, axs = plt.subplots(2, m)
@@ -20,15 +28,20 @@ def plot_comparaison(X, Y, path=None, plot=False):
     for i in range(m):
         plot_comparaison.axs[0, i].imshow(DataPrep(X[i]), interpolation='nearest')
         plot_comparaison.axs[1, i].imshow(DataPrep(Y[i]), interpolation='nearest')
-    if path:
-        plt.savefig(path)
-    if plot:
+    if config.data.save_result:
+        if S3 != None:
+            buf = io.BytesIO()
+            plt.savefig(buf, format='png')
+            buf.seek(0)
+            S3.upload_bytes(buf, path)
+        else:
+            plt.savefig(path)
+    if config.show_plot:
         plt.show()
         plt.pause(0.001)
 
 class AutoEncoderTrainer():
     def __init__(self, AutoEncoder, config, plot=False, SimCache=None, Prepocessing=None) -> None:
-        print("Init AE")
         self.config = config
         self.ae = AutoEncoder
         self.plot = plot
@@ -81,9 +94,9 @@ class AutoEncoderTrainer():
             # X_s = []
             for datapoint in self.SimCache.data:
                 state, action, new_state, reward, done, infos = datapoint
-                print(f"{state.shape = }")
+                Logger.debug(f"{state.shape = }")
                 prep_state = self.Prepocessing.before_AutoEncoder(state, training=True)
-                print(f"{prep_state.shape = }")
+                Logger.debug(f"{prep_state.shape = }")
                 complement = torch.tensor([infos["cte"]])
                 dataset.add((prep_state, complement))
         self.dataset = dataset
@@ -103,7 +116,6 @@ class AutoEncoderTrainer():
 
 
     def test(self):
-        result_plot = f"{self.config.data.result_name}_{self.ae.__class__.__name__}.png"
         total_loss = 0.
         for batch in tqdm(self.test_dataset):
             X = batch[0]
@@ -111,7 +123,7 @@ class AutoEncoderTrainer():
             Y_ = self.ae.predict(X)
             loss = self.ae.criterion(Y_, Y.to(self.ae.device))
             total_loss += loss.item()
-            plot_comparaison(Y_, Y, path=result_plot, plot=self.plot)
+            plot_comparaison(Y_, Y, self.config, self.SimCache.S3)
             # break
         mean_loss = total_loss / self.train_dataset_size
         print(f"AutoEncoder mean loss is {mean_loss}")
