@@ -85,7 +85,6 @@ class DistanceTracker():
         proj = get_projected_vector(curr, self.prev)
 
         proj_len = numpy.linalg.norm(proj)
-        print(f"{self.prev_proj = }, {proj = }")
         direction = numpy.dot(self.prev_proj, proj)
         if direction >= -0.001:
             self.total_distance += proj_len

@@ -79,7 +79,6 @@ class AutoEncoderTrainer():
             path = self.SimCache.list_files[self.SimCache.loading_counter]
             self.SimCache.load(path)
             # X_s = []
-            # dataset = AutoEncoderDataset()
             for datapoint in self.SimCache.data:
                 state, action, new_state, reward, done, infos = datapoint
                 print(f"{state.shape = }")
@@ -104,7 +103,7 @@ class AutoEncoderTrainer():
 
 
     def test(self):
-        result_plot = f"srcs/AutoEncoder/results/{self.config.name}_{self.ae.__class__.__name__}.png"
+        result_plot = f"{self.config.data.result_name}_{self.ae.__class__.__name__}.png"
         total_loss = 0.
         for batch in tqdm(self.test_dataset):
             X = batch[0]

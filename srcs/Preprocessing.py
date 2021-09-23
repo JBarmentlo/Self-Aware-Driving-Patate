@@ -69,7 +69,7 @@ class Preprocessing():
 		return state
 
 	def process(self, state: np.ndarray) -> torch.Tensor:
-		Logger.info(f"Processing.\nIn shape: {state.shape}")
+		Logger.debug(f"Processing.\nIn shape: {state.shape}")
 		if self.config.use_AutoEncoder == True:
 			state = self.before_AutoEncoder(state, training=False)
 			state = self.AutoEncoder.encode(state)
@@ -82,7 +82,7 @@ class Preprocessing():
 
 		state = state.cpu().detach()#.numpy()
 		
-		Logger.info(f"Out shape: {state.shape}")
+		Logger.debug(f"Out shape: {state.shape}")
 		return state
 
 	def resize(self, state, output_shape):

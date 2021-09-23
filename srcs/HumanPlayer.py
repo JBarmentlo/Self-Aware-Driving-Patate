@@ -72,7 +72,6 @@ class HumanPlayer():
     def get_action(self, key, released_key):
         if key != None:
             if key == key.up:
-                # self.throttle = abs(self.throttle * self.config.coef)
                 self.throttle = min(self.config.max_throttle, max(self.config.min_throttle, abs(self.throttle * self.config.coef)))
             elif key == key.down:
                 self.throttle = min(self.config.max_throttle, max(self.config.min_throttle, abs(self.throttle * self.config.coef) * 1))

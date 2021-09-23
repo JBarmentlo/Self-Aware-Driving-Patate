@@ -27,7 +27,6 @@ Logger.addHandler(stream)
 
 class NeuralPlayer():
     def __init__(self, config, env, simulator):
-        self.sac = True
         self.config = config
         self.env = env
         self.agent =  None
@@ -192,7 +191,7 @@ class NeuralPlayer():
         
         if self.agent.config.sim.save == True:
             self.SimCache.upload(f"{self.agent.config.sim.save_name}{e}")
-        Logger.info(f"TOtal distance: {self.Distance.total_distance}") ## TODO : check
+        Logger.info(f"Total distance: {self.Distance.total_distance}") ## TODO : check
         self.env.reset()
         return
     
@@ -256,7 +255,7 @@ class NeuralPlayer():
         return
 
     def do_races(self, episodes):
-        if self.sac:
+        if self.config.agent_name == "SAC":
             self.do_races_sac(episodes)
-        else:
+        elif self.config.agent_name == "DQN":
             self.do_races_ddqn(episodes)

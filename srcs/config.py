@@ -88,7 +88,7 @@ config.config_Simulator.update({"exe_path": "manual",
 config_NeuralPlayer = config.config_NeuralPlayer
 
 config_NeuralPlayer.agent_name               = "DQN"
-config_NeuralPlayer.episodes                 = 10000
+config_NeuralPlayer.episodes                 = 3
 config_NeuralPlayer.train_frequency          = 10
 config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
 config_NeuralPlayer.cte_limit                = 3.2 # 3.2 is the white line
@@ -146,19 +146,21 @@ config_Datasets.ae = config.config_NeuralPlayer.config_Datasets.ae
 config_Datasets.ae.load_model			= False
 if config_Datasets.ae.load_model == True:
     config_Datasets.ae.load_name 		= "model_cache/autoencoder/NiceAutoEncoder_h[8]_30K_examples" #if local: path from the root folder, if S3: path after bucket name
-config_Datasets.ae.save_name			= f"model_cache/autoencoder/weshwesh."
+config_Datasets.ae.save_name			= f"model_cache/autoencoder/dedes_autoencoder"
+config_Datasets.ae.result_name			= "model_cache/autoencoder/images_results/dedes_autoencoder"
 
 
 # SIMULATOR CACHE FOR AUTOENCODER:
 config_Datasets.ae.sim = config.config_NeuralPlayer.config_Datasets.ae.sim
-config_Datasets.ae.sim.load_name		= "simulator_cache/DDQN_sim_30_8.17_45.2"
+config_Datasets.ae.sim.load_name		= "simulator_cache/human_player/*"
+
 
 
 # SIMULATOR CACHE FOR HUMAN PLAYER:
 config.config_HumanPlayer.config_Datasets.S3_connection = config_Datasets.S3_connection
 if config_Datasets.S3_connection == True:
 	config.config_HumanPlayer.config_Datasets.S3_bucket_name = config_Datasets.S3_bucket_name
-config.config_HumanPlayer.config_Datasets.sim.save_name		= f"simulator_cache/Human_sim_{date}."
+config.config_HumanPlayer.config_Datasets.sim.save_name		= f"simulator_cache/human_player/Human_sim_{date}"
 
 
 # CONFIG:
@@ -176,7 +178,7 @@ config_Preprocessing.frame_skip         = 2  # interval in frames between the st
 config_Preprocessing.shrink_size        = (120, 120) # * This does not remove the channels and generate a (60, 60) output. Channels are preserved :input (100, 100, 3) => (60, 60, 3)
 config_Preprocessing.output_size        = (config_Preprocessing.stack_size, *config_Preprocessing.shrink_size) #*  C * H * W CHANNELS FIRST
 
-config_Preprocessing.use_AutoEncoder	= False ## TODO: implement option to turn it off
+config_Preprocessing.use_AutoEncoder	= True ## TODO: implement option to turn it off
 
 
 # -----------------------------------------------------------------
@@ -193,7 +195,7 @@ config_AutoEncoder.bottleneck_size		= 8
 config_AutoEncoder.layers_filters		= [3, 32, 32, 32, 64, 64, 128]
 
 # Hyper Parameters
-config_AutoEncoder.epochs				= 15
+config_AutoEncoder.epochs				= 2
 config_AutoEncoder.batch_size			= 64
 config_AutoEncoder.lr					= 1e-3
 
