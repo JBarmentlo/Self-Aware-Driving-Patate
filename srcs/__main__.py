@@ -24,7 +24,7 @@ def parse_arguments():
 						help='name of donkey sim environment', choices=env_list)
 	parser.add_argument('--agent', type=str, default="DQN",
 						help='Choice of reinforcement Learning Agent (now determined by config file)', choices=["DQN", "SAC"])
-	parser.add_argument('--no_sim', type=str, default=False,
+	parser.add_argument('--no_sim', action='store_true',
 						help='agent uses stored database to train')
 	parser.add_argument('--supervised', action="store_true",
 						help='Use Human Player instead of Neural Player')
@@ -36,7 +36,7 @@ if __name__ == "__main__":
 	args = parse_arguments()
 	if args.no_sim == True:
 		neural = NeuralPlayer(config.config_NeuralPlayer, None, None)
-		neural.train_agent_from_SimCache() # TODO : not working good
+		neural.train_agent_from_SimCache()
 	else:
 		simulator = Simulator(config.config_Simulator, args.env_name)
 		try:

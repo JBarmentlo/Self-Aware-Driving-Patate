@@ -119,7 +119,7 @@ config_HumanPlayer.init_steering	= 0.1
 
 config_Datasets = config.config_NeuralPlayer.config_Datasets
 
-config_Datasets.S3_connection			= True
+config_Datasets.S3_connection			= False
 if config_Datasets.S3_connection == True:
     config_Datasets.S3_bucket_name		= 'deyopotato'
     
