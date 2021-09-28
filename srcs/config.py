@@ -137,15 +137,13 @@ config_HumanPlayer.init_steering	= 0.1
 config_Datasets = config.config_NeuralPlayer.config_Datasets
 
 config_Datasets.S3_connection			= True
-if config_Datasets.S3_connection == True:
-    config_Datasets.S3_bucket_name		= 'deyopotato'
+config_Datasets.S3_bucket_name			= 'deyopotato'
     
 
 # DDQN:
 config_Datasets.ddqn = config.config_NeuralPlayer.config_Datasets.ddqn
 config_Datasets.ddqn.load_model			= False
-if config_Datasets.ddqn.load_model == True:
-    config_Datasets.ddqn.load_name 		= "model_cache/ddqn/dedequene.modelo.1100" #if local: path from the root folder, if S3: path after bucket name
+config_Datasets.ddqn.load_name 			= "model_cache/ddqn/dedequene.modelo.1100" #if local: path from the root folder, if S3: path after bucket name
 config_Datasets.ddqn.save_name 			= f"model_cache/ddqn/{config_NeuralPlayer.agent_name}_weights_{date}."
 config_Datasets.ddqn.saving_frequency	= 0
 config_Datasets.ddqn.save_score			= True
@@ -155,20 +153,17 @@ config_Datasets.ddqn.save_score			= True
 config_Datasets.ddqn.sim = config.config_NeuralPlayer.config_Datasets.ddqn.sim
 config_Datasets.ddqn.sim.load_name			= "simulator_cache/*"
 config_Datasets.ddqn.sim.save				= False
-if config_Datasets.ddqn.sim.save == True:
-    config_Datasets.ddqn.sim.save_name		= f"simulator_cache/{config_NeuralPlayer.agent_name}_sim_{date}."
+config_Datasets.ddqn.sim.save_name			= f"simulator_cache/{config_NeuralPlayer.agent_name}_sim_{date}."
 config_Datasets.ddqn.sim.size				= 3000
 
 
 # AUTOENCODER:
 config_Datasets.ae = config.config_NeuralPlayer.config_Datasets.ae
 config_Datasets.ae.load_model			= True
-if config_Datasets.ae.load_model == True:
-    config_Datasets.ae.load_name 		= "model_cache/autoencoder/NiceAutoEncoder_h[8]_30K_examples" #if local: path from the root folder, if S3: path after bucket name
+config_Datasets.ae.load_name 			= "model_cache/autoencoder/NiceAutoEncoder_h[8]_30K_examples" #if local: path from the root folder, if S3: path after bucket name
 config_Datasets.ae.save_name			= "model_cache/autoencoder/dedes_autoencoder"
 config_Datasets.ae.save_result			= False
-if config_Datasets.ae.save_result == True:
-	config_Datasets.ae.result_name		= "model_cache/autoencoder/images_results/dedes_autoencoder.png" #TODO: This file isnt saved in the distributed version
+config_Datasets.ae.result_name			= "model_cache/autoencoder/images_results/dedes_autoencoder.png" #TODO: This file isnt saved in the distributed version
 
 
 # SIMULATOR CACHE FOR AUTOENCODER:
@@ -178,9 +173,8 @@ config_Datasets.ae.sim.load_name		= "simulator_cache/human_player/Human_sim_22_9
 
 
 # SIMULATOR CACHE FOR HUMAN PLAYER:
-config.config_HumanPlayer.config_Datasets.S3_connection = config_Datasets.S3_connection
-if config_Datasets.S3_connection == True:
-	config.config_HumanPlayer.config_Datasets.S3_bucket_name = config_Datasets.S3_bucket_name
+config.config_HumanPlayer.config_Datasets.S3_connection 	= config_Datasets.S3_connection
+config.config_HumanPlayer.config_Datasets.S3_bucket_name 	= config_Datasets.S3_bucket_name
 config.config_HumanPlayer.config_Datasets.sim.save_name		= f"simulator_cache/human_player/Human_sim_{date}"
 
 
@@ -192,7 +186,7 @@ config_Datasets.config_extension		= "config.json"
 # Prepocessing
 # -----------------------------------------------------------------
 
-config_Preprocessing = config.config_NeuralPlayer.config_Preprocessing
+config_Preprocessing 					= config.config_NeuralPlayer.config_Preprocessing
 config_Preprocessing.input_size         = config_NeuralPlayer.camera_picture_shape
 config_Preprocessing.stack_size         = 4
 config_Preprocessing.frame_skip         = 2  # interval in frames between the stacked frames
@@ -246,15 +240,15 @@ if (agent_type == "DQN"):
 	config_Agent.epsilon            = config_Agent.initial_epsilon
 	config_Agent.epsilon_decay      = 0.9
 	config_Agent.epsilon_min        = 0.02
-	config_Agent.steps_to_eps_min   = 5000
+	config_Agent.steps_to_eps_min   = 100
 	config_Agent.batch_size         = 256
 	config_Agent.batches_number     = 10
 	config_Agent.min_memory_size    = 256
 	config_Agent.memory_size        = 10000
 	config_Agent.num_workers        = 0 # set it to 0 if your computer can't handle multiprocessing
 	
-	config_Agent.target_model_update_frequency = 15
-	config_Agent.action_space_boundaries =  config.action_space_boundaries
+	config_Agent.target_model_update_frequency 	= 15
+	config_Agent.action_space_boundaries 		=  config.action_space_boundaries
 
 
 
