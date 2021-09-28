@@ -13,7 +13,12 @@
 	"settings": {},
 	
 	// Add the IDs of extensions you want installed when the container is created.
-	"extensions": [],
+	"extensions": [
+		"ms-python.vscode-pylance",
+		"ms-python.python",
+		"coenraads.bracket-pair-colorizer",
+		"eamodio.gitlens"
+	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
@@ -29,6 +34,10 @@
 		"--gpus",
 		"all"
 	],
+
+	"containerEnv": {
+		"HISTFILE": "/workspaces/Self-Aware-Driving-Patate/.zsh_history",
+	},
 
 	// Uncomment to use the Docker CLI from inside the container. See https://aka.ms/vscode-remote/samples/docker-from-docker.
 	// "mounts": [ "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind" ],

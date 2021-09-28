@@ -2,6 +2,7 @@ import numpy as np
 from utils import get_path_to_cache
 import uuid
 from datetime import datetime
+import pickle as pkl
 
 date = f"{datetime.now().day}_{datetime.now().month}.{datetime.now().hour}_{datetime.now().minute}"
 
@@ -17,6 +18,12 @@ class DotDict(dict):
 	__getattr__ = dict.__getitem__
 	__setattr__ = dict.__setitem__
 	__delattr__ = dict.__delitem__
+
+    def __getstate__(self):
+        return self
+
+    def __setstate__(self, data):
+        self = data
 
 # TODO: Ask for automated find if os.environ["SIM_PATH"] doasnt exist (needed by server)
 
@@ -82,6 +89,14 @@ config.config_Simulator.update({"exe_path": "manual",
 
 
 # -----------------------------------------------------------------
+# Distributed Learning config
+# -----------------------------------------------------------------
+
+config.num_workers = 8          #* Number of simulators running during training
+config.centralized_agent = True #* Wether to send a copy of the agent to every worker (not Implemented)
+
+
+# -----------------------------------------------------------------
 # Neural Player config
 # -----------------------------------------------------------------
 
@@ -97,7 +112,7 @@ config_NeuralPlayer.cte_coef                 = 1000 # cte goes from -3.2 to 3.2 
 config_NeuralPlayer.speed_coef               = 200 # speed goes aprox from 0 to 10
 config_NeuralPlayer.reward_stick             = -1000
 config_NeuralPlayer.replay_memory_freq       = 1
-config_NeuralPlayer.replay_memory_batches    = 3
+config_NeuralPlayer.replay_memory_batches    = 5
 
 # -----------------------------------------------------------------
 # Human Player config
@@ -242,19 +257,21 @@ if (agent_type == "DQN"):
 
 
 	config_Agent.action_space_boundaries   = config.action_space_boundaries
-	action_space_length = 1
-	
+
+	config_Agent.action_space_length = 1
+	for s in config_Agent.action_space_size:
+		config_Agent.action_space_length = config_Agent.action_space_length * s
+
+
 	tmp = []
 	for i, size in enumerate(config_Agent.action_space_size):
 		bounds = config.action_space_boundaries[i]
 		tmp.append(np.linspace(start = bounds[0], stop = bounds[1], num = size))
-	
+
 	config_Agent.action_space = []
 	for j in range(config_Agent.action_space_size[1]):
 		for i in range(config_Agent.action_space_size[0]):
 			config_Agent.action_space.append([tmp[0][i], tmp[1][j]])
-	# print("config_Agent.action_space", config_Agent.action_space)
-	
 
 	if config_Preprocessing.use_AutoEncoder:
 		config_Agent.with_AutoEncoder = True
@@ -265,8 +282,16 @@ if (agent_type == "DQN"):
 			
 # -----------------------------------------------------------------
 # Agent Memory config
-# -----------------------------------------------------------------
+	# -----------------------------------------------------------------
 
 	config_Memory = config.config_NeuralPlayer.config_Agent.config_Memory
 
 	config_Memory.capacity = config_Agent.memory_size
+
+
+	# -----------------------------------------------------------------
+	# Distibuted
+	# -----------------------------------------------------------------
+
+	config.WORKER_NAME = "worker{}"
+	config.CENTRAL_NAME = "central_agent{}"
