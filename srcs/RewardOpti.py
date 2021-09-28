@@ -9,25 +9,25 @@ class RewardOpti:
     def __init__(self, config_NeuralPlayer):
         self.config = config_NeuralPlayer
         self.e = 0
-    
+
     def reset(self):
         pass
-    
+
     def new_race_init(self, episode):
         self.e = episode
 
-	def close_to_center(self, cte):
-		self.reward += (self.config.cte_limit - abs((cte + self.config.cte_offset))) * self.config.cte_coef
-		Logger.debug(f"reward center: ({self.config.cte_limit} - {abs(cte + self.config.cte_offset)}) * coef = [{(self.config.cte_limit - abs((cte + self.config.cte_offset))) * self.config.cte_coef}]")
+    def close_to_center(self, cte):
+        self.reward += (self.config.cte_limit - abs((cte + self.config.cte_offset))) * self.config.cte_coef
+        Logger.debug(f"reward center: ({self.config.cte_limit} - {abs(cte + self.config.cte_offset)}) * coef = [{(self.config.cte_limit - abs((cte + self.config.cte_offset))) * self.config.cte_coef}]")
 
     def go_fast(self, speed):
         self.reward += speed * (self.config.speed_coef + (2 * self.e))
         Logger.debug(f"reward speed: {speed} * {self.config.speed_coef} = [{speed * self.config.speed_coef}]")
-    
+
     def goes_backward(self, action):
         if action[1] < 0:
             return (True)
-    
+
     def sticks_and_carrots(self, action, infos, done):
         ### TODO: other infos that could be use: infos["pos"], infos["gyro"], infos["lidar"], infos["car"]
         self.reward = 0

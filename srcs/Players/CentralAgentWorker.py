@@ -30,12 +30,25 @@ class CentralAgentWorker():
 		self.simulator = Simulator(config.config_Simulator, env_name)  
 		self.simulator = utils.fix_cte(self.simulator)
 		self.env = self.simulator.env
+		self.S3 = S3(self.config.config_Datasets.S3_bucket_name)
 		self._init_preprocessor(self.config.config_Preprocessing)
 		self._init_reward_optimizer(self.config)
 		self._init_logger()
 		self.scores = []
 		self.e = 0
 		# self._save_config()
+
+
+	def _init_dataset(self, config):
+		self.S3 = None
+		if self.config.config_Datasets.S3_connection == True:
+			self.S3 = S3(self.config.config_Datasets.S3_bucket_name)
+		if self.config.agent_name == "DQN":
+			self.SimCache = SimCache(self.config.config_Datasets.ddqn.sim, self.S3)
+
+
+	def _init_preprocessor(self, config_Preprocessing):
+		self.preprocessor = Preprocessing(config = config_Preprocessing, S3=self.S3)
 
 
 	def update_agent_params(self, state_dict):
@@ -46,9 +59,6 @@ class CentralAgentWorker():
 		self.Logger = logging.getLogger(f"DistributedPlayer-{self.id}")
 		self.Logger.setLevel(logging.INFO)
 		self.Logger.addHandler(logging.StreamHandler())
-
-	def _init_preprocessor(self, config_Preprocessing):
-		self.preprocessor = Preprocessing(config = config_Preprocessing)
 
 
 	def _init_reward_optimizer(self, config_NeuralPlayer):
@@ -93,7 +103,6 @@ class CentralAgentWorker():
 			done = self._is_over_race(infos, done)
 			self.Logger.debug(f"Initial CTE: {infos['cte']}")
 			while (not done):
-
 				action = self.get_action(processed_state)
 				self.Logger.debug(f"action: {action}")
 				new_state, reward, done, infos = self.env.step(action)

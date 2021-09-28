@@ -3,7 +3,9 @@ from utils import get_path_to_cache
 import uuid
 from datetime import datetime
 import pickle as pkl
+import pprint
 
+PP = pprint.PrettyPrinter(indent=2, width = 120).pprint # use PP(config) for pretty print
 date = f"{datetime.now().day}_{datetime.now().month}.{datetime.now().hour}_{datetime.now().minute}"
 
 
@@ -19,11 +21,11 @@ class DotDict(dict):
 	__setattr__ = dict.__setitem__
 	__delattr__ = dict.__delitem__
 
-    def __getstate__(self):
-        return self
+	def __getstate__(self):
+		return self
 
-    def __setstate__(self, data):
-        self = data
+	def __setstate__(self, data):
+		self = data
 
 # TODO: Ask for automated find if os.environ["SIM_PATH"] doasnt exist (needed by server)
 
@@ -92,7 +94,7 @@ config.config_Simulator.update({"exe_path": "manual",
 # Distributed Learning config
 # -----------------------------------------------------------------
 
-config.num_workers = 8          #* Number of simulators running during training
+config.num_workers = 8	         #* Number of simulators running during training
 config.centralized_agent = True #* Wether to send a copy of the agent to every worker (not Implemented)
 
 
@@ -106,7 +108,7 @@ config_NeuralPlayer.agent_name               = "DQN"
 config_NeuralPlayer.episodes                 = 3
 config_NeuralPlayer.train_frequency          = 10
 config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
-config_NeuralPlayer.cte_limit                = 3.2 # 3.2 is the white line
+config_NeuralPlayer.cte_limit                = 3 # 3.2 is the white line
 config_NeuralPlayer.cte_offset               = 2.25
 config_NeuralPlayer.cte_coef                 = 1000 # cte goes from -3.2 to 3.2 on the road
 config_NeuralPlayer.speed_coef               = 200 # speed goes aprox from 0 to 10
@@ -134,7 +136,7 @@ config_HumanPlayer.init_steering	= 0.1
 
 config_Datasets = config.config_NeuralPlayer.config_Datasets
 
-config_Datasets.S3_connection			= False
+config_Datasets.S3_connection			= True
 if config_Datasets.S3_connection == True:
     config_Datasets.S3_bucket_name		= 'deyopotato'
     
@@ -166,7 +168,7 @@ if config_Datasets.ae.load_model == True:
 config_Datasets.ae.save_name			= "model_cache/autoencoder/dedes_autoencoder"
 config_Datasets.ae.save_result			= False
 if config_Datasets.ae.save_result == True:
-	config_Datasets.ae.result_name		= "model_cache/autoencoder/images_results/dedes_autoencoder.png"
+	config_Datasets.ae.result_name		= "model_cache/autoencoder/images_results/dedes_autoencoder.png" #TODO: This file isnt saved in the distributed version
 
 
 # SIMULATOR CACHE FOR AUTOENCODER:
@@ -214,7 +216,7 @@ config_AutoEncoder.bottleneck_size		= 8
 config_AutoEncoder.layers_filters		= [3, 32, 32, 32, 64, 64, 128]
 
 # Hyper Parameters
-config_AutoEncoder.epochs				= 15
+config_AutoEncoder.epochs				= 200
 config_AutoEncoder.batch_size			= 64
 config_AutoEncoder.lr					= 1e-3
 
@@ -237,18 +239,18 @@ if (agent_type == "DQN"):
 	config_Agent.input_size         = config_Preprocessing.output_size
 	config_Agent.data               = config_NeuralPlayer.config_Datasets.ddqn
 	config_Agent.sim                = config_NeuralPlayer.config_Datasets.ddqn.sim
-	config_Agent.action_space_size  = (11, 3)
+	config_Agent.action_space_size  = (5, 3)
 	config_Agent.discount           = 0.99
-	config_Agent.lr                 = 1e-4
+	config_Agent.lr                 = 5e-4
 	config_Agent.initial_epsilon    = 0.9
 	config_Agent.epsilon            = config_Agent.initial_epsilon
 	config_Agent.epsilon_decay      = 0.9
 	config_Agent.epsilon_min        = 0.02
 	config_Agent.steps_to_eps_min   = 5000
-	config_Agent.batch_size         = 2
+	config_Agent.batch_size         = 256
 	config_Agent.batches_number     = 10
-	config_Agent.min_memory_size    = 258
-	config_Agent.memory_size        = 1000
+	config_Agent.min_memory_size    = 256
+	config_Agent.memory_size        = 10000
 	config_Agent.num_workers        = 0 # set it to 0 if your computer can't handle multiprocessing
 	
 	config_Agent.target_model_update_frequency = 15

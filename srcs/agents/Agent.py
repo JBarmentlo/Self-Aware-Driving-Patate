@@ -76,7 +76,7 @@ class  DQNAgent():
 		if np.random.rand() > self.config.epsilon :
 			ALogger.debug(f"Not Random action being picked")
 			if self.config.with_AutoEncoder:
-				action = self.action_from_q_values(self.model.forward(torch.Tensor(state)))
+				action = self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :])))
 			else:
 				action = self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :])))
 			ALogger.debug(f"{action = }")

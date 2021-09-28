@@ -25,6 +25,7 @@ class Preprocessing():
 			Logger.info("Initializing AutoEncoder")
 			self.AutoEncoder = self._init_AutoEncoder()
 
+
 	def _init_AutoEncoder(self):
 		mc = ModelCache(self.S3)
 		ae = NiceAutoEncoder(self.config.config_AutoEncoder, mc)
@@ -38,6 +39,7 @@ class Preprocessing():
 					SimCache=my_SimCache,
 					Prepocessing=self)
 		return ae
+
 
 	def _autoencoder_prepare(self, state: np.array, extand=True) -> torch.Tensor:
 		"""
@@ -54,6 +56,7 @@ class Preprocessing():
 		state = torch.from_numpy(state).type(torch.float32) / 255.
 		return state
 
+
 	def before_AutoEncoder(self, state: np.ndarray, training:bool=False) -> torch.Tensor:
 		# print(f"{state = }")
 		# print(f"{state.shape = }")
@@ -64,9 +67,11 @@ class Preprocessing():
 		# print(f"{state.shape = }")
 		return state
 	
+
 	def after_AutoEncoder(self, state: torch.Tensor) -> torch.Tensor:
 		state = self.stack(state)
 		return state
+
 
 	def process(self, state: np.ndarray) -> torch.Tensor:
 		Logger.debug(f"Processing.\nIn shape: {state.shape}")
@@ -85,11 +90,14 @@ class Preprocessing():
 		Logger.debug(f"Out shape: {state.shape}")
 		return state
 
+
 	def resize(self, state, output_shape):
 		return cv2.resize(state, dsize=output_shape, interpolation=cv2.INTER_CUBIC)
 
+
 	def gray(self, state):
 		return cv2.cvtColor(state, cv2.COLOR_RGB2GRAY)
+
 
 	def colors_rounding(self, data: torch.Tensor, precision: int = 5) -> torch.Tensor:
 		"""[summary]
@@ -113,6 +121,7 @@ class Preprocessing():
 		data *= step / max_value
 		return data
 
+
 	def stack(self, state: torch.Tensor) -> torch.Tensor:
 		self.skip_counter += 1
 		self.skip_counter = self.skip_counter % self.config.frame_skip
@@ -124,5 +133,5 @@ class Preprocessing():
 			self.history[self.skip_counter].append(state.to(torch.float32))
 		
 		stacked_state = torch.stack(tuple(self.history[self.skip_counter]), axis = 0)
-		stacked_state = torch.moveaxis(stacked_state, 1, 0)
-		return stacked_state
+		return stacked_state.view(self.config.stack_size, -1) # TODO:  check this. I have no idea what im fixing. AE was sending 4 batches of size (1, 8)
+																# TODO:  into model!? making batch evaluation (i.e. replay memory) impossible.

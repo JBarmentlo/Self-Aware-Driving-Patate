@@ -44,22 +44,20 @@ class CentralAgentMaster():
 		self.world_size = world_size #nb of remote agents
 		self.worker_rrefs = []
 		for worker_rank in range(1, self.world_size):
-			print("in")
 			worker_info = rpc.get_worker_info(f"worker{worker_rank}")
-			print("mid")
 			self.worker_rrefs.append(remote(worker_info, CentralAgentWorker, args = (config, ), timeout=600))
-			print("OUT")
 		# self._save_config()
 
 	def _init_dataset(self, config):
 		self.S3 = None
 		if self.config.config_Datasets.S3_connection == True:
 			self.S3 = S3(self.config.config_Datasets.S3_bucket_name)
-		self.SimCache = SimCache(self.config.config_Datasets.sim, self.S3)
+		if self.config.agent_name == "DQN":
+			self.SimCache = SimCache(self.config.config_Datasets.ddqn.sim, self.S3)
 
 
 	def _init_preprocessor(self, config_Preprocessing):
-		self.preprocessor = Preprocessing(config = config_Preprocessing)
+		self.preprocessor = Preprocessing(config = config_Preprocessing, S3=self.S3)
 
 
 	def _init_agent(self, config_Agent):

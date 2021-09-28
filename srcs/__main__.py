@@ -78,6 +78,16 @@ def parse_arguments():
 	return (args)
 
 if __name__ == "__main__":
+	free_all_sims(config.num_workers)
+	mp.spawn(
+		run_worker,
+		args=(config.num_workers + 1, ),
+		nprocs=config.num_workers + 1,
+		join=True
+	)
+		# simulator.env.unwrapped.close()
+
+
 	# args = parse_arguments()
 	# if args.no_sim == True:
 	# 	neural = NeuralPlayer(config.config_NeuralPlayer, None, None)
@@ -94,11 +104,3 @@ if __name__ == "__main__":
 	# 	finally:
 	# 		simulator.client.release_sim()
 	# 		# simulator.env.unwrapped.close()
-	free_all_sims(config.num_workers)
-	mp.spawn(
-		run_worker,
-		args=(config.num_workers + 1, ),
-		nprocs=config.num_workers + 1,
-		join=True
-	)
-		# simulator.env.unwrapped.close()
