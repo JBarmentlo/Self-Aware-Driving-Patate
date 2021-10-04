@@ -44,12 +44,28 @@ def parse_arguments():
 	config.config_NeuralPlayer.agent_name = args.agent
 	return (args)
 
+class TrainingLoop(Probe):
+	def __init__(self):
+		# TODO
+		return
+
+	def probe(self, x):
+		simulator = Simulator(config.config_Simulator, args.env_name)
+		score = 0
+
+		try:
+			neural = NeuralPlayer(config.config_NeuralPlayer, env = simulator.env, simulator=simulator)
+			neural.do_races(neural.config.episodes)
+
+			score = neural.get_score()
+		finally:
+			simulator.client.release_sim()
+			# simulator.env.unwrapped.close()
+
+		return score
+
 if __name__ == "__main__":
 	args = parse_arguments()
-	simulator = Simulator(config.config_Simulator, args.env_name)
-	try:
-		neural = NeuralPlayer(config.config_NeuralPlayer, env = simulator.env, simulator=simulator)
-		neural.do_races(neural.config.episodes)
-	finally:
-		simulator.client.release_sim()
-		# simulator.env.unwrapped.close()
+
+	hyperparameters = bayesian_optimization(probe, 25, 100)
+	print('hyperparameters:', hyperparameters)
