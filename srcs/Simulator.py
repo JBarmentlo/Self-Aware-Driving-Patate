@@ -31,7 +31,12 @@ class Simulator:
 		except:
 			time.sleep(4)
 			self.env = gym.make(self.env_name, conf=self.config)
-			
+	
+	def new_track(self):
+		print("Making new track")
+		self.env.viewer.exit_scene()
+		# self.env.close()
+		self.env = gym.make(self.env_name, conf=self.config)
 
 	def release_simulator(self):
 		self.client.release_sim(self.port)

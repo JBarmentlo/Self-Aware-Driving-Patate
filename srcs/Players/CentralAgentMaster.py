@@ -43,6 +43,8 @@ class CentralAgentMaster():
 		self.agent_rref = RRef(self.agent)
 		self.world_size = world_size #nb of remote agents
 		self.worker_rrefs = []
+		self.scores_tmp = []
+		self.scores = []
 		for worker_rank in range(1, self.world_size):
 			worker_info = rpc.get_worker_info(f"worker{worker_rank}")
 			self.worker_rrefs.append(remote(worker_info, CentralAgentWorker, args = (config, ), timeout=600))
@@ -68,10 +70,6 @@ class CentralAgentMaster():
 		self.RO = RewardOpti(config_NeuralPlayer)
 
 
-	def add_score(self, iteration):
-		self.scores.append(iteration)
-
-
 	def update_worker_agent_params(self):
 		state_dict = {k: v.cpu() for k, v in zip(self.agent.model.state_dict().keys(), self.agent.model.state_dict().values())}
 		futures = []
@@ -89,7 +87,6 @@ class CentralAgentMaster():
 			fut.wait()
 
 
-
 	def run_remote_episode(self, num_frames = 10):
 		self.agent.new_frames = 0
 		futures = []
@@ -98,7 +95,7 @@ class CentralAgentMaster():
 				rpc_async(
 					worker_rref.owner(),
 					worker_rref.rpc_sync(timeout=0).do_races,
-					args=(self.agent_rref, num_frames,),
+					args=(self.agent_rref, num_frames, False,),
 					timeout=0
 				)
 			)
@@ -118,3 +115,34 @@ class CentralAgentMaster():
 
 		self.e += 1
 
+
+	def run_eval_episode(self, num_frames = 10):
+		print("EVAL EPISODE\n\n\n\n\n")
+		self.agent.new_frames = 0
+		self.scores_tmp = []
+		tmp_epsilone = self.agent.config.epsilon
+		self.agent.config.epsilon = 0.0
+		futures = []
+		for worker_rref in self.worker_rrefs:
+			futures.append(
+				rpc_async(
+					worker_rref.owner(),
+					worker_rref.rpc_sync(timeout=0).do_races,
+					args=(self.agent_rref, num_frames, True),
+					timeout=0
+				)
+			)
+
+		for fut in futures:
+			fut.wait()
+
+		self.agent.config.epsilon = tmp_epsilone
+
+		for fut in futures:
+			scor = fut.value()
+			self.scores_tmp.append(scor)
+			print(f"recieved score {scor}")
+
+		self.scores.append(np.mean(self.scores_tmp))
+		self.scores_tmp = []
+		print(f"Mean score {self.scores[-1]}\n\n")

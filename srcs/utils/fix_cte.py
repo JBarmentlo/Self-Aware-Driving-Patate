@@ -35,5 +35,7 @@ def fix_cte(simulator):
 		if (abs(cte) > 1):
 			UtilsLogger.warning(f"restarting sim because cte is fucked {cte}")
 			simulator.restart_simulator()
+	
+	simulator.env.reset()
 
 	return simulator

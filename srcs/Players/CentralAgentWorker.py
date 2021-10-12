@@ -13,7 +13,7 @@ from S3 import S3
 import utils
 from SimCache import SimCache
 import torch.distributed.rpc as rpc
-
+from Score import DistanceTracker
 
 from Simulator import Simulator
 from config import DotDict
@@ -34,7 +34,6 @@ class CentralAgentWorker():
 		self._init_preprocessor(self.config.config_Preprocessing)
 		self._init_reward_optimizer(self.config)
 		self._init_logger()
-		self.scores = []
 		self.e = 0
 		# self._save_config()
 
@@ -89,19 +88,22 @@ class CentralAgentWorker():
 		self.simulator.release_simulator()
 
 
-	def do_races(self, agent_rref, n_max):
+	def do_races(self, agent_rref, n_max, eval):
 		self.agent_rref = agent_rref
 		n = 0
 		while (not self.agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
 			self.RO.new_race_init(self.e)
 			self.e += 1
+			# self.simulator.new_track()  destroys cte.
 			self.simulator = utils.fix_cte(self.simulator)
 			self.env = self.simulator.env
 
-			state, reward, done, infos = self.env.step([0, 0])
+			state, reward, done, infos = self.env.step([0, 0.1])
 			processed_state = self.preprocessor.process(state)
 			done = self._is_over_race(infos, done)
 			self.Logger.debug(f"Initial CTE: {infos['cte']}")
+			if (eval):
+				Scorer = DistanceTracker(infos["pos"], infos["cte"])
 			while (not done):
 				action = self.get_action(processed_state)
 				self.Logger.debug(f"action: {action}")
@@ -110,10 +112,16 @@ class CentralAgentWorker():
 				done = self._is_over_race(infos, done)
 				reward = self.RO.sticks_and_carrots(action, infos, done)
 				[action, reward] = utils.to_numpy_32([action, reward])
-				self.agent_rref.rpc_async().add_to_memory(processed_state, action, new_processed_state, reward, done)
+				if (not eval):
+					self.agent_rref.rpc_async().add_to_memory(processed_state, action, new_processed_state, reward, done)
 				processed_state = new_processed_state
 				self.Logger.debug(f"cte:{infos['cte'] + 2.25}")
 				n += 1
-
-		self.env.reset()
-		return
+				if (eval):
+					Scorer.next(infos["pos"], infos["cte"])
+			
+			
+		if (eval):
+			return Scorer.get_total_distance()
+		else:
+			return 0

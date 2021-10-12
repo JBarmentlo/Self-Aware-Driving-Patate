@@ -38,6 +38,7 @@ RUN apt-get install -y curl wget zsh
 RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 RUN apt-get install direnv; echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
 
+
 WORKDIR /App/Self-Aware-Driving-Patate
 
 ENTRYPOINT /bin/zsh 
