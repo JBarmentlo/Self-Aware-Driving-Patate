@@ -95,7 +95,7 @@ class CentralAgentMaster():
 				rpc_async(
 					worker_rref.owner(),
 					worker_rref.rpc_sync(timeout=0).do_races,
-					args=(self.agent_rref, num_frames, False,),
+					args=(self.agent_rref, num_frames),
 					timeout=0
 				)
 			)
@@ -116,9 +116,8 @@ class CentralAgentMaster():
 		self.e += 1
 
 
-	def run_eval_episode(self, num_frames = 10):
-		print("EVAL EPISODE\n\n\n\n\n")
-		self.agent.new_frames = 0
+	def run_eval_episode(self):
+		print("EVAL EPISODE\n")
 		self.scores_tmp = []
 		tmp_epsilone = self.agent.config.epsilon
 		self.agent.config.epsilon = 0.0
@@ -127,8 +126,8 @@ class CentralAgentMaster():
 			futures.append(
 				rpc_async(
 					worker_rref.owner(),
-					worker_rref.rpc_sync(timeout=0).do_races,
-					args=(self.agent_rref, num_frames, True),
+					worker_rref.rpc_sync(timeout=0).do_eval_races,
+					args=(self.agent_rref,),
 					timeout=0
 				)
 			)

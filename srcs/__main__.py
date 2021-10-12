@@ -31,12 +31,12 @@ def run_worker(rank, world_size):
 		rpc.init_rpc(AGENT_NAME, rank=rank, world_size=world_size)
 
 		Masta = CentralAgentMaster(config, world_size)
-		EVAL_FREQUENCY = 20
+		EVAL_FREQUENCY = 1
 		for i_episode in range(1000):
 			Masta.update_worker_agent_params()
 			Masta.run_remote_episode(100)
-			# if ((i_episode % EVAL_FREQUENCY) == 0):
-				# Masta.run_eval_episode(100)		#TODO : Crashes in score.next function
+			if ((i_episode % EVAL_FREQUENCY) == 0):
+				Masta.run_eval_episode()		#TODO : Crashes in score.next function
 
 		for woker_rref in Masta.worker_rrefs:
 			woker_rref.rpc_sync().release_sim()

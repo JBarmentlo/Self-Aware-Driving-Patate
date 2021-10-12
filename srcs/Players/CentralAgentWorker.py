@@ -88,7 +88,7 @@ class CentralAgentWorker():
 		self.simulator.release_simulator()
 
 
-	def do_races(self, agent_rref, n_max, eval):
+	def do_races(self, agent_rref, n_max):
 		self.agent_rref = agent_rref
 		n = 0
 		while (not self.agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
@@ -102,8 +102,6 @@ class CentralAgentWorker():
 			processed_state = self.preprocessor.process(state)
 			done = self._is_over_race(infos, done)
 			self.Logger.debug(f"Initial CTE: {infos['cte']}")
-			if (eval):
-				Scorer = DistanceTracker(infos["pos"], infos["cte"])
 			while (not done):
 				action = self.get_action(processed_state)
 				self.Logger.debug(f"action: {action}")
@@ -112,16 +110,40 @@ class CentralAgentWorker():
 				done = self._is_over_race(infos, done)
 				reward = self.RO.sticks_and_carrots(action, infos, done)
 				[action, reward] = utils.to_numpy_32([action, reward])
-				if (not eval):
-					self.agent_rref.rpc_async().add_to_memory(processed_state, action, new_processed_state, reward, done)
+				self.agent_rref.rpc_async().add_to_memory(processed_state, action, new_processed_state, reward, done)
 				processed_state = new_processed_state
 				self.Logger.debug(f"cte:{infos['cte'] + 2.25}")
 				n += 1
-				if (eval):
-					Scorer.next(infos["pos"], infos["cte"])
-			
-			
-		if (eval):
-			return Scorer.get_total_distance()
-		else:
-			return 0
+
+		return
+
+
+
+	def do_eval_races(self, agent_rref):
+		self.agent_rref = agent_rref
+		n = 0
+		self.RO.new_race_init(self.e)
+			# self.simulator.new_track()  destroys cte.
+		self.simulator = utils.fix_cte(self.simulator)
+		self.env = self.simulator.env
+
+		state, reward, done, infos = self.env.step([0, 0.1])
+		processed_state = self.preprocessor.process(state)
+		done = self._is_over_race(infos, done)
+		self.Logger.debug(f"Initial CTE: {infos['cte']}")
+		Scorer = DistanceTracker(infos["pos"], infos["cte"])
+		while (not done):
+			action = self.get_action(processed_state)
+			self.Logger.debug(f"action: {action}")
+			new_state, reward, done, infos = self.env.step(action)
+			new_processed_state = self.preprocessor.process(new_state)
+			done = self._is_over_race(infos, done)
+			reward = self.RO.sticks_and_carrots(action, infos, done)
+			[action, reward] = utils.to_numpy_32([action, reward])
+			# self.agent_rref.rpc_async().add_to_memory(processed_state, action, new_processed_state, reward, done)
+			processed_state = new_processed_state
+			self.Logger.debug(f"cte:{infos['cte'] + 2.25}")
+			Scorer.next(infos["pos"], infos["cte"])
+		
+		
+		return Scorer.get_total_distance()
