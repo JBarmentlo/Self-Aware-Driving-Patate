@@ -143,6 +143,9 @@ class NeuralPlayer():
     def add_score(self, iteration):
         self.scores.append(iteration)
 
+    def get_score(self):
+        self.scores[len(self.scores) - 1]
+
 
     def do_races_ddqn(self, episodes):
         Logger.info(f"Doing {episodes} races.")

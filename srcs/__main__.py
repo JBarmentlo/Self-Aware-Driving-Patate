@@ -6,6 +6,9 @@ from NeuralPlayer import NeuralPlayer
 
 from config import config
 
+import optimization
+from optimization.bayesian import Probe
+
 def parse_arguments():
 	env_list = [
 		"donkey-warehouse-v0",
@@ -46,26 +49,31 @@ def parse_arguments():
 
 class TrainingLoop(Probe):
 	def __init__(self):
-		# TODO
+		super().__init__(2)
 		return
 
 	def probe(self, x):
+		print('Testing hyperparameters: ', x[0], x[1])
+		config.config_NeuralPlayer.replay_memory_batches = x[0]
+		config.config_NeuralPlayer.replay_memory_batches = x[1]
+
 		simulator = Simulator(config.config_Simulator, args.env_name)
-		score = 0
 
 		try:
 			neural = NeuralPlayer(config.config_NeuralPlayer, env = simulator.env, simulator=simulator)
+			neural = NeuralPlayer(config.config_NeuralPlayer)
 			neural.do_races(neural.config.episodes)
 
-			score = neural.get_score()
+			return neural.get_score()
 		finally:
 			simulator.client.release_sim()
 			# simulator.env.unwrapped.close()
 
-		return score
+		return 0
 
 if __name__ == "__main__":
 	args = parse_arguments()
 
-	hyperparameters = bayesian_optimization(probe, 25, 100)
+	training_loop = TrainingLoop()
+	hyperparameters = optimization.bayesian.bayesian_optimization(training_loop, 25, 100)
 	print('hyperparameters:', hyperparameters)
