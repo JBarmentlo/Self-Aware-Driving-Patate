@@ -53,7 +53,10 @@ def get_projected_vector(p0, p1):
         0.,
         delta_pos[0] * math.sin(delta_angle) + delta_pos[1] * math.cos(delta_angle),
     ])
-    proj /= numpy.linalg.norm(proj)
+
+    proj_len = numpy.linalg.norm(proj)
+    if proj_len > 0.0001:
+        proj /= proj_len
     proj *= proj_dist
     return proj
 
