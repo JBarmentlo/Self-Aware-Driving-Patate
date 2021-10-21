@@ -6,6 +6,8 @@ WORKDIR /App
 # BASIC INSTALL (APT + UPDATES)
 RUN apt-get update \
 	&& apt-get upgrade -y \
+	&& apt-get install python3-dev -y \
+	&& apt-get install python3.8-dev -y \
 	&& apt install -y software-properties-common \
 	&& add-apt-repository -y ppa:deadsnakes/ppa \
 	&& apt install -y python3.8 git python3-pip zsh \

@@ -32,7 +32,8 @@
 		"--network",
 		"host",
 		"--gpus",
-		"all"
+		"all",
+		"--privileged"
 	],
 
 	"containerEnv": {

@@ -109,8 +109,10 @@ class AutoEncoderTrainer():
             print(f"Epoch {e}/{epochs}")
             for batch in tqdm(self.train_dataset):
                 data = batch[0]
+                print(f"{batch[0].shape = }")
+                print(f"{batch[1].shape = }")
                 self.ae.loss = 0.
-                self.ae.train(data)
+                self.ae.train(batch[0], batch[1])
         self.ae.save()
         self.test()
 

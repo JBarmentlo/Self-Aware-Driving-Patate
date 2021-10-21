@@ -1,4 +1,4 @@
-from srcs.Simulator import Simulator
+from Simulator import Simulator
 from ModelCache import ModelCache
 import torch
 import logging

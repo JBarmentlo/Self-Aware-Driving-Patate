@@ -1,3 +1,4 @@
+pynput
 h5py
 pillow
 opencv-python

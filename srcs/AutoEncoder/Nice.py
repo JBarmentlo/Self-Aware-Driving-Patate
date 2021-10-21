@@ -3,6 +3,7 @@ import torch
 from torch import nn
 from torch import optim
 from ModelCache import ModelCache
+import numpy as np
 
 class EncodeLayer(nn.Module):
 	def __init__(self, in_channels, out_channels, conv_kernel=3, pool_kernel=2):
@@ -132,12 +133,26 @@ class NiceAutoEncoder():
 		self.criterion = nn.MSELoss()
 		self.loss = 0.
 
-	def train(self, batch):
-		batch = batch.to(self.device)
-		self.optimizer.zero_grad()
-		outputs = self.model(batch)
+	# def criterion(self, batch_img, batch_cte):
+	# 	pass
 
-		loss = self.criterion(outputs, batch)
+	def train(self, batch_img, batch_cte):
+		batch_img = batch_img.to(self.device)
+		self.optimizer.zero_grad()
+		outputs = self.model(batch_img)
+
+
+		hidden_state, cache = self.model.encoder(batch_img)
+		outputs = self.model.decoder(hidden_state, cache)
+
+
+		vec_first = hidden_state[:,0].reshape((-1, 1))
+		print(f"{vec_first.shape}")
+
+		loss_cte = self.criterion(batch_cte, vec_first)
+		loss_img = self.criterion(batch_img, outputs)
+		loss = loss_img + loss_cte
+
 		loss.backward()
 		self.optimizer.step()
 

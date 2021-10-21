@@ -94,7 +94,7 @@ config.config_Simulator.update({"exe_path": "manual",
 # Distributed Learning config
 # -----------------------------------------------------------------
 
-config.num_workers = 1	         #* Number of simulators running during training
+config.num_workers = 3	         #* Number of simulators running during training
 config.centralized_agent = True #* Wether to send a copy of the agent to every worker (not Implemented)
 
 
@@ -159,16 +159,16 @@ config_Datasets.ddqn.sim.size				= 3000
 
 # AUTOENCODER:
 config_Datasets.ae = config.config_NeuralPlayer.config_Datasets.ae
-config_Datasets.ae.load_model			= True
+config_Datasets.ae.load_model			= False
 config_Datasets.ae.load_name 			= "model_cache/autoencoder/NiceAutoEncoder_h[8]_30K_examples" #if local: path from the root folder, if S3: path after bucket name
 config_Datasets.ae.save_name			= "model_cache/autoencoder/dedes_autoencoder"
-config_Datasets.ae.save_result			= False
+config_Datasets.ae.save_result			= True
 config_Datasets.ae.result_name			= "model_cache/autoencoder/images_results/dedes_autoencoder.png" #TODO: This file isnt saved in the distributed version
 
 
 # SIMULATOR CACHE FOR AUTOENCODER:
 config_Datasets.ae.sim = config.config_NeuralPlayer.config_Datasets.ae.sim
-config_Datasets.ae.sim.load_name		= "simulator_cache/human_player/Human_sim_22_9.18_58"
+config_Datasets.ae.sim.load_name		= "simulator_cache/human_player/*"
 
 
 
@@ -206,7 +206,7 @@ config_AutoEncoder = config.config_NeuralPlayer.config_Preprocessing.config_Auto
 config_AutoEncoder.data					= config_NeuralPlayer.config_Datasets.ae
 config_AutoEncoder.sim					= config_NeuralPlayer.config_Datasets.ae.sim
 config_AutoEncoder.input_shape			= config_Preprocessing.output_size
-config_AutoEncoder.bottleneck_size		= 8
+config_AutoEncoder.bottleneck_size		= 32
 config_AutoEncoder.layers_filters		= [3, 32, 32, 32, 64, 64, 128]
 
 # Hyper Parameters
