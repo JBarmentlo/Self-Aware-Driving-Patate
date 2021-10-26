@@ -1,3 +1,4 @@
+from srcs.Simulator import Simulator
 from ModelCache import ModelCache
 import torch
 import logging
@@ -12,7 +13,7 @@ from Preprocessing import Preprocessing
 from S3 import S3
 import utils
 from SimCache import SimCache
-from Scorer import DistanceTracker
+from Score import DistanceTracker
 
 from agents.SAC import SoftActorCritic
 
@@ -26,19 +27,20 @@ Logger.addHandler(stream)
 
 
 class NeuralPlayer():
+    agent:          DQNAgent
+    preprocessor:   Preprocessing
+    simulator:      Simulator
+    
     def __init__(self, config, env, simulator):
-        self.sac = True
         self.config = config
+        self.scores = [] # TODO: do we want to keep that?
         self.env = env
-        self.agent =  None
-        self.preprocessor = None
         self.simulator = simulator
         self._init_dataset(config.config_Datasets)
         self._init_agent(config.config_Agent)
         self._init_preprocessor(config.config_Preprocessing)
         self._init_reward_optimizer(self.config)
-        self.scores = []
-        # self._save_config()
+        self._save_config()
 
 
     def _init_dataset(self, config):
@@ -63,30 +65,27 @@ class NeuralPlayer():
   
     def _init_reward_optimizer(self, config_NeuralPlayer):
         self.RO = RewardOpti(config_NeuralPlayer)
-
-
+    
+    
     def _train_agent(self):
         self.agent.train()
     
     
     def _save_config(self):
-        ## TODO :NOt working with the new config
         if self.agent.config.data.saving_frequency > 0:
             config_dictionnary = {}
             for info in self.config:
                 config_dictionnary[info] = self.config[info]
-            file_name = f"{self.agent.conf_data.model_to_save_name}{self.agent.conf_data.config_extension}"
-            if self.agent.conf_data.S3_connection == True:
-                conf_path = f"{self.agent.S3.config.model_folder}{file_name}"
+            file_path = f"{self.agent.config.data.save_name}{self.config.config_Datasets.config_extension}"
+            if self.S3 != None:
                 json_obj = json.dumps(config_dictionnary).encode('UTF-8')
                 bytes_obj = io.BytesIO(json_obj)
                 bytes_obj.seek(0)
-                self.agent.S3.upload_bytes(bytes_obj, conf_path)
+                self.S3.upload_bytes(bytes_obj, file_path)
             else:
-                conf_path = f"{self.agent.conf_data.local_model_folder}{file_name}"
-                with open(conf_path, "w") as f:
+                with open(file_path, "w") as f:
                     json.dump(config_dictionnary, f)
-                    Logger.info(f"Config information saved in file: {conf_path}")
+                    Logger.info(f"Config information saved in file: {file_path}")
 
 
     def add_simcache_point(self, datapoint, e):
@@ -101,14 +100,14 @@ class NeuralPlayer():
             path = self.SimCache.list_files[self.SimCache.loading_counter]
             self.SimCache.load(path)
             infos = self.SimCache.data[0][5]
-            self.Distance = DistanceTracker(infos["pos"], infos["cte"]) ## TODO: check that
+            self.Score = DistanceTracker(infos["pos"], infos["cte"])
                         
             for datapoint in self.SimCache.data:
                 state, action, new_state, reward, done, infos = datapoint
                 done = self._is_over_race(infos, done)
                 reward = self.RO.sticks_and_carrots(action, infos, done)
                 [action, reward] = utils.to_numpy_32([action, reward])
-                self.Distance.next(infos["pos"], infos["cte"]) ### TODO check that
+                self.Score.next(infos["pos"], infos["cte"])
                 processed_state, new_processed_state = self.preprocessor.process(state), self.preprocessor.process(new_state)
                 self.agent.memory.add(processed_state, action, new_processed_state, reward, done)
 
@@ -117,7 +116,6 @@ class NeuralPlayer():
             
             if (self.agent.config.data.saving_frequency != 0):
                 self.agent.ModelCache.save(self.agent.model, f"{self.agent.config.data.save_name}{self.SimCache.loading_counter}")
-        print(f"TOtal distance: {self.Distance.total_distance}") ## TODO : check
         
 
 
@@ -158,7 +156,7 @@ class NeuralPlayer():
 
             state, reward, done, infos = self.env.step([0, 0])
 
-            self.Distance = DistanceTracker(infos["pos"], infos["cte"]) ## TODO: check that
+            self.Score = DistanceTracker(infos["pos"], infos["cte"]) ## TODO: check that
 
             processed_state = self.preprocessor.process(state)
             done = self._is_over_race(infos, done)
@@ -171,7 +169,7 @@ class NeuralPlayer():
                 new_state, reward, done, infos = self.env.step(action)
                 if self.agent.config.sim.save == True:
                     self.add_simcache_point([state, action, new_state, reward, done, infos], e)
-                self.Distance.next(infos["pos"], infos["cte"]) ### TODO check that
+                self.Score.next(infos["pos"], infos["cte"]) ### TODO check that
                 new_processed_state = self.preprocessor.process(new_state)
                 done = self._is_over_race(infos, done)
                 reward = self.RO.sticks_and_carrots(action, infos, done)
@@ -195,7 +193,9 @@ class NeuralPlayer():
         
         if self.agent.config.sim.save == True:
             self.SimCache.upload(f"{self.agent.config.sim.save_name}{e}")
-        Logger.info(f"TOtal distance: {self.Distance.total_distance}") ## TODO : check
+        if self.config.data.save_score == True:
+            self.Score.upload(f"{self.agent.config.data.save_name}{e}")
+        Logger.info(f"Total distance: {self.Score.total_distance}")
         self.env.reset()
         return
     
@@ -259,7 +259,7 @@ class NeuralPlayer():
         return
 
     def do_races(self, episodes):
-        if self.sac:
+        if self.config.agent_name == "SAC":
             self.do_races_sac(episodes)
-        else:
+        elif self.config.agent_name == "DQN":
             self.do_races_ddqn(episodes)

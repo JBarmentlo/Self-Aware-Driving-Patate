@@ -1,5 +1,7 @@
 import math
 import numpy
+import json
+import io
 
 class Point:
     '''
@@ -85,7 +87,6 @@ class DistanceTracker():
         proj = get_projected_vector(curr, self.prev)
 
         proj_len = numpy.linalg.norm(proj)
-        print(f"{self.prev_proj = }, {proj = }")
         direction = numpy.dot(self.prev_proj, proj)
         if direction >= -0.001:
             self.total_distance += proj_len
@@ -94,6 +95,25 @@ class DistanceTracker():
 
         self.prev = curr
         self.prev_proj = proj
+    
+    
+    def dictionnary_infos(self):
+        infos_to_save = {"total_distance" : self.total_distance}
+        return (infos_to_save)
+    
+    
+    def upload(self, path, S3=None):
+        path = f"{path}.json"
+        infos_to_save = self.dictionnary_infos()
+        if S3 != None:
+            json_obj = json.dumps(infos_to_save).encode('UTF-8')
+            bytes_obj = io.BytesIO(json_obj)
+            bytes_obj.seek(0)
+            S3.upload_bytes(bytes_obj, path)
+        else:
+            with open(path, "w") as f:
+                json.dump(infos_to_save, f)
+            
 
 if __name__ == "__main__":
     d = DistanceTracker(numpy.array([0., 0.]), 0.)

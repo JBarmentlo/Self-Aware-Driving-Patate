@@ -81,7 +81,6 @@ class DqnMemory(Dataset):
 	def clear_all(self):
 		pass
 
-	
 	def __len__(self):
 		return len(self.data)
 

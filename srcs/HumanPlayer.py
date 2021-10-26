@@ -54,13 +54,16 @@ class HumanPlayer():
         self.simulator = simulator
         self.throttle, self.steering = 0, 0
         self._init_dataset(config.config_Datasets)
+        Logger.info("Human Player created")
 
 
     def _init_dataset(self, config):
         self.S3 = None
         if self.config.config_Datasets.S3_connection == True:
             self.S3 = S3(self.config.config_Datasets.S3_bucket_name)
+        Logger.info("Initializing simcache")
         self.SimCache = SimCache(self.config.config_Datasets.sim, self.S3)
+    
     
     def add_simcache_point(self, datapoint):
         self.SimCache.add_point(datapoint)
@@ -69,7 +72,6 @@ class HumanPlayer():
     def get_action(self, key, released_key):
         if key != None:
             if key == key.up:
-                # self.throttle = abs(self.throttle * self.config.coef)
                 self.throttle = min(self.config.max_throttle, max(self.config.min_throttle, abs(self.throttle * self.config.coef)))
             elif key == key.down:
                 self.throttle = min(self.config.max_throttle, max(self.config.min_throttle, abs(self.throttle * self.config.coef) * 1))

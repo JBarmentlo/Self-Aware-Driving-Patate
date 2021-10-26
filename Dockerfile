@@ -32,6 +32,13 @@ RUN git clone https://github.com/JBarmentlo/Self-Aware-Driving-Patate.git \
 
 # RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
 RUN pip3 install torch==1.9.0 torchvision
+
+RUN apt-get update
+RUN apt-get install -y curl wget zsh
+RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+RUN apt-get install direnv; echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
+
+
 WORKDIR /App/Self-Aware-Driving-Patate
 
 ENTRYPOINT /bin/zsh 

@@ -11,7 +11,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
 from torch.utils.data import DataLoader
-from utils import val_to_idx
+from utils import action_to_bin_batch
 
 from Memory import DqnMemory
 from SimCache import SimCache
@@ -76,7 +76,7 @@ class  DQNAgent():
 		if np.random.rand() > self.config.epsilon :
 			ALogger.debug(f"Not Random action being picked")
 			if self.config.with_AutoEncoder:
-				action = self.action_from_q_values(self.model.forward(torch.Tensor(state)))
+				action = self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :])))
 			else:
 				action = self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :])))
 			ALogger.debug(f"{action = }")
@@ -109,42 +109,56 @@ class  DQNAgent():
 		dataloader = DataLoader(self.memory, batch_size=self.config.batch_size,
 						shuffle=True, num_workers=self.config.num_workers)
 
+		self.update_target_model_counter += 1
+
 		for i, single_batch in enumerate(dataloader):
-			self.update_target_model_counter += 1
 			self.optimizer.zero_grad()
 			targets = []
 			processed_states, actions, new_processed_states, rewards, dones = single_batch
-			dones = ~dones
-
-			# print(f"{processed_states.shape = }")
-			m = processed_states.shape[0]
-			s = self.config.input_size
-			processed_states = processed_states.view(m, *s)
-			new_processed_states = new_processed_states.view(m, *s)
-			# print(f"{processed_states.shape = }")
+			dones = (~dones).to(torch.int).cuda()
+			rewards = rewards.cuda()
+			actions = actions.cuda()
 			qs_b = self.model.forward(processed_states)
-			qss_b = self.target_model.forward(new_processed_states)
-			qss_max_b, _ = torch.max(qss_b, dim = 1)
+			#TODO  Some of these are on GPU others on CPU why ??
 
-			for i, (action, reward, done) in enumerate(zip(actions, rewards, dones)):
-				target = qs_b[i].clone()
-				target = target.detach()
-				a_idx = val_to_idx(action, self.config.action_space)
-				target[a_idx] = reward + (done * self.config.discount * qss_max_b[i]) 
-				targets.append(target)
-
-			targets = torch.stack(targets)
-			error = self.criterion(qs_b, targets)
+			with torch.no_grad():
+				qss_b = self.target_model.forward(new_processed_states)
+				qss_max_b, _ = torch.max(qss_b, dim = 1)
+				action_bins = action_to_bin_batch(actions, self.config.action_space_boundaries, self.config.action_space_size)
+				# print(f"ACTIONS {actions}")
+				# print("BINS", action_bins)
+				targets = qs_b.clone()
+				hot = F.one_hot(action_bins, num_classes = self.config.action_space_length)
+				mul = (1 - hot) * targets
+				yj = torch.mul(qss_max_b, dones)
+				yj = yj * self.config.discount
+				yj = yj + rewards
+				yj = torch.mul(hot, yj.view(-1, 1))
+				# print(f"{yj = }\n")
+				mul = mul +  yj
+				# print(f"{rewards = }\n{action_bins = }\n{qss_max_b = }\n{targets = }\n{mul =}\n\n\n\n\n\n\n")
+				
+			error = self.criterion(qs_b, mul)
 			error.backward()
 			self.optimizer.step()
 
 			if (self.update_target_model_counter % self.config.target_model_update_frequency == 0):
 				self._update_target_model()
+				self.update_target_model_counter = 1
 			
+
+	def add_to_memory(self, preprocessed_old_state, action, preprocessed_new_state, reward, done):
+		self.memory.add(preprocessed_old_state, action, preprocessed_new_state, reward, done)
+		self.new_frames += 1
+
+
+	def is_enough_frames_generated(self, limit = 1000):
+		return self.new_frames >= limit
+
 
 	def train(self):
 		pass
-  
+
 
 
 def conv2d_size_out(size, kernel_size = 5, stride = 2):
