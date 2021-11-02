@@ -159,9 +159,9 @@ config_Datasets.ddqn.sim.size				= 3000
 
 # AUTOENCODER:
 config_Datasets.ae = config.config_NeuralPlayer.config_Datasets.ae
-config_Datasets.ae.load_model			= False
-config_Datasets.ae.load_name 			= "model_cache/autoencoder/NiceAutoEncoder_h[8]_30K_examples" #if local: path from the root folder, if S3: path after bucket name
-config_Datasets.ae.save_name			= "model_cache/autoencoder/dedes_autoencoder"
+config_Datasets.ae.load_model			= True
+config_Datasets.ae.load_name 			= "model_cache/autoencoder/dedes_100_autoencoderh[32]" #if local: path from the root folder, if S3: path after bucket name
+config_Datasets.ae.save_name			= "model_cache/autoencoder/dedes_100_autoencoder"
 config_Datasets.ae.save_result			= True
 config_Datasets.ae.result_name			= "model_cache/autoencoder/images_results/dedes_autoencoder.png" #TODO: This file isnt saved in the distributed version
 
@@ -210,7 +210,7 @@ config_AutoEncoder.bottleneck_size		= 32
 config_AutoEncoder.layers_filters		= [3, 32, 32, 32, 64, 64, 128]
 
 # Hyper Parameters
-config_AutoEncoder.epochs				= 200
+config_AutoEncoder.epochs				= 100
 config_AutoEncoder.batch_size			= 128
 config_AutoEncoder.lr					= 1e-3
 

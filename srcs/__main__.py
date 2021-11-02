@@ -1,7 +1,7 @@
 import argparse
 
 from Simulator import Simulator
-# from NeuralPlayer import NeuralPlayer
+from NeuralPlayer import NeuralPlayer
 # from HumanPlayer import HumanPlayer
 
 from config import config
@@ -97,12 +97,12 @@ if __name__ == "__main__":
 	# else:
 	# 	simulator = Simulator(config.config_Simulator, args.env_name)
 	# 	try:
-	# 		if args.supervised == True:
-	# 			human = HumanPlayer(config.config_HumanPlayer, env = simulator.env, simulator = simulator)
-	# 			human.do_race()
-	# 		else:
-	# 			neural = NeuralPlayer(config.config_NeuralPlayer, env = simulator.env, simulator=simulator)
-	# 			neural.do_races(neural.config.episodes)
+	# 		# if args.supervised == True:
+	# 		# 	human = HumanPlayer(config.config_HumanPlayer, env = simulator.env, simulator = simulator)
+	# 		# 	human.do_race()
+	# 		# else:
+	# 		neural = NeuralPlayer(config.config_NeuralPlayer, env = simulator.env, simulator=simulator)
+	# 		neural.do_races(neural.config.episodes)
 	# 	finally:
 	# 		simulator.client.release_sim()
 	# 		# simulator.env.unwrapped.close()
