@@ -32,8 +32,8 @@ RUN git clone https://github.com/JBarmentlo/Self-Aware-Driving-Patate.git \
 	&& cd Self-Aware-Driving-Patate \
 	&& git checkout Reshape
 
-# RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
-RUN pip3 install torch==1.9.0 torchvision
+RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
+# RUN pip3 install torch==1.9.0 torchvision
 
 RUN apt-get update
 RUN apt-get install -y curl wget zsh
@@ -42,5 +42,10 @@ RUN apt-get install direnv; echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
 
 
 WORKDIR /App/Self-Aware-Driving-Patate
+
+# RUN apt-get install -y firefox
+# RUN groupadd -g 1000 yup
+# RUN useradd -d /home/yup -s /usr/bin/zsh -m yup -u 1000 -g 1000
+# USER yup 
 
 ENTRYPOINT /bin/zsh 

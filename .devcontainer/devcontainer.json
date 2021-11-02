@@ -17,7 +17,9 @@
 		"ms-python.vscode-pylance",
 		"ms-python.python",
 		"coenraads.bracket-pair-colorizer",
-		"eamodio.gitlens"
+		"eamodio.gitlens",
+		"ms-vscode.cpptools",
+		"austin.code-gnu-global"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
@@ -33,11 +35,14 @@
 		"host",
 		"--gpus",
 		"all",
-		"--privileged"
+		"--privileged",
+		"-v",
+		"/tmp/.X11-unix:/tmp/.X11-unix"
 	],
 
 	"containerEnv": {
 		"HISTFILE": "/workspaces/Self-Aware-Driving-Patate/.zsh_history",
+		"DISPLAY": "${localEnv:DISPLAY}",
 	},
 
 	// Uncomment to use the Docker CLI from inside the container. See https://aka.ms/vscode-remote/samples/docker-from-docker.
