@@ -65,7 +65,7 @@ config.config_HumanPlayer.config_Datasets.sim = DotDict()
 
 config.min_steering = -5.0
 config.max_steering = 5.0
-config.min_throttle = 0.0
+config.min_throttle = -1.0
 config.max_throttle = 1.0
 config.action_space_boundaries = [[config.min_steering, config.max_steering], [config.min_throttle, config.max_throttle]]
 
@@ -108,7 +108,7 @@ config_NeuralPlayer.agent_name               = "DQN"
 config_NeuralPlayer.episodes                 = 3
 config_NeuralPlayer.train_frequency          = 10
 config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
-config_NeuralPlayer.cte_limit                = 3 # 3.2 is the white line
+config_NeuralPlayer.cte_limit                = 3.2 # 3.2 is the white line
 config_NeuralPlayer.cte_offset               = 2.25
 config_NeuralPlayer.cte_coef                 = 1000 # cte goes from -3.2 to 3.2 on the road
 config_NeuralPlayer.speed_coef               = 200 # speed goes aprox from 0 to 10

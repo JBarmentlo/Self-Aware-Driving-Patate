@@ -17,6 +17,7 @@ from Score import DistanceTracker
 
 from Simulator import Simulator
 from config import DotDict
+from Scorer import DistScorer
 
 class CentralAgentWorker():
 	agent: 		DQNAgent
@@ -130,7 +131,9 @@ class CentralAgentWorker():
 		processed_state = self.preprocessor.process(state)
 		done = self._is_over_race(infos, done)
 		self.Logger.debug(f"Initial CTE: {infos['cte']}")
-		Scorer = DistanceTracker(infos["pos"], infos["cte"])
+		# Scorer = DistanceTracker(infos["pos"], infos["cte"])
+		Scorer = DistScorer()
+		Scorer.first_point(infos)
 		while (not done):
 			action = self.get_action(processed_state)
 			self.Logger.debug(f"action: {action}")
@@ -142,7 +145,7 @@ class CentralAgentWorker():
 			# self.agent_rref.rpc_async().add_to_memory(processed_state, action, new_processed_state, reward, done)
 			processed_state = new_processed_state
 			self.Logger.debug(f"cte:{infos['cte'] + 2.25}")
-			Scorer.next(infos["pos"], infos["cte"])
+			Scorer.add_point(infos)
 		
 		
-		return Scorer.get_total_distance()
+		return Scorer.current_race_dist
