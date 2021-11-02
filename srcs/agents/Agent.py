@@ -11,6 +11,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 from utils import action_to_bin_batch
 
 from Memory import DqnMemory
@@ -150,7 +151,11 @@ class  DQNAgent():
 	def add_to_memory(self, preprocessed_old_state, action, preprocessed_new_state, reward, done):
 		self.memory.add(preprocessed_old_state, action, preprocessed_new_state, reward, done)
 		self.new_frames += 1
+		self.pbar.update(1)
 
+
+	def create_loading_bar(self, size):
+		self.pbar = tqdm(total = size, unit_scale = True, desc = f"Frames generated")
 
 	def is_enough_frames_generated(self, limit = 1000):
 		return self.new_frames >= limit

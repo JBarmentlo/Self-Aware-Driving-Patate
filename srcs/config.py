@@ -94,7 +94,7 @@ config.config_Simulator.update({"exe_path": "manual",
 # Distributed Learning config
 # -----------------------------------------------------------------
 
-config.num_workers = 3	         #* Number of simulators running during training
+config.num_workers = 8	         #* Number of simulators running during training
 config.centralized_agent = True #* Wether to send a copy of the agent to every worker (not Implemented)
 
 

@@ -24,7 +24,6 @@ class CentralAgentWorker():
 	RO:			RewardOpti
 
 	def __init__(self, config, env_name = "donkey-generated-roads-v0"):
-		print("Heyaaaaaa")
 		self.id = rpc.get_worker_info().id
 		self.config = config.config_NeuralPlayer
 		self.preprocessor = None

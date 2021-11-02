@@ -89,6 +89,7 @@ class CentralAgentMaster():
 
 	def run_remote_episode(self, num_frames = 10):
 		self.agent.new_frames = 0
+		self.agent.create_loading_bar(num_frames)
 		futures = []
 		for worker_rref in self.worker_rrefs:
 			futures.append(
@@ -99,15 +100,11 @@ class CentralAgentMaster():
 					timeout=0
 				)
 			)
-
 		for fut in futures:
 			fut.wait()
-
-		t = datetime.now()
 		for _ in range(self.config.replay_memory_batches):
 			self.agent.replay_memory()
-		
-		print(datetime.now() - t)
+
 		self.agent._update_epsilon()
 
 		if (self.agent.config.data.saving_frequency != 0 and (self.e % self.agent.config.data.saving_frequency == 0 or self.e == self.config.episodes)):
