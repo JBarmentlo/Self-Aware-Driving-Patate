@@ -148,11 +148,14 @@ class  DQNAgent():
 	def create_loading_bar(self, size):
 		self.pbar = tqdm(total = size, unit_scale = True, desc = f"Frames generated")
 
+
 	def is_enough_frames_generated(self, limit = 1000):
 		return self.new_frames >= limit
 
-	# def all_workers_done(self, worker_id):
-	# 	self.
+
+	def total_frames_generated(self):
+		return self.new_frames
+
 
 	def train(self):
 		pass

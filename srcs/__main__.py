@@ -31,7 +31,7 @@ def run_worker(rank, world_size):
 
 		Masta = CentralAgentMaster(config, world_size)
 		EVAL_FREQUENCY = 10
-		for i_episode in range(1000):
+		for i_episode in range(10000):
 			# Masta.update_worker_agent_params()
 			print("START")
 			Masta.run_remote_episode(1000)

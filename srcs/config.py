@@ -103,7 +103,7 @@ config.num_workers = 8	         #* Number of simulators running during training
 
 config_NeuralPlayer = config.config_NeuralPlayer
 
-config_NeuralPlayer.agent_name               = "DQN_no_AE"
+config_NeuralPlayer.agent_name               = "DQN_no_AE_speed"
 config_NeuralPlayer.episodes                 = 3
 config_NeuralPlayer.train_frequency          = 10
 config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
@@ -142,9 +142,9 @@ config_Datasets.S3_bucket_name			= 'deyopotato'
 # DDQN:
 config_Datasets.ddqn = config.config_NeuralPlayer.config_Datasets.ddqn
 config_Datasets.ddqn.load_model			= True
-config_Datasets.ddqn.load_name 			= "model_cache/ddqn/dedequene.modelo.1100" #if local: path from the root folder, if S3: path after bucket name
+config_Datasets.ddqn.load_name 			= "model_cache/ddqn/DQN_no_AE_weights_3_11.10_1.10" #if local: path from the root folder, if S3: path after bucket name
 config_Datasets.ddqn.save_name 			= f"model_cache/ddqn/{config_NeuralPlayer.agent_name}_weights_{date}."
-config_Datasets.ddqn.saving_frequency	= 10
+config_Datasets.ddqn.saving_frequency	= 1
 config_Datasets.ddqn.save_score			= True
 
 
@@ -239,7 +239,7 @@ if (agent_type == "DQN"):
 	config_Agent.epsilon            = config_Agent.initial_epsilon
 	config_Agent.epsilon_decay      = 0.9
 	config_Agent.epsilon_min        = 0.02
-	config_Agent.steps_to_eps_min   = 20
+	config_Agent.steps_to_eps_min   = 2000
 	config_Agent.batch_size         = 256
 	config_Agent.min_memory_size    = 1000
 	config_Agent.memory_size        = 10000

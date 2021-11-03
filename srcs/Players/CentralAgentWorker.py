@@ -19,6 +19,9 @@ from Simulator import Simulator
 from config import DotDict
 from Scorer import DistScorer
 
+
+
+
 class CentralAgentWorker():
 	agent: 		DQNAgent
 	simulator: 	Simulator
@@ -37,6 +40,11 @@ class CentralAgentWorker():
 		self._init_reward_optimizer(self.config)
 		self._init_logger()
 		self.e = 0
+		self.Logger = logging.getLogger(f"Central Agent Worker {self.rank}")
+		self.Logger.setLevel(logging.WARNING)
+		stream = logging.StreamHandler()
+		self.Logger.addHandler(stream)
+
 		# self._save_config()
 
 
@@ -93,6 +101,42 @@ class CentralAgentWorker():
 		self.simulator.release_simulator()
 
 
+	def non_blocking_fix_cte(self, simulator, agent_rref, n_max):
+		'''
+			Returns a simulator instance containing a functional env
+		'''
+		cte = 100
+		while(abs(cte) > 1 and not agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
+			state = simulator.env.reset()
+			new_state, reward, done, infos = simulator.env.step([0, 1])
+
+			if (abs(infos["cte"]) > 1):
+				self.Logger.info(f"Attempting to fix broken cte by driving forward a little bit. cte: {infos['cte']}")
+				new_state, reward, done, infos = simulator.env.step([0, 1])
+				time.sleep(0.5)
+				self.Logger.info(f"One step more. cte: {infos['cte']}")
+			if (abs(infos["cte"]) > 1):
+				new_state, reward, done, infos = simulator.env.step([0.1, 1])
+				time.sleep(0.5)
+				self.Logger.info(f"One step more. cte: {infos['cte']}")
+			if (abs(infos["cte"]) > 1):
+				new_state, reward, done, infos = simulator.env.step([-0.1, 1])
+				time.sleep(1)
+				self.Logger.info(f"One step more. cte: {infos['cte']}")
+			if (abs(infos["cte"]) > 1):
+				new_state, reward, done, infos = simulator.env.step([0, 1])
+				time.sleep(0)
+				self.Logger.info(f"One step more. cte: {infos['cte']}")
+			
+			cte = infos["cte"]
+			if (abs(cte) > 1):
+				self.Logger.warning(f"restarting sim because cte is fucked {cte}")
+				simulator.restart_simulator()
+		
+		# simulator.env.reset()
+
+		return simulator
+
 	def do_races(self, agent_rref, n_max):
 		self.agent_rref = agent_rref
 		n = 0
@@ -100,14 +144,17 @@ class CentralAgentWorker():
 			self.RO.new_race_init(self.e)
 			self.e += 1
 			# self.simulator.new_track()  destroys cte.
-			self.simulator = utils.fix_cte(self.simulator)
+			self.simulator = self.non_blocking_fix_cte(self.simulator, agent_rref, n_max)
+			if (self.agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
+				break
 			self.env = self.simulator.env
 
 			state, reward, done, infos = self.env.step([0, 0.1])
 			processed_state = self.preprocessor.process(state)
 			done = self._is_over_race(infos, done)
 			self.Logger.debug(f"Initial CTE: {infos['cte']}")
-			while (not done):
+			total_frames = 0
+			while ((not done) and total_frames < n_max * 5):
 				action = self.get_action(processed_state)
 				self.Logger.debug(f"action: {action}")
 				new_state, reward, done, infos = self.env.step(action)
@@ -119,12 +166,14 @@ class CentralAgentWorker():
 				processed_state = new_processed_state
 				self.Logger.debug(f"cte:{infos['cte'] + 2.25}")
 				n += 1
+				if (n % 64 == 0):
+					total_frames = self.agent_rref.rpc_sync().total_frames_generated()
 
 		self.env.reset()
 		return
 
 
-	def do_eval_races(self, agent_rref, max_frames = 1000):
+	def do_eval_races(self, agent_rref, max_frames = 5000):
 		self.agent_rref = agent_rref
 		n = 0
 		self.RO.new_race_init(self.e)

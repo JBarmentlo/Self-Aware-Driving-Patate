@@ -21,7 +21,7 @@ class RewardOpti:
         Logger.debug(f"reward center: ({self.config.cte_limit} - {abs(cte + self.config.cte_offset)}) * coef = [{(self.config.cte_limit - abs((cte + self.config.cte_offset))) * self.config.cte_coef}]")
 
     def go_fast(self, speed):
-        self.reward += speed * (self.config.speed_coef + (2 * self.e))
+        self.reward += speed * (self.config.speed_coef * (200 + self.e) / 200)
         Logger.debug(f"reward speed: {speed} * {self.config.speed_coef} = [{speed * self.config.speed_coef}]")
 
     def goes_backward(self, action):
