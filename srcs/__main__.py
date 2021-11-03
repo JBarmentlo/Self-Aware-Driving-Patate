@@ -31,15 +31,15 @@ def run_worker(rank, world_size):
 
 		Masta = CentralAgentMaster(config, world_size)
 		EVAL_FREQUENCY = 10
-		for i_episode in range(10):
+		for i_episode in range(1000):
 			# Masta.update_worker_agent_params()
 			print("START")
-			Masta.run_remote_episode(10)
+			Masta.run_remote_episode(1000)
 			# if ((i_episode % EVAL_FREQUENCY) == 0):
-			# 	# Masta.run_eval_episode()		#TODO : Crashes in score.next function
-			# 	Masta.save(f"Night-{i_episode}")
+			# 	print("EVAL")
+			# 	Masta.run_eval_episode()		#TODO : Crashes in score.next function
+			# # 	Masta.save(f"Night-{i_episode}")
 			# 	print("\n\n\nScores: ", Masta.scores)
-			print("LOOOOL")
 
 		for woker_rref in Masta.worker_rrefs:
 			woker_rref.rpc_sync().release_sim()

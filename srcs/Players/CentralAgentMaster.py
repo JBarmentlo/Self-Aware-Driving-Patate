@@ -45,7 +45,7 @@ class CentralAgentMaster():
 		self.scores = []
 		for worker_rank in range(1, self.world_size):
 			worker_info = rpc.get_worker_info(f"worker{worker_rank}")
-			self.worker_rrefs.append(remote(worker_info, CentralAgentWorker, args = (config, ), timeout=600))
+			self.worker_rrefs.append(remote(worker_info, CentralAgentWorker, args = (config, worker_rank), timeout=600))
 		# self._save_config()
 
 	def _init_dataset(self, config):
@@ -82,6 +82,7 @@ class CentralAgentMaster():
 
 	def run_remote_episode(self, num_frames = 10):
 		self.agent.new_frames = 0
+		self.agent.all_workers_done = [False] * self.world_size
 		self.agent.create_loading_bar(num_frames)
 		futures = []
 		for worker_rref in self.worker_rrefs:
@@ -96,8 +97,9 @@ class CentralAgentMaster():
 		
 		for fut in futures:
 			fut.wait()
-			
+
 		for _ in range(self.config.replay_memory_batches):
+			Logger.debug(f"Replay from memory")
 			self.agent.replay_memory()
 
 		self.agent._update_epsilon()

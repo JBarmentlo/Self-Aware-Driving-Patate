@@ -30,23 +30,18 @@ class  DQNAgent():
 	def __init__(self, config, S3 = None):
 		self.config = config
 		self.memory = self._init_memory(config.config_Memory)
-		if self.config.with_AutoEncoder:
-			self.model = FlatDQN(config)
-		else:
-			self.model = DQN(config)
+		self.model = DQN(config)
 		self.ModelCache = ModelCache(S3)
 		if (self.config.data.load_model):
 			self.ModelCache.load(self.model, self.config.data.load_name)
 		self.model.to(device)
-		if self.config.with_AutoEncoder:
-			self.target_model = FlatDQN(config)
-		else:
-			self.target_model = DQN(config)
+		self.target_model = DQN(config)
 		self.target_model.to(device)
 		self.target_model.load_state_dict(self.model.state_dict())
 		self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
 		self.criterion = nn.MSELoss()
 		self.update_target_model_counter = 0
+		self.all_workers_done = [] #TODO SHOULD NOT BE HERE
 
 
 	def action_from_q_values(self, qs):
@@ -74,7 +69,7 @@ class  DQNAgent():
 
 
 	def get_action(self, state, episode = 0):
-		if np.random.rand() > self.config.epsilon :
+		if np.random.rand() >= self.config.epsilon :
 			ALogger.debug(f"Not Random action being picked")
 			action = self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :])))
 			ALogger.debug(f"{action = }")
@@ -156,6 +151,8 @@ class  DQNAgent():
 	def is_enough_frames_generated(self, limit = 1000):
 		return self.new_frames >= limit
 
+	# def all_workers_done(self, worker_id):
+	# 	self.
 
 	def train(self):
 		pass
@@ -187,10 +184,7 @@ class DQN(nn.Module):
 		# self.conv4 = nn.Conv2d(64, 64, kernel_size=3, stride=1, padding = 2)
 		self.flatten = nn.Flatten()
 		self.dense1 = nn.Linear(1600, 512)
-		output_size = 1
-		for s in config.action_space_size:
-			output_size *= s
-		self.dense2 = nn.Linear(512, output_size)
+		self.dense2 = nn.Linear(512, config.action_space_length)
 
 
 		# Number of Linear input connections depends on output of conv2d layers

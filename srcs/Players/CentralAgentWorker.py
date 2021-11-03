@@ -24,10 +24,11 @@ class CentralAgentWorker():
 	simulator: 	Simulator
 	RO:			RewardOpti
 
-	def __init__(self, config, env_name = "donkey-generated-roads-v0"):
+	def __init__(self, config, rank, env_name = "donkey-generated-roads-v0"):
 		self.id = rpc.get_worker_info().id
 		self.config = config.config_NeuralPlayer
 		self.preprocessor = None
+		self.rank = rank # * Starts at 1 for first worker
 		self.simulator = Simulator(config.config_Simulator, env_name)
 		self.simulator = utils.fix_cte(self.simulator)
 		self.env = self.simulator.env
@@ -71,9 +72,8 @@ class CentralAgentWorker():
 	def _is_over_race(self, infos, done):
 		cte = infos["cte"]
 		cte_corr = cte + self.config.cte_offset
-		print(f"CTE {infos['cte']}, done: {done}")
-		if (done):
-			return True
+		# if (done):
+		# 	return True #TODO : MAYBE COMMENTING THIS BREAKS SOMETHING
 
 		if (abs(cte) > 100):
 			return True
@@ -105,14 +105,14 @@ class CentralAgentWorker():
 
 			state, reward, done, infos = self.env.step([0, 0.1])
 			processed_state = self.preprocessor.process(state)
-			done = self._is_over_race(infos, False)
+			done = self._is_over_race(infos, done)
 			self.Logger.debug(f"Initial CTE: {infos['cte']}")
 			while (not done):
 				action = self.get_action(processed_state)
 				self.Logger.debug(f"action: {action}")
 				new_state, reward, done, infos = self.env.step(action)
 				new_processed_state = self.preprocessor.process(new_state)
-				done = self._is_over_race(infos, False)
+				done = self._is_over_race(infos, done)
 				reward = self.RO.sticks_and_carrots(action, infos, done)
 				[action, reward] = utils.to_numpy_32([action, reward])
 				self.agent_rref.rpc_async().add_to_memory(processed_state, action, new_processed_state, reward, done)
@@ -120,10 +120,11 @@ class CentralAgentWorker():
 				self.Logger.debug(f"cte:{infos['cte'] + 2.25}")
 				n += 1
 
+		self.env.reset()
 		return
 
 
-	def do_eval_races(self, agent_rref):
+	def do_eval_races(self, agent_rref, max_frames = 1000):
 		self.agent_rref = agent_rref
 		n = 0
 		self.RO.new_race_init(self.e)
@@ -135,10 +136,9 @@ class CentralAgentWorker():
 		processed_state = self.preprocessor.process(state)
 		done = self._is_over_race(infos, done)
 		self.Logger.debug(f"Initial CTE: {infos['cte']}")
-		# Scorer = DistanceTracker(infos["pos"], infos["cte"])
 		Scorer = DistScorer()
 		Scorer.first_point(infos)
-		while (not done):
+		while ((not done) and (n < max_frames)):
 			action = self.get_action(processed_state)
 			self.Logger.debug(f"action: {action}")
 			new_state, reward, done, infos = self.env.step(action)
@@ -150,6 +150,7 @@ class CentralAgentWorker():
 			processed_state = new_processed_state
 			self.Logger.debug(f"cte:{infos['cte'] + 2.25}")
 			Scorer.add_point(infos)
+			n = n + 1
 		
 		
 		return Scorer.current_race_dist

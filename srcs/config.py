@@ -94,7 +94,7 @@ config.config_Simulator.update({"exe_path": "manual",
 # Distributed Learning config
 # -----------------------------------------------------------------
 
-config.num_workers = 1	         #* Number of simulators running during training
+config.num_workers = 8	         #* Number of simulators running during training
 
 
 # -----------------------------------------------------------------
@@ -103,17 +103,17 @@ config.num_workers = 1	         #* Number of simulators running during training
 
 config_NeuralPlayer = config.config_NeuralPlayer
 
-config_NeuralPlayer.agent_name               = "DQN"
+config_NeuralPlayer.agent_name               = "DQN_no_AE"
 config_NeuralPlayer.episodes                 = 3
 config_NeuralPlayer.train_frequency          = 10
 config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
-config_NeuralPlayer.cte_limit                = 3.2 # 3.2 is the white line
+config_NeuralPlayer.cte_limit                = 3.0 # 3.2 is the white line
 config_NeuralPlayer.cte_offset               = 2.25
 config_NeuralPlayer.cte_coef                 = 1000 # cte goes from -3.2 to 3.2 on the road
 config_NeuralPlayer.speed_coef               = 200 # speed goes aprox from 0 to 10
 config_NeuralPlayer.reward_stick             = -1000
 config_NeuralPlayer.replay_memory_freq       = 1
-config_NeuralPlayer.replay_memory_batches    = 5
+config_NeuralPlayer.replay_memory_batches    = 10
 
 # -----------------------------------------------------------------
 # Human Player config
@@ -141,10 +141,10 @@ config_Datasets.S3_bucket_name			= 'deyopotato'
 
 # DDQN:
 config_Datasets.ddqn = config.config_NeuralPlayer.config_Datasets.ddqn
-config_Datasets.ddqn.load_model			= False
+config_Datasets.ddqn.load_model			= True
 config_Datasets.ddqn.load_name 			= "model_cache/ddqn/dedequene.modelo.1100" #if local: path from the root folder, if S3: path after bucket name
 config_Datasets.ddqn.save_name 			= f"model_cache/ddqn/{config_NeuralPlayer.agent_name}_weights_{date}."
-config_Datasets.ddqn.saving_frequency	= 0
+config_Datasets.ddqn.saving_frequency	= 10
 config_Datasets.ddqn.save_score			= True
 
 
@@ -158,10 +158,10 @@ config_Datasets.ddqn.sim.size				= 3000
 
 # AUTOENCODER:
 config_Datasets.ae = config.config_NeuralPlayer.config_Datasets.ae
-config_Datasets.ae.load_model			= True
+config_Datasets.ae.load_model			= False
 config_Datasets.ae.load_name 			= "model_cache/autoencoder/dedes_100_autoencoderh[32]" #if local: path from the root folder, if S3: path after bucket name
 config_Datasets.ae.save_name			= "model_cache/autoencoder/dedes_100_autoencoder"
-config_Datasets.ae.save_result			= True
+config_Datasets.ae.save_result			= False
 config_Datasets.ae.result_name			= "model_cache/autoencoder/images_results/dedes_autoencoder.png" #TODO: This file isnt saved in the distributed version
 
 
@@ -188,8 +188,8 @@ config_Datasets.config_extension		= "config.json"
 config_Preprocessing 					= config.config_NeuralPlayer.config_Preprocessing
 config_Preprocessing.input_size         = config_NeuralPlayer.camera_picture_shape
 config_Preprocessing.stack_size         = 4
-config_Preprocessing.frame_skip         = 2  # interval in frames between the stacked frames
-config_Preprocessing.shrink_size        = (120, 120) # * This does not remove the channels and generate a (60, 60) output. Channels are preserved :input (100, 100, 3) => (60, 60, 3)
+config_Preprocessing.frame_skip         = 1  # interval in frames between the stacked frames
+config_Preprocessing.shrink_size        = (80, 80) # * This does not remove the channels and generate a (60, 60) output. Channels are preserved :input (100, 100, 3) => (60, 60, 3)
 config_Preprocessing.output_size        = (config_Preprocessing.stack_size, *config_Preprocessing.shrink_size) #*  C * H * W CHANNELS FIRST
 
 config_Preprocessing.use_AutoEncoder	= False
@@ -239,9 +239,8 @@ if (agent_type == "DQN"):
 	config_Agent.epsilon            = config_Agent.initial_epsilon
 	config_Agent.epsilon_decay      = 0.9
 	config_Agent.epsilon_min        = 0.02
-	config_Agent.steps_to_eps_min   = 1000
+	config_Agent.steps_to_eps_min   = 20
 	config_Agent.batch_size         = 256
-	config_Agent.batches_number     = 10
 	config_Agent.min_memory_size    = 1000
 	config_Agent.memory_size        = 10000
 	config_Agent.num_workers        = 0 # set it to 0 if your computer can't handle multiprocessing
