@@ -9,14 +9,12 @@ import io
 
 from RewardOpti import RewardOpti
 from agents.Agent import DQNAgent
-from Preprocessing import Preprocessing
 from S3 import S3
 import utils
 from SimCache import SimCache
 import torch.distributed.rpc as rpc
 from torch.distributed.rpc import RRef, rpc_async, remote
 from .CentralAgentWorker import CentralAgentWorker
-from .CopyAgentWorker import CopyAgentWorker
 from Simulator import Simulator
 from config import DotDict
 
@@ -57,11 +55,6 @@ class CentralAgentMaster():
 		if self.config.agent_name == "DQN":
 			self.SimCache = SimCache(self.config.config_Datasets.ddqn.sim, self.S3)
 
-
-	def _init_preprocessor(self, config_Preprocessing):
-		self.preprocessor = Preprocessing(config = config_Preprocessing, S3=self.S3)
-
-
 	def _init_agent(self, config_Agent):
 		self.agent = DQNAgent(config=config_Agent, S3=self.S3)
   
@@ -100,8 +93,10 @@ class CentralAgentMaster():
 					timeout=0
 				)
 			)
+		
 		for fut in futures:
 			fut.wait()
+			
 		for _ in range(self.config.replay_memory_batches):
 			self.agent.replay_memory()
 
@@ -142,3 +137,7 @@ class CentralAgentMaster():
 		self.scores.append(np.mean(self.scores_tmp))
 		self.scores_tmp = []
 		print(f"Mean score {self.scores[-1]}\n\n")
+
+
+	def save(self, name):
+		self.agent.save(name)

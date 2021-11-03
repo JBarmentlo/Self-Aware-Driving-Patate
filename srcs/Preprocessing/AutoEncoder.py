@@ -15,15 +15,14 @@ stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
 
-class Preprocessing():
+class PreprocessingAE():
 	def __init__(self, config, S3 = None):
 		self.config  		= config
 		self.history 		= [None for _ in range(config.frame_skip)]
 		self.skip_counter 	= -1
 		self.S3 = S3
-		if self.config.use_AutoEncoder == True:
-			Logger.info("Initializing AutoEncoder")
-			self.AutoEncoder = self._init_AutoEncoder()
+		Logger.info("Initializing AutoEncoder")
+		self.AutoEncoder = self._init_AutoEncoder()
 
 
 	def _init_AutoEncoder(self):
@@ -75,29 +74,12 @@ class Preprocessing():
 
 	def process(self, state: np.ndarray) -> torch.Tensor:
 		Logger.debug(f"Processing.\nIn shape: {state.shape}")
-		if self.config.use_AutoEncoder == True:
-			state = self.before_AutoEncoder(state, training=False)
-			state = self.AutoEncoder.encode(state)
-			state = self.after_AutoEncoder(state)
-		else:
-			state = self.gray(state)
-			state = self.resize(state, self.config.shrink_size)
-			state = torch.from_numpy(state)
-			state = self.stack(state)
+		state = self.before_AutoEncoder(state, training=False)
+		state = self.AutoEncoder.encode(state)
+		state = self.after_AutoEncoder(state)
 
-		state = state.cpu().detach()#.numpy()
-		
 		Logger.debug(f"Out shape: {state.shape}")
 		return state
-
-
-	def resize(self, state, output_shape):
-		return cv2.resize(state, dsize=output_shape, interpolation=cv2.INTER_CUBIC)
-
-
-	def gray(self, state):
-		return cv2.cvtColor(state, cv2.COLOR_RGB2GRAY)
-
 
 	def colors_rounding(self, data: torch.Tensor, precision: int = 5) -> torch.Tensor:
 		"""[summary]
@@ -135,3 +117,5 @@ class Preprocessing():
 		stacked_state = torch.stack(tuple(self.history[self.skip_counter]), axis = 0)
 		return stacked_state.view(self.config.stack_size, -1) # TODO:  check this. I have no idea what im fixing. AE was sending 4 batches of size (1, 8)
 																# TODO:  into model!? making batch evaluation (i.e. replay memory) impossible.
+
+

@@ -65,7 +65,7 @@ config.config_HumanPlayer.config_Datasets.sim = DotDict()
 
 config.min_steering = -5.0
 config.max_steering = 5.0
-config.min_throttle = -1.0
+config.min_throttle = 0.0
 config.max_throttle = 1.0
 config.action_space_boundaries = [[config.min_steering, config.max_steering], [config.min_throttle, config.max_throttle]]
 
@@ -94,8 +94,7 @@ config.config_Simulator.update({"exe_path": "manual",
 # Distributed Learning config
 # -----------------------------------------------------------------
 
-config.num_workers = 8	         #* Number of simulators running during training
-config.centralized_agent = True #* Wether to send a copy of the agent to every worker (not Implemented)
+config.num_workers = 1	         #* Number of simulators running during training
 
 
 # -----------------------------------------------------------------
@@ -193,7 +192,7 @@ config_Preprocessing.frame_skip         = 2  # interval in frames between the st
 config_Preprocessing.shrink_size        = (120, 120) # * This does not remove the channels and generate a (60, 60) output. Channels are preserved :input (100, 100, 3) => (60, 60, 3)
 config_Preprocessing.output_size        = (config_Preprocessing.stack_size, *config_Preprocessing.shrink_size) #*  C * H * W CHANNELS FIRST
 
-config_Preprocessing.use_AutoEncoder	= True
+config_Preprocessing.use_AutoEncoder	= False
 
 
 # -----------------------------------------------------------------

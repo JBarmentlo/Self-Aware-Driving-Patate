@@ -8,7 +8,7 @@ import io
 
 from RewardOpti import RewardOpti
 from agents.Agent import DQNAgent
-from Preprocessing import Preprocessing
+from Preprocessing import PreprocessingAE, PreprocessingVannilla
 from S3 import S3
 import utils
 from SimCache import SimCache
@@ -28,7 +28,7 @@ class CentralAgentWorker():
 		self.id = rpc.get_worker_info().id
 		self.config = config.config_NeuralPlayer
 		self.preprocessor = None
-		self.simulator = Simulator(config.config_Simulator, env_name)  
+		self.simulator = Simulator(config.config_Simulator, env_name)
 		self.simulator = utils.fix_cte(self.simulator)
 		self.env = self.simulator.env
 		self.S3 = S3(self.config.config_Datasets.S3_bucket_name)
@@ -48,7 +48,10 @@ class CentralAgentWorker():
 
 
 	def _init_preprocessor(self, config_Preprocessing):
-		self.preprocessor = Preprocessing(config = config_Preprocessing, S3=self.S3)
+		if (config_Preprocessing.use_AutoEncoder):
+			self.preprocessor = PreprocessingAE(config = config_Preprocessing, S3=self.S3)
+		else:
+			self.preprocessor = PreprocessingVannilla(config = config_Preprocessing, S3=self.S3)
 
 
 	def update_agent_params(self, state_dict):
@@ -68,6 +71,7 @@ class CentralAgentWorker():
 	def _is_over_race(self, infos, done):
 		cte = infos["cte"]
 		cte_corr = cte + self.config.cte_offset
+		print(f"CTE {infos['cte']}, done: {done}")
 		if (done):
 			return True
 
@@ -101,14 +105,14 @@ class CentralAgentWorker():
 
 			state, reward, done, infos = self.env.step([0, 0.1])
 			processed_state = self.preprocessor.process(state)
-			done = self._is_over_race(infos, done)
+			done = self._is_over_race(infos, False)
 			self.Logger.debug(f"Initial CTE: {infos['cte']}")
 			while (not done):
 				action = self.get_action(processed_state)
 				self.Logger.debug(f"action: {action}")
 				new_state, reward, done, infos = self.env.step(action)
 				new_processed_state = self.preprocessor.process(new_state)
-				done = self._is_over_race(infos, done)
+				done = self._is_over_race(infos, False)
 				reward = self.RO.sticks_and_carrots(action, infos, done)
 				[action, reward] = utils.to_numpy_32([action, reward])
 				self.agent_rref.rpc_async().add_to_memory(processed_state, action, new_processed_state, reward, done)

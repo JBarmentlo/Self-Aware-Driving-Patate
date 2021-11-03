@@ -1,7 +1,6 @@
 import argparse
 
 from Simulator import Simulator
-from NeuralPlayer import NeuralPlayer
 # from HumanPlayer import HumanPlayer
 
 from config import config
@@ -31,13 +30,16 @@ def run_worker(rank, world_size):
 		rpc.init_rpc(AGENT_NAME, rank=rank, world_size=world_size)
 
 		Masta = CentralAgentMaster(config, world_size)
-		EVAL_FREQUENCY = 1
-		for i_episode in range(1000):
+		EVAL_FREQUENCY = 10
+		for i_episode in range(10):
 			# Masta.update_worker_agent_params()
-			Masta.run_remote_episode(100)
-			if ((i_episode % EVAL_FREQUENCY) == 0):
-				Masta.run_eval_episode()		#TODO : Crashes in score.next function
-				print("\n\n\nScores: ", Masta.scores)
+			print("START")
+			Masta.run_remote_episode(10)
+			# if ((i_episode % EVAL_FREQUENCY) == 0):
+			# 	# Masta.run_eval_episode()		#TODO : Crashes in score.next function
+			# 	Masta.save(f"Night-{i_episode}")
+			# 	print("\n\n\nScores: ", Masta.scores)
+			print("LOOOOL")
 
 		for woker_rref in Masta.worker_rrefs:
 			woker_rref.rpc_sync().release_sim()

@@ -1,1 +1,2 @@
-from .AutoEncoder import Preprocessing
+from .AutoEncoder import PreprocessingAE
+from .PreprocessingVannilla import PreprocessingVannilla

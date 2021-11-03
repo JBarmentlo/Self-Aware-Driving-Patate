@@ -76,10 +76,7 @@ class  DQNAgent():
 	def get_action(self, state, episode = 0):
 		if np.random.rand() > self.config.epsilon :
 			ALogger.debug(f"Not Random action being picked")
-			if self.config.with_AutoEncoder:
-				action = self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :])))
-			else:
-				action = self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :])))
+			action = self.action_from_q_values(self.model.forward(torch.Tensor(state[np.newaxis, :, :])))
 			ALogger.debug(f"{action = }")
 			return action
 		else:
@@ -99,7 +96,6 @@ class  DQNAgent():
 		self.optimizer.step()
 		self.model.eval()
 
-	
 
 	def replay_memory(self):
 		#TODO : batches and batch_size as args
@@ -164,6 +160,9 @@ class  DQNAgent():
 	def train(self):
 		pass
 
+	
+	def save(self, name):
+		torch.save(self.model.state_dict(), "/workspaces/Self-Aware-Driving-Patate/model_cache/ddqn/" + name)
 
 
 def conv2d_size_out(size, kernel_size = 5, stride = 2):
