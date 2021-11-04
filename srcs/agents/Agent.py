@@ -66,6 +66,9 @@ class  DQNAgent():
 		if self.config.epsilon > self.config.epsilon_min:
 			self.config.epsilon -= (self.config.initial_epsilon - self.config.epsilon_min) / self.config.steps_to_eps_min
 			ALogger.info(f"Updating self epsilon to {self.config.epsilon}")
+		else:
+			self.config.epsilon = self.config.initial_epsilon
+			ALogger.info(f"Updating self epsilon to {self.config.epsilon}")
 
 
 	def get_action(self, state, episode = 0):
@@ -141,6 +144,11 @@ class  DQNAgent():
 
 	def add_to_memory(self, preprocessed_old_state, action, preprocessed_new_state, reward, done):
 		self.memory.add(preprocessed_old_state, action, preprocessed_new_state, reward, done)
+		self.new_frames += 1
+		self.pbar.update(1)
+
+
+	def increase_frame_count(self):
 		self.new_frames += 1
 		self.pbar.update(1)
 

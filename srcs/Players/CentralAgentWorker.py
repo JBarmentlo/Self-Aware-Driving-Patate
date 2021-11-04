@@ -1,3 +1,4 @@
+from numpy.core.fromnumeric import mean
 from ModelCache import ModelCache
 import torch
 import logging
@@ -13,7 +14,6 @@ from S3 import S3
 import utils
 from SimCache import SimCache
 import torch.distributed.rpc as rpc
-from Score import DistanceTracker
 
 from Simulator import Simulator
 from config import DotDict
@@ -134,18 +134,20 @@ class CentralAgentWorker():
 				simulator.restart_simulator()
 		
 		# simulator.env.reset()
-
 		return simulator
+
 
 	def do_races(self, agent_rref, n_max):
 		self.agent_rref = agent_rref
 		n = 0
+		Scorer = None
 		while (not self.agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
 			self.RO.new_race_init(self.e)
 			self.e += 1
 			# self.simulator.new_track()  destroys cte.
 			self.simulator = self.non_blocking_fix_cte(self.simulator, agent_rref, n_max)
 			if (self.agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
+				print("\n\nEXITOOOOOOO\n\n")
 				break
 			self.env = self.simulator.env
 
@@ -154,6 +156,8 @@ class CentralAgentWorker():
 			done = self._is_over_race(infos, done)
 			self.Logger.debug(f"Initial CTE: {infos['cte']}")
 			total_frames = 0
+			Scorer = DistScorer()
+			Scorer.first_point(infos)
 			while ((not done) and total_frames < n_max * 5):
 				action = self.get_action(processed_state)
 				self.Logger.debug(f"action: {action}")
@@ -168,9 +172,14 @@ class CentralAgentWorker():
 				n += 1
 				if (n % 64 == 0):
 					total_frames = self.agent_rref.rpc_sync().total_frames_generated()
+				Scorer.add_point(infos)
+				
+			Scorer.end_race(n)
 
 		self.env.reset()
-		return
+		if (Scorer == None):
+			return([],[],[])
+		return (Scorer.scores, Scorer.distances, Scorer.speeds)
 
 
 	def do_eval_races(self, agent_rref, max_frames = 5000):
@@ -187,19 +196,32 @@ class CentralAgentWorker():
 		self.Logger.debug(f"Initial CTE: {infos['cte']}")
 		Scorer = DistScorer()
 		Scorer.first_point(infos)
+		running_mean_score = 100
+		last_dist  = 0
+		dist_diff = 0
+		mean_diff = 10
 		while ((not done) and (n < max_frames)):
 			action = self.get_action(processed_state)
 			self.Logger.debug(f"action: {action}")
 			new_state, reward, done, infos = self.env.step(action)
 			new_processed_state = self.preprocessor.process(new_state)
 			done = self._is_over_race(infos, done)
-			reward = self.RO.sticks_and_carrots(action, infos, done)
-			[action, reward] = utils.to_numpy_32([action, reward])
-			# self.agent_rref.rpc_async().add_to_memory(processed_state, action, new_processed_state, reward, done)
+			# reward = self.RO.sticks_and_carrots(action, infos, done)
+			# [action, reward] = utils.to_numpy_32([action, reward])
+			self.agent_rref.rpc_async().increase_frame_count()
 			processed_state = new_processed_state
 			self.Logger.debug(f"cte:{infos['cte'] + 2.25}")
 			Scorer.add_point(infos)
+
+			dist_diff = Scorer.get_current_race_dist() - last_dist
+			last_dist = Scorer.get_current_race_dist()
+			mean_diff = ((mean_diff * (n + 1)) + dist_diff) / (n + 2)
+			print(f"last_diff {dist_diff}, mean {mean_diff}")
+			if (mean_diff < 0.08):
+				print("STUCKO ", mean_diff)
+				break
 			n = n + 1
 		
-		
-		return Scorer.current_race_dist
+		Scorer.end_race(n)
+		# return (Scorer.scores, Scorer.distances, Scorer.speeds)
+		return (Scorer.get_current_race_score(), Scorer.get_current_race_dist(), Scorer.get_current_race_speed())

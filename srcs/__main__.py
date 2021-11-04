@@ -30,16 +30,25 @@ def run_worker(rank, world_size):
 		rpc.init_rpc(AGENT_NAME, rank=rank, world_size=world_size)
 
 		Masta = CentralAgentMaster(config, world_size)
-		EVAL_FREQUENCY = 10
+		EVAL_FREQUENCY = 1
+
 		for i_episode in range(10000):
 			# Masta.update_worker_agent_params()
 			print("START")
-			Masta.run_remote_episode(1000)
-			# if ((i_episode % EVAL_FREQUENCY) == 0):
-			# 	print("EVAL")
-			# 	Masta.run_eval_episode()		#TODO : Crashes in score.next function
-			# # 	Masta.save(f"Night-{i_episode}")
-			# 	print("\n\n\nScores: ", Masta.scores)
+			Masta.run_remote_episode(1000 + min(i_episode * 8, 2000), i_episode)
+			Masta.data_gatherer.data.to_csv("/workspaces/Self-Aware-Driving-Patate/model_cache/ddqn/DATA_morning.csv")
+			if ((i_episode % EVAL_FREQUENCY) == 0):
+				print("EVAL")
+				Masta.run_eval_episode(i_episode, 2000)
+		# 	# # 	Masta.save(f"Night-{i_episode}")
+		# 	# 	print("\n\n\nScores: ", Masta.scores)
+		# i_episode = 0
+		# Masta.run_remote_episode(100 + min(i_episode * 4, 2000), i_episode)
+		# print("PLOOTIN")
+		# # Masta.data_gatherer.plot()
+		# print(Masta.data_gatherer.data)
+		# print("DOOONE PLOOTIN")
+
 
 		for woker_rref in Masta.worker_rrefs:
 			woker_rref.rpc_sync().release_sim()

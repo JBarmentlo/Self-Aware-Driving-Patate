@@ -37,15 +37,19 @@ RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 
 
 RUN apt-get update
 RUN apt-get install -y curl wget zsh
-RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-RUN apt-get install direnv; echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
-
+RUN apt-get install direnv;
 
 WORKDIR /App/Self-Aware-Driving-Patate
+RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+RUN echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
 
+# ARG DEBIAN_FRONTEND=noninteractive
+# ENV TZ=Europe/London
+# RUN apt-get install -y python3-tk
 # RUN apt-get install -y firefox
 # RUN groupadd -g 1000 yup
-# RUN useradd -d /home/yup -s /usr/bin/zsh -m yup -u 1000 -g 1000
+# RUN useradd -d /home/yup -s /bin/zsh -m yup -u 1000 -g 1000
 # USER yup 
 
-ENTRYPOINT /bin/zsh 
+
+ENTRYPOINT usr/bin/zsh 
