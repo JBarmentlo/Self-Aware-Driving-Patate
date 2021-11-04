@@ -30,7 +30,7 @@ def run_worker(rank, world_size):
 		rpc.init_rpc(AGENT_NAME, rank=rank, world_size=world_size)
 
 		Masta = CentralAgentMaster(config, world_size)
-		EVAL_FREQUENCY = 1
+		EVAL_FREQUENCY = 5
 
 		for i_episode in range(10000):
 			# Masta.update_worker_agent_params()

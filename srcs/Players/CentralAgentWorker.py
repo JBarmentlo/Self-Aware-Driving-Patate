@@ -11,6 +11,7 @@ from RewardOpti import RewardOpti
 from agents.Agent import DQNAgent
 from Preprocessing import PreprocessingAE, PreprocessingVannilla
 from S3 import S3
+from utils import fix_cte
 import utils
 from SimCache import SimCache
 import torch.distributed.rpc as rpc
@@ -106,30 +107,30 @@ class CentralAgentWorker():
 			Returns a simulator instance containing a functional env
 		'''
 		cte = 100
-		while(abs(cte) > 1 and not agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
+		while(abs(cte) > 10 and not agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
 			state = simulator.env.reset()
 			new_state, reward, done, infos = simulator.env.step([0, 1])
 
-			if (abs(infos["cte"]) > 4):
+			if (abs(infos["cte"]) > 10):
 				self.Logger.info(f"Attempting to fix broken cte by driving forward a little bit. cte: {infos['cte']}")
 				new_state, reward, done, infos = simulator.env.step([0, 1])
 				time.sleep(0.5)
 				self.Logger.info(f"One step more. cte: {infos['cte']}")
-			if (abs(infos["cte"]) > 4):
+			if (abs(infos["cte"]) > 10):
 				new_state, reward, done, infos = simulator.env.step([0.1, 1])
 				time.sleep(0.5)
 				self.Logger.info(f"One step more. cte: {infos['cte']}")
-			if (abs(infos["cte"]) > 4):
+			if (abs(infos["cte"]) > 10):
 				new_state, reward, done, infos = simulator.env.step([-0.1, 1])
 				time.sleep(1)
 				self.Logger.info(f"One step more. cte: {infos['cte']}")
-			if (abs(infos["cte"]) > 4):
+			if (abs(infos["cte"]) > 10):
 				new_state, reward, done, infos = simulator.env.step([0, 1])
 				time.sleep(0)
 				self.Logger.info(f"One step more. cte: {infos['cte']}")
 			
 			cte = infos["cte"]
-			if (abs(cte) > 4):
+			if (abs(cte) > 10):
 				self.Logger.warning(f"restarting sim because cte is fucked {cte}")
 				simulator.restart_simulator()
 		
@@ -145,10 +146,11 @@ class CentralAgentWorker():
 			self.RO.new_race_init(self.e)
 			self.e += 1
 			# self.simulator.new_track()  destroys cte.
-			self.simulator = self.non_blocking_fix_cte(self.simulator, agent_rref, n_max)
-			if (self.agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
-				print("\n\nEXITOOOOOOO\n\n")
-				break
+			# self.simulator = self.non_blocking_fix_cte(self.simulator, agent_rref, n_max)
+			# if (self.agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
+			# 	print("\n\nEXITOOOOOOO\n\n")
+			# 	break
+			self.simulator = fix_cte(self.simulator)
 			self.env = self.simulator.env
 
 			state, reward, done, infos = self.env.step([0, 0.1])
@@ -158,7 +160,7 @@ class CentralAgentWorker():
 			total_frames = 0
 			Scorer = DistScorer()
 			Scorer.first_point(infos)
-			while ((not done) and total_frames < n_max * 5):
+			while ((not done) and total_frames < n_max * 2):
 				action = self.get_action(processed_state)
 				self.Logger.debug(f"action: {action}")
 				new_state, reward, done, infos = self.env.step(action)
@@ -216,7 +218,7 @@ class CentralAgentWorker():
 			dist_diff = Scorer.get_current_race_dist() - last_dist
 			last_dist = Scorer.get_current_race_dist()
 			mean_diff = ((mean_diff * (n + 1)) + dist_diff) / (n + 2)
-			print(f"last_diff {dist_diff}, mean {mean_diff}")
+			# print(f"last_diff {dist_diff}, mean {mean_diff}")
 			if (mean_diff < 0.08):
 				print("STUCKO ", mean_diff)
 				break
