@@ -43,13 +43,13 @@ WORKDIR /App/Self-Aware-Driving-Patate
 RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 RUN echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
 
-# ARG DEBIAN_FRONTEND=noninteractive
-# ENV TZ=Europe/London
-# RUN apt-get install -y python3-tk
-# RUN apt-get install -y firefox
-# RUN groupadd -g 1000 yup
-# RUN useradd -d /home/yup -s /bin/zsh -m yup -u 1000 -g 1000
-# USER yup 
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/London
+RUN apt-get install -y python3-tk
+RUN apt-get install -y firefox
+RUN groupadd -g 1000 yup
+RUN useradd -d /home/yup -s /bin/zsh -m yup -u 1000 -g 1000
+USER yup 
 
 
 ENTRYPOINT usr/bin/zsh 

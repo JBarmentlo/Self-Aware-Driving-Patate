@@ -4,8 +4,6 @@ import torch
 import logging
 
 from RewardOpti import RewardOpti
-from agents.Agent import DQNAgent
-from Preprocessing import Preprocessing
 from Simulator import Simulator
 # from srcs import Scorer
 import utils
@@ -76,7 +74,6 @@ class HumanPlayer():
 				self.throttle = min(self.config.max_throttle, max(self.config.min_throttle, abs(self.throttle * self.config.coef)))
 			elif key == key.down:
 				self.throttle = min(self.config.min_throttle, max(self.config.min_throttle, abs(self.throttle * self.config.coef) * 1))
-				self.throttle = -1.0
 
 			elif key == key.left:
 				if self.steering == 0:
@@ -90,7 +87,7 @@ class HumanPlayer():
 					self.steering = min(self.config.max_steering, max(self.config.min_steering, abs(self.steering * self.config.coef)))
 		elif released_key != None:
 			if released_key == released_key.up or released_key == released_key.down:
-				self.throttle = self.config.init_throttle
+				self.throttle = 0
 			elif released_key == released_key.left or released_key == released_key.right:
 				self.steering = 0
 		
@@ -107,8 +104,10 @@ class HumanPlayer():
 	
 	def do_race(self):
 		Logger.info(f"Starting Human race:")
-		self.simulator = utils.fix_cte(self.simulator)
+		print("CTE IS NOT FIXED DO NOT USE FOR DATA GENERATION")
+		# self.simulator = utils.fix_cte(self.simulator)
 		self.env = self.simulator.env
+		self.env.reset()
 		action = [0, 0]
 		state, reward, done, infos = self.env.step(action)
 
@@ -128,6 +127,7 @@ class HumanPlayer():
 			state = new_state
 			scor.add_point(infos)
 			print(scor.current_race_dist)
+			print(infos, "done: ", done)
 
 		listener.stop()
 		print("\nStoping race and listening Keyboard\n")

@@ -108,7 +108,7 @@ config_NeuralPlayer.episodes                 = 3
 config_NeuralPlayer.train_frequency          = 10
 config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
 config_NeuralPlayer.cte_limit                = 3.0 # 3.2 is the white line
-config_NeuralPlayer.cte_offset               = 2.25
+config_NeuralPlayer.cte_offset               = 0
 config_NeuralPlayer.cte_coef                 = 1000 # cte goes from -3.2 to 3.2 on the road
 config_NeuralPlayer.speed_coef               = 200 # speed goes aprox from 0 to 10
 config_NeuralPlayer.reward_stick             = -1000
@@ -141,7 +141,7 @@ config_Datasets.S3_bucket_name			= 'deyopotato'
 
 # DDQN:
 config_Datasets.ddqn = config.config_NeuralPlayer.config_Datasets.ddqn
-config_Datasets.ddqn.load_model			= False
+config_Datasets.ddqn.load_model			= True
 config_Datasets.ddqn.load_name 			= "model_cache/ddqn/DQN_no_AE_speed_weights_3_11.11_33.27" #if local: path from the root folder, if S3: path after bucket name
 config_Datasets.ddqn.save_name 			= f"model_cache/ddqn/{config_NeuralPlayer.agent_name}_weights_{date}."
 config_Datasets.ddqn.saving_frequency	= 5
@@ -232,7 +232,7 @@ if (agent_type == "DQN"):
 	config_Agent.input_size         = config_Preprocessing.output_size
 	config_Agent.data               = config_NeuralPlayer.config_Datasets.ddqn
 	config_Agent.sim                = config_NeuralPlayer.config_Datasets.ddqn.sim
-	config_Agent.action_space_size  = (7, 5)
+	config_Agent.action_space_size  = (5, 3)
 	config_Agent.discount           = 0.99
 	config_Agent.lr                 = 5e-4
 	config_Agent.initial_epsilon    = 0.9

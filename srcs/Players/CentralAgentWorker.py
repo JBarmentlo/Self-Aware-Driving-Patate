@@ -27,7 +27,7 @@ class CentralAgentWorker():
 	simulator: 	Simulator
 	RO:			RewardOpti
 
-	def __init__(self, config, rank, env_name = "donkey-generated-roads-v0"):
+	def __init__(self, config, rank, env_name = "donkey-circuit-launch-track-v0"):
 		self.id = rpc.get_worker_info().id
 		self.config = config.config_NeuralPlayer
 		self.preprocessor = None
@@ -110,26 +110,26 @@ class CentralAgentWorker():
 			state = simulator.env.reset()
 			new_state, reward, done, infos = simulator.env.step([0, 1])
 
-			if (abs(infos["cte"]) > 1):
+			if (abs(infos["cte"]) > 4):
 				self.Logger.info(f"Attempting to fix broken cte by driving forward a little bit. cte: {infos['cte']}")
 				new_state, reward, done, infos = simulator.env.step([0, 1])
 				time.sleep(0.5)
 				self.Logger.info(f"One step more. cte: {infos['cte']}")
-			if (abs(infos["cte"]) > 1):
+			if (abs(infos["cte"]) > 4):
 				new_state, reward, done, infos = simulator.env.step([0.1, 1])
 				time.sleep(0.5)
 				self.Logger.info(f"One step more. cte: {infos['cte']}")
-			if (abs(infos["cte"]) > 1):
+			if (abs(infos["cte"]) > 4):
 				new_state, reward, done, infos = simulator.env.step([-0.1, 1])
 				time.sleep(1)
 				self.Logger.info(f"One step more. cte: {infos['cte']}")
-			if (abs(infos["cte"]) > 1):
+			if (abs(infos["cte"]) > 4):
 				new_state, reward, done, infos = simulator.env.step([0, 1])
 				time.sleep(0)
 				self.Logger.info(f"One step more. cte: {infos['cte']}")
 			
 			cte = infos["cte"]
-			if (abs(cte) > 1):
+			if (abs(cte) > 4):
 				self.Logger.warning(f"restarting sim because cte is fucked {cte}")
 				simulator.restart_simulator()
 		
