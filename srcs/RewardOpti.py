@@ -8,6 +8,7 @@ Logger.addHandler(stream)
 class RewardOpti:
 	def __init__(self, config_NeuralPlayer):
 		self.config = config_NeuralPlayer
+		self.hit = False
 		self.e = 0
 
 	def reset(self):
@@ -15,6 +16,7 @@ class RewardOpti:
 
 	def new_race_init(self, episode):
 		self.e = episode
+		self.hit = False
 
 	def close_to_center(self, cte):
 		self.reward += (self.config.cte_limit - abs((cte + self.config.cte_offset))) * self.config.cte_coef
@@ -37,10 +39,13 @@ class RewardOpti:
 			self.reward = self.reward / 100
 			return (self.reward)
 		
-		if (infos["hit"] != None):
+		if (infos["hit"] != "none" and self.hit == False):
+			Logger.info(f"Hit: {infos['hit']}\n")
 			self.reward = self.reward  + self.config.collision_stick
+			self.hit = True
 		
 		if (self.goes_backward(action)):
+			Logger.info(f"Backwards\n")
 			self.reward = self.reward  + self.config.backwards_stick
 		else:
 			self.go_fast(infos["speed"])

@@ -67,7 +67,7 @@ class  DQNAgent():
 			self.config.epsilon -= (self.config.initial_epsilon - self.config.epsilon_min) / self.config.steps_to_eps_min
 			ALogger.info(f"Updating self epsilon to {self.config.epsilon}")
 		else:
-			self.config.epsilon = self.config.initial_epsilon
+			self.config.epsilon = self.config.initial_epsilon / 2
 			ALogger.info(f"Updating self epsilon to {self.config.epsilon}")
 
 

@@ -8,7 +8,7 @@ import json
 import io
 from collections import deque
 
-from RewardOpti import RewardOpti
+from RewardOpti import Logger, RewardOpti
 from agents.Agent import DQNAgent
 from Preprocessing import PreprocessingAE, PreprocessingVannilla
 from S3 import S3
@@ -82,8 +82,9 @@ class CentralAgentWorker():
 	def _is_over_race(self, infos, done):
 		cte = infos["cte"]
 		cte_corr = cte + self.config.cte_offset
-		# if (done):
-		# 	return True #TODO : MAYBE COMMENTING THIS BREAKS SOMETHING
+		if (done):
+			Logger.warn("\nDone\n")
+			return True #TODO : MAYBE COMMENTING THIS BREAKS SOMETHING
 
 		if (abs(cte) > 100):
 			return True
@@ -155,7 +156,7 @@ class CentralAgentWorker():
 			total_frames = 0
 			Scorer = DistScorer()
 			Scorer.first_point(infos)
-			dists = deque(maxlen = 10)
+			dists = deque(maxlen = 30)
 			last_dist  = 0
 			dist_diff = 0
 			while (not (done or is_stuck(dists, 0.05))):
@@ -198,7 +199,7 @@ class CentralAgentWorker():
 		self.Logger.debug(f"Initial CTE: {infos['cte']}")
 		Scorer = DistScorer()
 		Scorer.first_point(infos)
-		dists = deque(maxlen = 10)
+		dists = deque(maxlen = 30)
 		last_dist  = 0
 		dist_diff = 0
 		while (not (done or is_stuck(dists, 0.05))):

@@ -10,5 +10,5 @@ def is_stuck(speeds : Deque, limit):
 	
 	avg = sum / len(speeds)
 	if (avg < limit):
-		print(f"STUCK {avg}")
+		print(f"\nSTUCK {avg}\n")
 	return (avg < limit)
