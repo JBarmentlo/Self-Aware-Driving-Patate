@@ -6,12 +6,13 @@ import time
 import numpy as np
 import json
 import io
+from collections import deque
 
 from RewardOpti import RewardOpti
 from agents.Agent import DQNAgent
 from Preprocessing import PreprocessingAE, PreprocessingVannilla
 from S3 import S3
-from utils import fix_cte
+from utils import fix_cte, is_stuck
 import utils
 from SimCache import SimCache
 import torch.distributed.rpc as rpc
@@ -145,14 +146,8 @@ class CentralAgentWorker():
 		while (not self.agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
 			self.RO.new_race_init(self.e)
 			self.e += 1
-			# self.simulator.new_track()  destroys cte.
-			# self.simulator = self.non_blocking_fix_cte(self.simulator, agent_rref, n_max)
-			# if (self.agent_rref.rpc_sync().is_enough_frames_generated(n_max)):
-			# 	print("\n\nEXITOOOOOOO\n\n")
-			# 	break
 			self.simulator = fix_cte(self.simulator)
 			self.env = self.simulator.env
-
 			state, reward, done, infos = self.env.step([0, 0.1])
 			processed_state = self.preprocessor.process(state)
 			done = self._is_over_race(infos, done)
@@ -160,7 +155,10 @@ class CentralAgentWorker():
 			total_frames = 0
 			Scorer = DistScorer()
 			Scorer.first_point(infos)
-			while ((not done) and total_frames < n_max * 2):
+			dists = deque(maxlen = 10)
+			last_dist  = 0
+			dist_diff = 0
+			while (not (done or is_stuck(dists, 0.05))):
 				action = self.get_action(processed_state)
 				self.Logger.debug(f"action: {action}")
 				new_state, reward, done, infos = self.env.step(action)
@@ -175,7 +173,9 @@ class CentralAgentWorker():
 				if (n % 64 == 0):
 					total_frames = self.agent_rref.rpc_sync().total_frames_generated()
 				Scorer.add_point(infos)
-				
+				dist_diff = Scorer.get_current_race_dist() - last_dist
+				last_dist = Scorer.get_current_race_dist()
+				dists.append(dist_diff)
 			Scorer.end_race(n)
 
 		self.env.reset()
@@ -198,11 +198,10 @@ class CentralAgentWorker():
 		self.Logger.debug(f"Initial CTE: {infos['cte']}")
 		Scorer = DistScorer()
 		Scorer.first_point(infos)
-		running_mean_score = 100
+		dists = deque(maxlen = 10)
 		last_dist  = 0
 		dist_diff = 0
-		mean_diff = 10
-		while ((not done) and (n < max_frames)):
+		while (not (done or is_stuck(dists, 0.05))):
 			action = self.get_action(processed_state)
 			self.Logger.debug(f"action: {action}")
 			new_state, reward, done, infos = self.env.step(action)
@@ -217,11 +216,7 @@ class CentralAgentWorker():
 
 			dist_diff = Scorer.get_current_race_dist() - last_dist
 			last_dist = Scorer.get_current_race_dist()
-			mean_diff = ((mean_diff * (n + 1)) + dist_diff) / (n + 2)
-			# print(f"last_diff {dist_diff}, mean {mean_diff}")
-			if (mean_diff < 0.08):
-				print("STUCKO ", mean_diff)
-				break
+			dists.append(dist_diff)
 			n = n + 1
 		
 		Scorer.end_race(n)

@@ -11,3 +11,4 @@ from .get_abs_path import get_path_to_cache
 from .fix_cte import fix_cte
 from .data_transform import to_numpy_32
 from .free_all_sims import free_all_sims
+from .is_stuck import is_stuck

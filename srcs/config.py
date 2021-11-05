@@ -65,8 +65,8 @@ config.config_HumanPlayer.config_Datasets.sim = DotDict()
 
 config.min_steering = -5.0
 config.max_steering = 5.0
-config.min_throttle = 0.0
-config.max_throttle = 1.0
+config.min_throttle = 0.3
+config.max_throttle = 0.5
 config.action_space_boundaries = [[config.min_steering, config.max_steering], [config.min_throttle, config.max_throttle]]
 
 
@@ -110,7 +110,7 @@ config_NeuralPlayer.camera_picture_shape     = (120, 160, 3)  # H * W * C
 config_NeuralPlayer.cte_limit                = 5.0 # 3.2 is the white line
 config_NeuralPlayer.cte_offset               = 0
 config_NeuralPlayer.cte_coef                 = 1000 # cte goes from -3.2 to 3.2 on the road
-config_NeuralPlayer.speed_coef               = 200 # speed goes aprox from 0 to 10
+config_NeuralPlayer.speed_coef               = 0 # speed goes aprox from 0 to 10
 config_NeuralPlayer.reward_stick             = -1000
 config_NeuralPlayer.collision_stick          = -700 
 config_NeuralPlayer.backwards_stick          = -300
@@ -143,8 +143,8 @@ config_Datasets.S3_bucket_name			= 'deyopotato'
 
 # DDQN:
 config_Datasets.ddqn = config.config_NeuralPlayer.config_Datasets.ddqn
-config_Datasets.ddqn.load_model			= False
-config_Datasets.ddqn.load_name 			= "model_cache/ddqn/DQN_no_AE_speed_weights_3_11.11_33.27" #if local: path from the root folder, if S3: path after bucket name
+config_Datasets.ddqn.load_model			= True
+config_Datasets.ddqn.load_name 			= "model_cache/ddqn/Circuit_no_AE_7_5_weights_5_11.14_15.50" #if local: path from the root folder, if S3: path after bucket name
 config_Datasets.ddqn.save_name 			= f"model_cache/ddqn/{config_NeuralPlayer.agent_name}_weights_{date}."
 config_Datasets.ddqn.saving_frequency	= 5
 config_Datasets.ddqn.save_score			= True
@@ -234,14 +234,14 @@ if (agent_type == "DQN"):
 	config_Agent.input_size         = config_Preprocessing.output_size
 	config_Agent.data               = config_NeuralPlayer.config_Datasets.ddqn
 	config_Agent.sim                = config_NeuralPlayer.config_Datasets.ddqn.sim
-	config_Agent.action_space_size  = (7, 3)
+	config_Agent.action_space_size  = (7, 2)
 	config_Agent.discount           = 0.99
 	config_Agent.lr                 = 5e-4
-	config_Agent.initial_epsilon    = 0.9
+	config_Agent.initial_epsilon    = 0.4
 	config_Agent.epsilon            = config_Agent.initial_epsilon
 	config_Agent.epsilon_decay      = 0.0
 	config_Agent.epsilon_min        = 0.02
-	config_Agent.steps_to_eps_min   = 50
+	config_Agent.steps_to_eps_min   = 20
 	config_Agent.batch_size         = 256
 	config_Agent.min_memory_size    = 1000
 	config_Agent.memory_size        = 10000

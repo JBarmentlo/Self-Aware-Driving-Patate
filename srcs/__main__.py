@@ -35,8 +35,8 @@ def run_worker(rank, world_size):
 		for i_episode in range(10000):
 			# Masta.update_worker_agent_params()
 			print("START")
-			Masta.run_remote_episode(1000 + min(i_episode * 8, 2000), i_episode)
-			Masta.data_gatherer.data.to_csv("/workspaces/Self-Aware-Driving-Patate/model_cache/ddqn/DATA_morning.csv")
+			Masta.run_remote_episode(2000 + min(i_episode * 16, 2000), i_episode)
+			Masta.data_gatherer.data.to_csv("/workspaces/Self-Aware-Driving-Patate/model_cache/ddqn/DATA_fixed_speed.csv")
 			if ((i_episode % EVAL_FREQUENCY) == 0):
 				print("EVAL")
 				Masta.run_eval_episode(i_episode, 2000)

@@ -29,7 +29,7 @@ stream = logging.StreamHandler()
 Logger.addHandler(stream)
 
 import matplotlib
-# matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')dist_diff
 import matplotlib.pyplot as plt
 
 class ScoreDataGatherer():
@@ -85,12 +85,14 @@ class CentralAgentMaster():
 			self.worker_rrefs.append(remote(worker_info, CentralAgentWorker, args = (config, worker_rank), timeout=600))
 		# self._save_config()
 
+
 	def _init_dataset(self, config):
 		self.S3 = None
 		if self.config.config_Datasets.S3_connection == True:
 			self.S3 = S3(self.config.config_Datasets.S3_bucket_name)
 		if self.config.agent_name == "DQN":
 			self.SimCache = SimCache(self.config.config_Datasets.ddqn.sim, self.S3)
+
 
 	def _init_agent(self, config_Agent):
 		self.agent = DQNAgent(config=config_Agent, S3=self.S3)
@@ -176,7 +178,7 @@ class CentralAgentMaster():
 
 		for id, fut in enumerate(futures):
 			score, distance, speed = fut.value()
-			self.data_gatherer.add_eval_point(score, speed, distance, episode_num, self.agent.config.epsilon, id)
+			self.data_gatherer.add_point(score, speed, distance, episode_num, self.agent.config.epsilon, id)
 
 		self.agent.config.epsilon = tmp_epsilone
 

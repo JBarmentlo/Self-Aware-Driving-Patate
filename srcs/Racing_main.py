@@ -7,7 +7,12 @@ from agents import DQNAgent
 from config import config_Agent, config
 from S3 import S3
 from Preprocessing import PreprocessingVannilla
-
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+import numpy as np
+from skimage import data
+from skimage.filters import threshold_multiotsu
 
 
     # "donkey-warehouse-v0"
@@ -28,7 +33,7 @@ config_Simulator = {"exe_path": "manual",
 						"host": host,
 						"body_style": "donkey",
 						"body_rgb": (128, 128, 128),
-						"car_name": "Patato Qarnot",
+						"car_name": "42AI Potato Qarnot",
 						"font_size": 100,
 						"racer_name": "DDQN",
 						"country": "FR",
@@ -48,8 +53,9 @@ if __name__ == "__main__":
 	env.reset()
 	i = 0
 	state, reward, done, infos = env.step([0, 0.1])
-	while(i < 10000):
+	while(i < 1000):
 		processed_state = preprocessor.process(state)
 		action = agent.get_action(processed_state)
 		state, reward, done, infos = env.step(action)
+		print(action, done, infos)
 		i += 1
