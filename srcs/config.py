@@ -65,7 +65,7 @@ config.config_HumanPlayer.config_Datasets.sim = DotDict()
 
 config.min_steering = -5.0
 config.max_steering = 5.0
-config.min_throttle = -1.0
+config.min_throttle = 0.0
 config.max_throttle = 1.0
 config.action_space_boundaries = [[config.min_steering, config.max_steering], [config.min_throttle, config.max_throttle]]
 
@@ -234,7 +234,7 @@ if (agent_type == "DQN"):
 	config_Agent.input_size         = config_Preprocessing.output_size
 	config_Agent.data               = config_NeuralPlayer.config_Datasets.ddqn
 	config_Agent.sim                = config_NeuralPlayer.config_Datasets.ddqn.sim
-	config_Agent.action_space_size  = (7, 5)
+	config_Agent.action_space_size  = (7, 3)
 	config_Agent.discount           = 0.99
 	config_Agent.lr                 = 5e-4
 	config_Agent.initial_epsilon    = 0.9
