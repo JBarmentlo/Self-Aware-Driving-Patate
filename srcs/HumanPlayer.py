@@ -71,9 +71,12 @@ class HumanPlayer():
 	def get_action(self, key, released_key):
 		if key != None and type(key) != str:
 			if key == key.up:
-				self.throttle = min(self.config.max_throttle, max(self.config.min_throttle, abs(self.throttle * self.config.coef)))
+				self.throttle = min(1.0, max(self.config.min_throttle, abs(self.throttle * self.config.coef)))
+				if (self.throttle == 0):
+					self.throttle = 0.1
+				
 			elif key == key.down:
-				self.throttle = min(self.config.min_throttle, max(self.config.min_throttle, abs(self.throttle * self.config.coef) * 1))
+				self.throttle = max(-1.0, abs(self.throttle * self.config.coef) * -1)
 
 			elif key == key.left:
 				if self.steering == 0:
@@ -91,7 +94,7 @@ class HumanPlayer():
 			elif released_key == released_key.left or released_key == released_key.right:
 				self.steering = 0
 		
-		self.check_min_max()
+		# self.check_min_max()
 		return ([self.steering, self.throttle])
 	
 	def check_min_max(self):
@@ -126,8 +129,9 @@ class HumanPlayer():
 			self.add_simcache_point([state, action, new_state, reward, done, infos])
 			state = new_state
 			scor.add_point(infos)
-			print(scor.current_race_dist)
-			print(infos, "done: ", done)
+			# print(scor.current_race_dist)
+			# print(infos, "done: ", done)
+			print(f"{reward:.2f}")
 
 		listener.stop()
 		print("\nStoping race and listening Keyboard\n")

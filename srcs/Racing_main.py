@@ -28,7 +28,7 @@ from skimage.filters import threshold_multiotsu
 
 
 host = "donkey-sim.roboticist.dev" 
-env_name = "donkey-generated-roads-v0"
+env_name = "donkey-circuit-launch-track-v0"
 config_Simulator = {"exe_path": "manual",
 						"host": host,
 						"body_style": "donkey",

@@ -80,7 +80,7 @@ config.config_Simulator.update({"exe_path": "manual",
 						"body_style": "donkey",
 						"body_rgb": (128, 128, 128),
 						"car_name": "me",
-						"font_size": 100,
+						"font_size": 10,
 						"racer_name": "DDQN",
 						"country": "FR",
 						"bio": "Learning to drive w DDQN RL",
@@ -144,7 +144,7 @@ config_Datasets.S3_bucket_name			= 'deyopotato'
 # DDQN:
 config_Datasets.ddqn = config.config_NeuralPlayer.config_Datasets.ddqn
 config_Datasets.ddqn.load_model			= True
-config_Datasets.ddqn.load_name 			= "model_cache/ddqn/Circuit_7_2_hit_slow_weights_5_11.16_5.15" #if local: path from the root folder, if S3: path after bucket name
+config_Datasets.ddqn.load_name 			= "model_cache/ddqn/Circuit_no_AE_7_5_weights_5_11.14_15.50" #if local: path from the root folder, if S3: path after bucket name
 config_Datasets.ddqn.save_name 			= f"model_cache/ddqn/{config_NeuralPlayer.agent_name}_weights_{date}."
 config_Datasets.ddqn.saving_frequency	= 5
 config_Datasets.ddqn.save_score			= True
@@ -236,8 +236,8 @@ if (agent_type == "DQN"):
 	config_Agent.sim                = config_NeuralPlayer.config_Datasets.ddqn.sim
 	config_Agent.action_space_size  = (7, 2)
 	config_Agent.discount           = 0.99
-	config_Agent.lr                 = 2e-4
-	config_Agent.initial_epsilon    = 0.4
+	config_Agent.lr                 = 2e-3
+	config_Agent.initial_epsilon    = 0.05
 	config_Agent.epsilon            = config_Agent.initial_epsilon
 	config_Agent.epsilon_decay      = 0.0
 	config_Agent.epsilon_min        = 0.02

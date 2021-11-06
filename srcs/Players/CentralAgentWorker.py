@@ -165,7 +165,7 @@ class CentralAgentWorker():
 				new_state, reward, done, infos = self.env.step(action)
 				new_processed_state = self.preprocessor.process(new_state)
 				done = self._is_over_race(infos, done)
-				reward = self.RO.sticks_and_carrots(action, infos, done)
+				# reward = self.RO.sticks_and_carrots(action, infos, done)
 				[action, reward] = utils.to_numpy_32([action, reward])
 				self.agent_rref.rpc_async().add_to_memory(processed_state, action, new_processed_state, reward, done)
 				processed_state = new_processed_state
